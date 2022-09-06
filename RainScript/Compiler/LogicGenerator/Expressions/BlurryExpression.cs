@@ -12,12 +12,12 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
     }
     #region Methods
-    internal class MemberMethodExpression : Expression
+    internal class MethodMemberExpression : Expression
     {
         public readonly Expression target;
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Invalid;
-        public MemberMethodExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public MethodMemberExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.target = target;
             this.declaration = declaration;
@@ -27,12 +27,12 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             throw new NotImplementedException();
         }
     }
-    internal class MemberVirtualMethodExpression : Expression
+    internal class MethodVirtualExpression : Expression
     {
         public readonly Expression target;
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Invalid;
-        public MemberVirtualMethodExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public MethodVirtualExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.target = target;
             this.declaration = declaration;
@@ -42,12 +42,12 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             throw new NotImplementedException();
         }
     }
-    internal class MemberQuestionMethodExpression : Expression
+    internal class MethodQuestionExpression : Expression
     {
         public readonly Expression target;
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Invalid;
-        public MemberQuestionMethodExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public MethodQuestionExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.target = target;
             this.declaration = declaration;
@@ -57,11 +57,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             throw new NotImplementedException();
         }
     }
-    internal class GlobalMethodExpression : Expression
+    internal class MethodGlobalExpression : Expression
     {
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Invalid;
-        public GlobalMethodExpression(Anchor anchor, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public MethodGlobalExpression(Anchor anchor, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.declaration = declaration;
         }
@@ -70,11 +70,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             throw new NotImplementedException();
         }
     }
-    internal class NativeMethodExpression : Expression
+    internal class MethodNativeExpression : Expression
     {
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Invalid;
-        public NativeMethodExpression(Anchor anchor, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public MethodNativeExpression(Anchor anchor, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.declaration = declaration;
         }

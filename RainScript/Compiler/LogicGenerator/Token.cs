@@ -33,17 +33,6 @@
         IncrementRight,         // ++ 右自增(X++)
         DecrementLeft,          // -- 左自减(--X)
         DecrementRight,         // -- 右自减(X--)
-
-        StartCoroutine,         // 开始携程
-        Cast,                   // 类型转换
-
-        BracketFunction,        // () 函数调用
-        BracketTuple,           // [] 元组取值
-        BracketArray,           // [] 数组
-        BracketArrayCtor,       // [] 数组构造
-        BracketCoroutineResult, // [] 携程取值
-        Dot,                    // .
-        QuestionDot,            // ?.
     }
     internal enum TokenPriority : byte
     {
@@ -55,8 +44,6 @@
         IntermediateOperation,      // 中级运算
         AdvancedOperation,          // 高级运算
         SymbolicOperation,          // 符号运算
-        Transition,                 // 转换
-        Evaluation,                 // 取值
     }
     [System.Flags]
     internal enum TokenAttribute : uint
@@ -73,6 +60,7 @@
         Coroutine = 0x0100,         //携程
         Cast = 0x0200,              //类型转换
         Type = 0x0400,              //类型
+        Method = 0x0800,            //类型
     }
     internal struct Token
     {
@@ -118,15 +106,6 @@
                 case TokenType.IncrementRight:
                 case TokenType.DecrementLeft:
                 case TokenType.DecrementRight: return TokenPriority.SymbolicOperation;
-                case TokenType.StartCoroutine:
-                case TokenType.Cast: return TokenPriority.Transition;
-                case TokenType.BracketFunction:
-                case TokenType.BracketTuple:
-                case TokenType.BracketArray:
-                case TokenType.BracketArrayCtor:
-                case TokenType.BracketCoroutineResult:
-                case TokenType.Dot:
-                case TokenType.QuestionDot: return TokenPriority.Evaluation;
                 default: return TokenPriority.None;
             }
         }
@@ -160,15 +139,6 @@
                 case TokenType.IncrementRight:
                 case TokenType.DecrementLeft:
                 case TokenType.DecrementRight: return 1;
-                case TokenType.StartCoroutine:
-                case TokenType.Cast:
-                case TokenType.BracketFunction:
-                case TokenType.BracketTuple:
-                case TokenType.BracketArray:
-                case TokenType.BracketArrayCtor:
-                case TokenType.BracketCoroutineResult: break;
-                case TokenType.Dot:
-                case TokenType.QuestionDot: return 2;
             }
             return -1;
         }
@@ -205,15 +175,6 @@
                 case TokenType.IncrementRight: return LEFT_VALUE;
                 case TokenType.DecrementLeft: return NOT_VALUE;
                 case TokenType.DecrementRight: return LEFT_VALUE;
-                case TokenType.StartCoroutine:
-                case TokenType.Cast: goto default;
-                case TokenType.BracketFunction: return TokenAttribute.Function;
-                case TokenType.BracketTuple: return TokenAttribute.Tuple;
-                case TokenType.BracketArray: return TokenAttribute.Array;
-                case TokenType.BracketArrayCtor: return TokenAttribute.Type;
-                case TokenType.BracketCoroutineResult: return TokenAttribute.Tuple;
-                case TokenType.Dot:
-                case TokenType.QuestionDot: return RIGHT_VALUE;
                 default: return TokenAttribute.Invalid;
             }
         }

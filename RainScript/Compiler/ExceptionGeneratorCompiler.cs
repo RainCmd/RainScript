@@ -33,6 +33,10 @@ namespace RainScript.Compiler
         {
             return new Exception("无效的词汇类型：" + type);
         }
+        public static Exception InvalidCompilingType(CompilingType type)
+        {
+            return new Exception("无效的词汇类型：" + type);
+        }
         public static ExpectedException DuplicateLibraryNames()
         {
             return new ExpectedException("有重复的库名");

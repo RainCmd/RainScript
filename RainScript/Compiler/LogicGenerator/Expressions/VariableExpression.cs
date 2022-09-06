@@ -5,6 +5,25 @@
         protected VariableExpression(Anchor anchor, CompilingType type) : base(anchor, type) { }
         public abstract void GeneratorAssignment(GeneratorParameter parameter);
     }
+    internal class VariableLocalExpression : VariableExpression
+    {
+        private readonly Declaration declaration;
+        private readonly TokenAttribute attribute;
+        public override TokenAttribute Attribute => attribute;
+        public VariableLocalExpression(Anchor anchor, Declaration declaration, CompilingType type) : base(anchor, type)
+        {
+            this.declaration = declaration;
+            attribute = TokenAttribute.Variable.AddTypeAttribute(type);
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new System.NotImplementedException();
+        }
+        public override void GeneratorAssignment(GeneratorParameter parameter)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
     internal class VariableGlobalExpression : VariableExpression
     {
         private readonly Declaration declaration;

@@ -1,5 +1,4 @@
-﻿using RainScript.Compiler.Compiling;
-using RainScript.Compiler.LogicGenerator.Expressions;
+﻿using RainScript.Compiler.LogicGenerator.Expressions;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -234,7 +233,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (manager.TryGetParameters(type.definition.Declaration, out var parameters) && manager.TryGetReturns(type.definition.Declaration, out var returns))
                             {
-                                if (source is GlobalMethodExpression globalMethod)
+                                if (source is MethodGlobalExpression globalMethod)
                                 {
                                     if (manager.TryGetFunction(globalMethod.declaration, parameters, returns, out var functionDeclaration))
                                     {
@@ -242,7 +241,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         return true;
                                     }
                                 }
-                                else if (source is MemberMethodExpression memberMethod)
+                                else if (source is MethodMemberExpression memberMethod)
                                 {
                                     if (manager.TryGetFunction(memberMethod.declaration, parameters, returns, out var functionDeclaration))
                                     {
@@ -250,7 +249,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         return true;
                                     }
                                 }
-                                else if (source is MemberVirtualMethodExpression virtualMethod)
+                                else if (source is MethodVirtualExpression virtualMethod)
                                 {
                                     if (manager.TryGetFunction(virtualMethod.declaration, parameters, returns, out var functionDeclaration))
                                     {
@@ -258,7 +257,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         return true;
                                     }
                                 }
-                                else if (source is MemberQuestionMethodExpression questionMethod)
+                                else if (source is MethodQuestionExpression questionMethod)
                                 {
                                     if (manager.TryGetFunction(questionMethod.declaration, parameters, returns, out var functionDeclaration))
                                     {
@@ -307,7 +306,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (manager.TryGetReturns(type.definition.Declaration, out var coroutineReturns) && CompilingType.IsEquals(coroutineReturns, blurryCoroutine.invoker.returns))
                             {
-                                result = new CreatCoroutineExpression(source.anchor, blurryCoroutine.invoker, type);
+                                result = new CoroutineCreateExpression(source.anchor, blurryCoroutine.invoker, type);
                                 return true;
                             }
                         }
@@ -1137,7 +1136,12 @@ namespace RainScript.Compiler.LogicGenerator
                         return true;
                     }
                 }
-                else exceptions.Add(lexicals[index, bracketIndex], CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                else
+                {
+                    expressions = new Expression[0];
+                    index = bracketIndex;
+                    return true;
+                }
             }
             expressions = default;
             return false;
@@ -1225,13 +1229,13 @@ namespace RainScript.Compiler.LogicGenerator
             }
             else if (declaration.code == DeclarationCode.GlobalMethod)
             {
-                var expression = new GlobalMethodExpression(anchor, declaration);
+                var expression = new MethodGlobalExpression(anchor, declaration);
                 expressionStack.Push(expression);
                 attribute = expression.Attribute;
             }
             else if (declaration.code == DeclarationCode.NativeMethod)
             {
-                var expression = new NativeMethodExpression(anchor, declaration);
+                var expression = new MethodNativeExpression(anchor, declaration);
                 expressionStack.Push(expression);
                 attribute = expression.Attribute;
             }
@@ -1258,38 +1262,98 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (TryParseBracket(lexicals, SplitFlag.Bracket0, ref index, out var expressions))
                                 {
-                                    if (attribute.ContainAny(TokenAttribute.Function))
+                                    if (expressions.Length == 0) exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                    else if (attribute.ContainAny(TokenAttribute.Method))
                                     {
-                                        var functionExpression = expressionStack.Pop();
-                                        if (functionExpression is MethodExpression methodExpression)
+                                        var methodExpression = expressionStack.Pop();
+                                        if (methodExpression is MethodMemberExpression memberMethod)
                                         {
-                                            var method = manager.GetMethod(methodExpression.declaration);
+                                            var method = manager.GetMethod(memberMethod.declaration);
                                             for (int i = 0; i < method.FunctionCount; i++)
                                                 if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
                                                 {
                                                     var function = method.GetFunction(i);
-                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(functionExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                    var expression = new InvokerExpression(functionExpression.anchor, function.Declaration, methodExpression.parameters, new Expression[] { parameter }, parameter.returns);
+                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                    var expression = new InvokerMemberExpression(methodExpression.anchor, function.Declaration, memberMethod.target, parameter, function.Returns);
                                                     expressionStack.Push(expression);
                                                     attribute = expression.Attribute;
-                                                    goto success;
+                                                    goto next_lexical;
                                                 }
-                                            exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
-                                            goto parse_fail;
-                                        success: break;
                                         }
-                                        else if (functionExpression.returns.Length == 1)
+                                        else if (methodExpression is MethodVirtualExpression virtualMethod)
                                         {
-                                            var type = functionExpression.returns[0];
-                                            var declaration = new Declaration(type.definition.library, type.definition.visibility, DeclarationCode.Delegate, type.definition.index, 0, 0);
-                                            if (manager.TryGetParameters(declaration, out var parameters) && TryAssignmentConvert(expressions, parameters, out var parameter))
-                                            {
-                                                var expression = new DelegateInvokerExpression(functionExpression.anchor, functionExpression, new Expression[] { parameter }, parameter.returns);
-                                                expressionStack.Push(expression);
-                                                attribute = expression.Attribute;
-                                                break;
-                                            }
+                                            var method = manager.GetMethod(virtualMethod.declaration);
+                                            for (int i = 0; i < method.FunctionCount; i++)
+                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                {
+                                                    var function = method.GetFunction(i);
+                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                    var expression = new InvokerVirtualMemberExpression(methodExpression.anchor, function.Declaration, virtualMethod.target, parameter, function.Returns);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    goto next_lexical;
+                                                }
                                         }
+                                        else if (methodExpression is MethodQuestionExpression questionMethod)
+                                        {
+                                            var method = manager.GetMethod(questionMethod.declaration);
+                                            for (int i = 0; i < method.FunctionCount; i++)
+                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                {
+                                                    var function = method.GetFunction(i);
+                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                    var expression = new InvokerQuestionMemberExpression(methodExpression.anchor, function.Declaration, questionMethod.target, parameter, function.Returns);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    goto next_lexical;
+                                                }
+                                        }
+                                        else if (methodExpression is MethodGlobalExpression globalMethod)
+                                        {
+                                            var method = manager.GetMethod(globalMethod.declaration);
+                                            for (int i = 0; i < method.FunctionCount; i++)
+                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                {
+                                                    var function = method.GetFunction(i);
+                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                    var expression = new InvokerGlobalExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    goto next_lexical;
+                                                }
+                                        }
+                                        else if (methodExpression is MethodNativeExpression netiveMethod)
+                                        {
+                                            var method = manager.GetMethod(netiveMethod.declaration);
+                                            for (int i = 0; i < method.FunctionCount; i++)
+                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                {
+                                                    var function = method.GetFunction(i);
+                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                    var expression = new InvokerNativeExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    goto next_lexical;
+                                                }
+                                        }
+                                        exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
+                                        goto parse_fail;
+                                    }
+                                    else if (attribute.ContainAny(TokenAttribute.Function))
+                                    {
+                                        var delegateExpression = expressionStack.Pop();
+                                        if (delegateExpression.returns.Length != 1 || delegateExpression.returns[0].dimension > 0 || delegateExpression.returns[0].definition.code != TypeCode.Function) throw ExceptionGeneratorCompiler.InvalidCompilingType(delegateExpression.returns[0]);
+                                        var delegateType = delegateExpression.returns[0];
+                                        var declaration = new Declaration(delegateType.definition.library, delegateType.definition.visibility, DeclarationCode.Delegate, delegateType.definition.index, 0, 0);
+                                        if (manager.TryGetReturns(declaration, out var returns) && manager.TryGetParameters(declaration, out var parameters) && TryAssignmentConvert(expressions, parameters, out var parameter))
+                                        {
+                                            var expression = new InvokerDelegateExpression(delegateExpression.anchor, delegateExpression, parameter, returns);
+                                            expressionStack.Push(expression);
+                                            attribute = expression.Attribute;
+                                            break;
+                                        }
+                                        exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
+                                        goto parse_fail;
                                     }
                                     else if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -1305,64 +1369,109 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                         case LexicalType.BracketLeft1:
                             {
-                                if (TryParseBracket(lexicals, SplitFlag.Bracket1, ref index, out var expressions) && TryCombineExpressions(out var expression, expressions))
+                                if (TryParseBracket(lexicals, SplitFlag.Bracket1, ref index, out var expressions))
                                 {
-                                    foreach (var returnType in expression.returns)
-                                        if (returnType != RelyKernel.INTEGER_TYPE)
-                                        {
-                                            exceptions.Add(expression.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                            goto default;
-                                        }
+                                    foreach (var item in expressions)
+                                        foreach (var returnType in item.returns)
+                                            if (returnType != RelyKernel.INTEGER_TYPE)
+                                            {
+                                                exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                                goto default;
+                                            }
                                     if (attribute.ContainAny(TokenAttribute.Array))
                                     {
-                                        var array = expressionStack.Pop();
-                                        if (expression.returns.Length == 1)
+                                        if (TryCombineExpressions(out var expression, expressions))
                                         {
-                                            expression = new ArrayEvaluationExpression(lexical.anchor, array, expression, new CompilingType(array.returns[0].definition, array.returns[0].dimension - 1));
-                                            break;
-                                        }
-                                        else if (expression.returns.Length == 2)
-                                        {
-                                            expression = new ArraySubExpression(lexical.anchor, array, expression);
-                                            break;
+                                            var array = expressionStack.Pop();
+                                            if (expression.returns.Length == 1)
+                                            {
+                                                expression = new ArrayEvaluationExpression(lexical.anchor, array, expression, new CompilingType(array.returns[0].definition, array.returns[0].dimension - 1));
+                                                break;
+                                            }
+                                            else if (expression.returns.Length == 2)
+                                            {
+                                                expression = new ArraySubExpression(lexical.anchor, array, expression);
+                                                break;
+                                            }
                                         }
                                     }
                                     else if (attribute.ContainAny(TokenAttribute.Tuple))
                                     {
-                                        var tuple = expressionStack.Pop();
-                                        if (expression.Attribute.ContainAny(TokenAttribute.Constant))
-                                        {
-                                            var elementIndices = new long[expression.returns.Length];
-                                            var elementIndex = 0;
-                                            foreach (var item in expressions)
-                                                if (item.TryEvaluation(out long value))
-                                                {
-                                                    if (value < 0) value += tuple.returns.Length;
-                                                    if (value < 0 || value >= tuple.returns.Length)
+                                        var tupleExpression = expressionStack.Pop();
+                                        if (expressions.Length == 0) exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                        else using (var elementIndices = pool.GetList<long>())
+                                            {
+                                                foreach (var item in expressions)
+                                                    if (item.TryEvaluation(out long value))
                                                     {
-                                                        exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_TUPLE_INDEX_OUT_OF_RANGE);
-                                                        goto default;
+                                                        if (value < 0) value += tupleExpression.returns.Length;
+                                                        if (value < 0 || value >= tupleExpression.returns.Length)
+                                                        {
+                                                            exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_TUPLE_INDEX_OUT_OF_RANGE);
+                                                            goto default;
+                                                        }
+                                                        else elementIndices.Add(value);
                                                     }
-                                                    else elementIndices[elementIndex++] = value;
-                                                }
-                                                else
-                                                {
-                                                    exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_TUPLE_INDEX_NOT_CONSTANT);
-                                                    goto default;
-                                                }
-                                            var returns = new CompilingType[elementIndex];
-                                            for (int i = 0; i < returns.Length; i++)
-                                                returns[i] = tuple.returns[elementIndices[i]];
-                                            expression = new TupleEvaluationExpression(tuple.anchor, tuple, elementIndices, returns);
-                                            expressionStack.Push(expression);
-                                            attribute = expression.Attribute;
-                                            break;
-                                        }
-                                        else exceptions.Add(expression.anchor, CompilingExceptionCode.GENERATOR_TUPLE_INDEX_NOT_CONSTANT);
+                                                    else
+                                                    {
+                                                        exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_TUPLE_INDEX_NOT_CONSTANT);
+                                                        goto parse_fail;
+                                                    }
+                                                var returns = new CompilingType[elementIndices.Count];
+                                                for (int i = 0; i < returns.Length; i++)
+                                                    returns[i] = tupleExpression.returns[elementIndices[i]];
+                                                var tuple = new TupleEvaluationExpression(tupleExpression.anchor, tupleExpression, elementIndices.ToArray(), returns);
+                                                expressionStack.Push(tuple);
+                                                attribute = tuple.Attribute;
+                                            }
                                     }
                                     else if (attribute.ContainAny(TokenAttribute.Coroutine))
                                     {
-
+                                        var coroutineExpression = expressionStack.Pop();
+                                        if (coroutineExpression.returns.Length != 1 || coroutineExpression.returns[0].dimension > 0 || coroutineExpression.returns[0].definition.code != TypeCode.Coroutine) throw ExceptionGeneratorCompiler.InvalidCompilingType(coroutineExpression.returns[0]);
+                                        var coroutineType = coroutineExpression.returns[0];
+                                        var declaration = new Declaration(coroutineType.definition.library, Visibility.Public, DeclarationCode.Coroutine, coroutineType.definition.index, 0, 0);
+                                        if (manager.TryGetReturns(declaration, out var returns))
+                                        {
+                                            if (expressions.Length == 0)
+                                            {
+                                                var indices = new long[returns.Length];
+                                                for (int i = 0; i < indices.Length; i++) indices[i] = i;
+                                                var coroutine = new CoroutineEvaluationExpression(lexical.anchor, coroutineExpression, indices, returns);
+                                                expressionStack.Push(coroutine);
+                                                attribute = coroutine.Attribute;
+                                            }
+                                            else using (var elementIndices = pool.GetList<long>())
+                                                {
+                                                    foreach (var item in expressions)
+                                                        if (item.TryEvaluation(out long value))
+                                                        {
+                                                            if (value < 0) value += returns.Length;
+                                                            if (value < 0 || value >= returns.Length)
+                                                            {
+                                                                exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_TUPLE_INDEX_OUT_OF_RANGE);
+                                                                goto default;
+                                                            }
+                                                            else elementIndices.Add(value);
+                                                        }
+                                                        else
+                                                        {
+                                                            exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_TUPLE_INDEX_NOT_CONSTANT);
+                                                            goto parse_fail;
+                                                        }
+                                                    var types = new CompilingType[elementIndices.Count];
+                                                    for (int i = 0; i < types.Length; i++)
+                                                        types[i] = returns[elementIndices[i]];
+                                                    var tuple = new CoroutineEvaluationExpression(coroutineExpression.anchor, coroutineExpression, elementIndices.ToArray(), types);
+                                                    expressionStack.Push(tuple);
+                                                    attribute = tuple.Attribute;
+                                                }
+                                        }
+                                        else
+                                        {
+                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
+                                            goto parse_fail;
+                                        }
                                     }
                                 }
                             }
@@ -1501,7 +1610,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             else if (declaration.code == DeclarationCode.MemberMethod || declaration.code == DeclarationCode.InterfaceMethod)
                                             {
-                                                expression = new MemberVirtualMethodExpression(lexical.anchor, expression, declaration);
+                                                expression = new MethodVirtualExpression(lexical.anchor, expression, declaration);
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
                                                 break;
@@ -1544,7 +1653,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             else if (declaration.code == DeclarationCode.MemberMethod || declaration.code == DeclarationCode.InterfaceMethod)
                                             {
-                                                expression = new MemberQuestionMethodExpression(lexical.anchor, expression, declaration);
+                                                expression = new MethodQuestionExpression(lexical.anchor, expression, declaration);
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
                                                 break;
@@ -1716,14 +1825,42 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.BASE)
                                 {
-                                    if (context.definition == null)
+                                    if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
                                     {
-                                        exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_NOT_MEMBER_METHOD);
-                                        goto default;
+                                        if (CheckNext(lexicals, ref index, LexicalType.Dot))
+                                        {
+                                            if (CheckNext(lexicals, ref index, LexicalType.Word))
+                                            {
+                                                var baseAnchor = lexical.anchor;
+                                                lexical = lexicals[index];
+                                                if (context.TryFindMemberDeclarartion(manager, lexical.anchor, context.definition.parent, out var declaration, pool))
+                                                {
+                                                    if (declaration.code == DeclarationCode.MemberVariable)
+                                                    {
+                                                        var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, local.type), GetVariableType(declaration));
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
+                                                    goto parse_fail;
+                                                }
+                                            }
+                                            else goto default;
+                                        }
+                                        else
+                                        {
+                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
+                                            goto parse_fail;
+                                        }
                                     }
                                     else
                                     {
-
+                                        exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_NOT_MEMBER_METHOD);
+                                        goto parse_fail;
                                     }
                                 }
                             }
