@@ -1355,9 +1355,17 @@ namespace RainScript.Compiler.LogicGenerator
                                         exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
                                         goto parse_fail;
                                     }
+                                    else if (attribute.ContainAny(TokenAttribute.Type))
+                                    {
+                                        //todo ctor
+                                    }
                                     else if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
-                                        if (TryCombineExpressions(out var expression, expressions))
+                                        if (expressions.Length == 1 && expressions[0].Attribute.ContainAny(TokenAttribute.Type))
+                                        {
+                                            //todo cast
+                                        }
+                                        else if (TryCombineExpressions(out var expression, expressions))
                                         {
                                             expressionStack.Push(expression);
                                             attribute = expression.Attribute;
@@ -1837,7 +1845,14 @@ namespace RainScript.Compiler.LogicGenerator
                                                 {
                                                     if (declaration.code == DeclarationCode.MemberVariable)
                                                     {
-                                                        var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, local.type), GetVariableType(declaration));
+                                                        var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Temporary, local.type), GetVariableType(declaration));
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        break;
+                                                    }
+                                                    else if (declaration.code == DeclarationCode.MemberMethod)
+                                                    {
+                                                        var expression = new MethodMemberExpression(lexical.anchor, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Temporary, local.type), declaration);
                                                         expressionStack.Push(expression);
                                                         attribute = expression.Attribute;
                                                         break;
@@ -1849,7 +1864,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     goto parse_fail;
                                                 }
                                             }
-                                            else goto default;
+                                            goto default;
                                         }
                                         else
                                         {
@@ -1862,6 +1877,100 @@ namespace RainScript.Compiler.LogicGenerator
                                         exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_NOT_MEMBER_METHOD);
                                         goto parse_fail;
                                     }
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.THIS)
+                                {
+                                    if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+                                    {
+                                        if (CheckNext(lexicals, ref index, LexicalType.Dot))
+                                        {
+                                            if (CheckNext(lexicals, ref index, LexicalType.Word))
+                                            {
+                                                var baseAnchor = lexical.anchor;
+                                                lexical = lexicals[index];
+                                                if (context.TryFindMemberDeclarartion(manager, lexical.anchor, new CompilingDefinition(context.definition.Declaration), out var declaration, pool))
+                                                {
+                                                    if (declaration.code == DeclarationCode.MemberVariable)
+                                                    {
+                                                        var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Temporary, local.type), GetVariableType(declaration));
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        break;
+                                                    }
+                                                    else if (declaration.code == DeclarationCode.MemberMethod)
+                                                    {
+                                                        var expression = new MethodVirtualExpression(lexical.anchor, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Temporary, local.type), declaration);
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
+                                                    goto parse_fail;
+                                                }
+                                            }
+                                            goto default;
+                                        }
+                                        else
+                                        {
+                                            var expression = new VariableLocalExpression(lexical.anchor, local.Declaration, TokenAttribute.Temporary, local.type);
+                                            expressionStack.Push(expression);
+                                            attribute = expression.Attribute;
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_NOT_MEMBER_METHOD);
+                                        goto parse_fail;
+                                    }
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.TRUE)
+                                {
+                                    var expression = new ConstantBooleanExpression(lexical.anchor, true);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.FALSE)
+                                {
+                                    var expression = new ConstantBooleanExpression(lexical.anchor, false);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.NULL)
+                                {
+                                    var expression = new ConstantNullExpression(lexical.anchor);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.VAR)
+                                {
+                                    if (CheckNext(lexicals, ref index, LexicalType.Word))
+                                    {
+                                        lexical = lexicals[index];
+                                        if (KeyWorld.IsKeyWorld(lexical.anchor.Segment))
+                                        {
+                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
+                                            goto parse_fail;
+                                        }
+                                        else
+                                        {
+                                            var expression = new BlurryVariableDeclarationExpression(lexical.anchor);
+                                            expressionStack.Push(expression);
+                                            attribute = expression.Attribute;
+                                            break;
+                                        }
+                                    }
+                                    else goto default;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.BOOL)
+                                {
+
                                 }
                             }
                             //todo word

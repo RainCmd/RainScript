@@ -10,10 +10,10 @@
         private readonly Declaration declaration;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public VariableLocalExpression(Anchor anchor, Declaration declaration, CompilingType type) : base(anchor, type)
+        public VariableLocalExpression(Anchor anchor, Declaration declaration, TokenAttribute attribute, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            attribute = TokenAttribute.Variable.AddTypeAttribute(type);
+            this.attribute = attribute.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
         {
