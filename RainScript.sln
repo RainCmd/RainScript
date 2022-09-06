@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainScript", "RainScript\RainScript.csproj", "{16709272-B08B-4975-B5C3-310166424A4E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Fixed|Any CPU = Fixed|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{16709272-B08B-4975-B5C3-310166424A4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16709272-B08B-4975-B5C3-310166424A4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16709272-B08B-4975-B5C3-310166424A4E}.Fixed|Any CPU.ActiveCfg = Fixed|Any CPU
+		{16709272-B08B-4975-B5C3-310166424A4E}.Fixed|Any CPU.Build.0 = Fixed|Any CPU
+		{16709272-B08B-4975-B5C3-310166424A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16709272-B08B-4975-B5C3-310166424A4E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4850C358-44D1-4FEF-9F08-2431E48F0056}
+	EndGlobalSection
+EndGlobal
