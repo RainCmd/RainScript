@@ -119,6 +119,7 @@ namespace RainScript.Compiler
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.DeclaractionParseFail();
 
                         foreach (var item in fileSpaces) item.Tidy(manager, pool, exceptions);
+                        //todo 检查类型的接口是否全部实现过
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.DeclaractionTidyFail();
 
                         foreach (var item in fileSpaces) item.Link(manager, pool, exceptions);

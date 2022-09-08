@@ -1736,6 +1736,68 @@ namespace RainScript.Compiler.LogicGenerator
             }
             return false;
         }
+        private bool TryPushVetcorConstructorExpression(ScopeStack<Expression> expressionStack, Expression[] expressions, Anchor anchor, CompilingType type, int dimension, ref TokenAttribute attribute)
+        {
+            var count = 0;
+            for (int i = 0; i < expressions.Length; i++)
+            {
+                var expression = expressions[i];
+                if (expression.returns.Length == 1)
+                {
+                    var returnType = expression.returns[0];
+                    if (returnType == RelyKernel.INTEGER_TYPE || returnType == RelyKernel.REAL_TYPE) count++;
+                    else if (returnType == RelyKernel.REAL2_TYPE)
+                    {
+                        expressions[i] = new VectorDeconstructionExpression(expression.anchor, expression, RelyKernel.REAL_TYPE, RelyKernel.REAL_TYPE);
+                        count += 2;
+                    }
+                    else if (returnType == RelyKernel.REAL3_TYPE)
+                    {
+                        expressions[i] = new VectorDeconstructionExpression(expression.anchor, expression, RelyKernel.REAL_TYPE, RelyKernel.REAL_TYPE, RelyKernel.REAL_TYPE);
+                        count += 3;
+                    }
+                    else if (returnType == RelyKernel.REAL4_TYPE)
+                    {
+                        expressions[i] = new VectorDeconstructionExpression(expression.anchor, expression, RelyKernel.REAL_TYPE, RelyKernel.REAL_TYPE, RelyKernel.REAL_TYPE, RelyKernel.REAL_TYPE);
+                        count += 4;
+                    }
+                    else
+                    {
+                        exceptions.Add(expression.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                        return false;
+                    }
+                }
+                else foreach (var returnType in expression.returns)
+                        if (returnType == RelyKernel.INTEGER_TYPE || returnType == RelyKernel.REAL_TYPE) count++;
+                        else
+                        {
+                            exceptions.Add(expression.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                            return false;
+                        }
+            }
+            if (count == dimension)
+            {
+                var returns = new CompilingType[dimension];
+                for (int i = 0; i < returns.Length; i++) returns[i] = RelyKernel.REAL_TYPE;
+                if (TryAssignmentConvert(expressions, returns, out var expression))
+                {
+                    expression = new VectorCreateExpression(anchor, expression, type);
+                    expressionStack.Push(expression);
+                    attribute = expression.Attribute;
+                    return true;
+                }
+                else
+                {
+                    exceptions.Add(expression.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                    return false;
+                }
+            }
+            else
+            {
+                exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
+                return false;
+            }
+        }
         public bool TryParse(ListSegment<Lexical> lexicals, out Expression result)
         {
             if (TrySub(lexicals, SplitFlag.Lambda, out var lambdaIndex)) return TryParseLambda(lexicals, lambdaIndex, out result);
@@ -1764,72 +1826,86 @@ namespace RainScript.Compiler.LogicGenerator
                                         if (methodExpression is MethodMemberExpression memberMethod)
                                         {
                                             var method = manager.GetMethod(memberMethod.declaration);
-                                            for (int i = 0; i < method.FunctionCount; i++)
-                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                {
-                                                    var function = method.GetFunction(i);
-                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                    var expression = new InvokerMemberExpression(methodExpression.anchor, function.Declaration, memberMethod.target, parameter, function.Returns);
-                                                    expressionStack.Push(expression);
-                                                    attribute = expression.Attribute;
-                                                    goto next_lexical;
-                                                }
+                                            while (method != null)
+                                            {
+                                                for (int i = 0; i < method.FunctionCount; i++)
+                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                    {
+                                                        var function = method.GetFunction(i);
+                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                        var expression = new InvokerMemberExpression(methodExpression.anchor, function.Declaration, memberMethod.target, parameter, function.Returns);
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        goto next_lexical;
+                                                    }
+                                                method = manager.GetOverrideMethod(method);
+                                            }
                                         }
                                         else if (methodExpression is MethodVirtualExpression virtualMethod)
                                         {
                                             var method = manager.GetMethod(virtualMethod.declaration);
-                                            for (int i = 0; i < method.FunctionCount; i++)
-                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                {
-                                                    var function = method.GetFunction(i);
-                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                    var expression = new InvokerVirtualMemberExpression(methodExpression.anchor, function.Declaration, virtualMethod.target, parameter, function.Returns);
-                                                    expressionStack.Push(expression);
-                                                    attribute = expression.Attribute;
-                                                    goto next_lexical;
-                                                }
+                                            while (method != null)
+                                            {
+                                                for (int i = 0; i < method.FunctionCount; i++)
+                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                    {
+                                                        var function = method.GetFunction(i);
+                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                        var expression = new InvokerVirtualMemberExpression(methodExpression.anchor, function.Declaration, virtualMethod.target, parameter, function.Returns);
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        goto next_lexical;
+                                                    }
+                                                method = manager.GetOverrideMethod(method);
+                                            }
                                         }
                                         else if (methodExpression is MethodQuestionExpression questionMethod)
                                         {
                                             var method = manager.GetMethod(questionMethod.declaration);
-                                            for (int i = 0; i < method.FunctionCount; i++)
-                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                {
-                                                    var function = method.GetFunction(i);
-                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                    var expression = new InvokerQuestionMemberExpression(methodExpression.anchor, function.Declaration, questionMethod.target, parameter, function.Returns);
-                                                    expressionStack.Push(expression);
-                                                    attribute = expression.Attribute;
-                                                    goto next_lexical;
-                                                }
+                                            while (method != null)
+                                            {
+                                                for (int i = 0; i < method.FunctionCount; i++)
+                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                    {
+                                                        var function = method.GetFunction(i);
+                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                        var expression = new InvokerQuestionMemberExpression(methodExpression.anchor, function.Declaration, questionMethod.target, parameter, function.Returns);
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        goto next_lexical;
+                                                    }
+                                                method = manager.GetOverrideMethod(method);
+                                            }
                                         }
                                         else if (methodExpression is MethodGlobalExpression globalMethod)
                                         {
                                             var method = manager.GetMethod(globalMethod.declaration);
-                                            for (int i = 0; i < method.FunctionCount; i++)
-                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                {
-                                                    var function = method.GetFunction(i);
-                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                    var expression = new InvokerGlobalExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
-                                                    expressionStack.Push(expression);
-                                                    attribute = expression.Attribute;
-                                                    goto next_lexical;
-                                                }
+                                            if (method != null)
+                                                for (int i = 0; i < method.FunctionCount; i++)
+                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                    {
+                                                        var function = method.GetFunction(i);
+                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                        var expression = new InvokerGlobalExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        goto next_lexical;
+                                                    }
                                         }
                                         else if (methodExpression is MethodNativeExpression nativeMethod)
                                         {
                                             var method = manager.GetMethod(nativeMethod.declaration);
-                                            for (int i = 0; i < method.FunctionCount; i++)
-                                                if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                {
-                                                    var function = method.GetFunction(i);
-                                                    if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                    var expression = new InvokerNativeExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
-                                                    expressionStack.Push(expression);
-                                                    attribute = expression.Attribute;
-                                                    goto next_lexical;
-                                                }
+                                            if (method != null)
+                                                for (int i = 0; i < method.FunctionCount; i++)
+                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
+                                                    {
+                                                        var function = method.GetFunction(i);
+                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                        var expression = new InvokerNativeExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        goto next_lexical;
+                                                    }
                                         }
                                         exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
                                         goto parse_fail;
@@ -1855,9 +1931,35 @@ namespace RainScript.Compiler.LogicGenerator
                                         if (expressionStack.Pop() is TypeExpression typeExpression)
                                         {
                                             var type = typeExpression.type;
-                                            //var declaration = new Declaration(type.definition.library,Visibility.Public,DeclarationCode.Constructor,);
-                                            //var ctor=manager.GetMethod()
-                                            //todo ctor
+                                            if (type == RelyKernel.REAL2_TYPE)
+                                            {
+                                                if (TryPushVetcorConstructorExpression(expressionStack, expressions, typeExpression.anchor, type, 2, ref attribute)) break;
+                                                else goto parse_fail;
+                                            }
+                                            else if (type == RelyKernel.REAL3_TYPE)
+                                            {
+                                                if (TryPushVetcorConstructorExpression(expressionStack, expressions, typeExpression.anchor, type, 3, ref attribute)) break;
+                                                else goto parse_fail;
+                                            }
+                                            else if (type == RelyKernel.REAL4_TYPE)
+                                            {
+                                                if (TryPushVetcorConstructorExpression(expressionStack, expressions, typeExpression.anchor, type, 4, ref attribute)) break;
+                                                else goto parse_fail;
+                                            }
+                                            else if (manager.TryGetConstructor(type, out var constructor))
+                                            {
+                                                for (int i = 0; i < constructor.FunctionCount; i++)
+                                                    if (TryAssignmentConvert(expressions, constructor.GetFunction(i).Parameters, out var parameter))
+                                                    {
+                                                        var function = constructor.GetFunction(i);
+                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(typeExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
+                                                        var expression = new InvokerConstructorExpression(typeExpression.anchor, function.Declaration, parameter, type);
+                                                        expressionStack.Push(expression);
+                                                        attribute = expression.Attribute;
+                                                        goto next_lexical;
+                                                    }
+                                            }
+                                            goto default;
                                         }
                                         else throw ExceptionGeneratorCompiler.Unknow();
                                     }
@@ -2000,7 +2102,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             else
                                             {
                                                 var dimension = Lexical.ExtractDimension(lexicals, ref index);
-                                                expression = new ArrayCreateExpression(typeExpression.anchor, expression, new CompilingType(typeExpression.type.definition, dimension)); 
+                                                expression = new ArrayCreateExpression(typeExpression.anchor, expression, new CompilingType(typeExpression.type.definition, dimension));
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
                                                 break;

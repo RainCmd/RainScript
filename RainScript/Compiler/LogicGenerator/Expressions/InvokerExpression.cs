@@ -134,4 +134,21 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             throw new NotImplementedException();
         }
     }
+    internal class InvokerConstructorExpression : Expression
+    {
+        private readonly Declaration declaration;
+        private readonly Expression parameter;
+        private readonly TokenAttribute attribute;
+        public override TokenAttribute Attribute => attribute;
+        public InvokerConstructorExpression(Anchor anchor, Declaration declaration, Expression parameter, CompilingType type) : base(anchor, type)
+        {
+            this.declaration = declaration;
+            this.parameter = parameter;
+            attribute = TokenAttribute.Value.AddTypeAttribute(type);
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

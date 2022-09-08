@@ -209,8 +209,6 @@ namespace RainScript.Compiler
                 }
             }
         }
-        //todo 成员方法还要考虑与父类方法的重载，所以这里可能要返回方法数组
-        //可以考虑加个GetMethodOverride接口，获取父类中同名方法
         public IMethod GetMethod(Declaration declaration)
         {
             if (declaration.library == LIBRARY.KERNEL)
@@ -238,6 +236,46 @@ namespace RainScript.Compiler
             }
             return null;
         }
+        public IMethod GetOverrideMethod(IMethod method)
+        {
+            if (method.Declaration.code == DeclarationCode.MemberMethod)
+            {
+                var declaration = method.Declaration;
+                declaration = new Declaration(declaration.library, Visibility.Public, DeclarationCode.Definition, declaration.definitionIndex, 0, 0);
+                while (TryGetDefinition(new CompilingDefinition(declaration), out var parent))
+                {
+                    for (int i = 0; i < parent.MethodCount; i++)
+                        if (parent.GetMethod(i).Name == method.Name)
+                            return parent.GetMethod(i);
+                    declaration = parent.Declaration;
+                }
+            }
+            else if (method.Declaration.code == DeclarationCode.MemberFunction)
+            {
+                var declaration = method.Declaration;
+                declaration = new Declaration(declaration.library, Visibility.Public, DeclarationCode.Interface, declaration.definitionIndex, 0, 0);
+                if (TryGetOverrideMethod(declaration, method.Name, out var result))
+                    return result;
+            }
+            return default;
+        }
+        private bool TryGetOverrideMethod(Declaration definition, string name, out IMethod method)
+        {
+            if (TryGetInterface(new CompilingDefinition(definition), out var result))
+            {
+                for (int i = 0; i < result.MethodCount; i++)
+                    if (result.GetMethod(i).Name == name)
+                    {
+                        method = result.GetMethod(i);
+                        return true;
+                    }
+                foreach (var item in result.Inherits)
+                    if (TryGetOverrideMethod(item.Declaration, name, out method))
+                        return true;
+            }
+            method = default;
+            return false;
+        }
         public bool TryGetConstructor(CompilingType type, out IMethod method)
         {
             if (type.definition.library == LIBRARY.KERNEL || type.dimension > 0)
@@ -245,10 +283,25 @@ namespace RainScript.Compiler
                 method = default;
                 return false;
             }
+            else if (type.definition.library == LIBRARY.SELF)
+            {
+                if (type.definition.code == TypeCode.Handle)
+                {
+                    method = library.methods[(int)library.definitions[(int)type.definition.index].constructors];
+                    return true;
+                }
+            }
             else
             {
-
+                var rely = relies[type.definition.library];
+                if (type.definition.code == TypeCode.Handle)
+                {
+                    method = rely.methods[rely.definitions[type.definition.index].constructors];
+                    return true;
+                }
             }
+            method = default;
+            return false;
         }
         public bool TryGetParameters(Declaration declaration, out CompilingType[] types)
         {

@@ -40,7 +40,7 @@
     }
     internal class FunctionGenerator : LambdaFunction
     {
-        public FunctionGenerator(Context context, ScopeList<Statement> statements) : base(context, statements)
+        public FunctionGenerator(Declaration declaration, Context context, CompilingType[] parameters, ScopeList<Statement> statements) : base(declaration, context, parameters, statements)
         {
         }
     }

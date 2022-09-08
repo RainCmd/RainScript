@@ -217,7 +217,7 @@ namespace RainScript.Compiler.File
 
             foreach (var item in natives)
             {
-                Compiling.Native native = null;
+                Native native = null;
                 if (compiling.declarations.TryGetValue(item.name.Segment, out var declaration))
                 {
                     if (declaration.code == DeclarationCode.NativeMethod) native = manager.library.natives[(int)declaration.index];

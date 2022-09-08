@@ -88,4 +88,30 @@
             return false;
         }
     }
+    internal class VectorDeconstructionExpression : Expression
+    {
+        private readonly Expression expression;
+        public override TokenAttribute Attribute => TokenAttribute.Tuple;
+        public VectorDeconstructionExpression(Anchor anchor, Expression expression, params CompilingType[] returns) : base(anchor, returns)
+        {
+            this.expression = expression;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+    internal class VectorCreateExpression : Expression
+    {
+        private readonly Expression parameter;
+        public override TokenAttribute Attribute => TokenAttribute.Value;
+        public VectorCreateExpression(Anchor anchor, Expression parameter, CompilingType type) : base(anchor, type)
+        {
+            this.parameter = parameter;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
 }
