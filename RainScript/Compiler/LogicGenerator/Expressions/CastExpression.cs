@@ -73,4 +73,34 @@
             throw new System.NotImplementedException();
         }
     }
+    internal class IsExpression : CastExpression
+    {
+        private readonly VariableLocalExpression local;
+        private readonly CompilingType type;
+        public IsExpression(Anchor anchor, Expression expression, CompilingType type, VariableLocalExpression local) : base(anchor, expression, RelyKernel.BOOL_TYPE)
+        {
+            this.local = local;
+            this.type = type;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+    internal class AsExpression : CastExpression
+    {
+        public AsExpression(Anchor anchor, Expression expression, CompilingType type) : base(anchor, expression, type) { }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+    internal class CastingExpression : CastExpression
+    {
+        public CastingExpression(Anchor anchor, Expression expression, CompilingType type) : base(anchor, expression, type) { }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
 }

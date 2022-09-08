@@ -48,19 +48,18 @@
     [System.Flags]
     internal enum TokenAttribute : uint
     {
-        Invalid = 0,
         None = 0x0001,              //无
         Operator = 0x0002,          //运算符
-        Constant = 0x0004,          //常量
-        Variable = 0x0008,          //变量
-        Temporary = 0x0010,         //临时对象
+        Temporary = 0x004,          //临时对象
+        Constant = 0x000C,          //常量
+        Variable = 0x0014,          //变量
         Function = 0x0020,          //函数地址
         Array = 0x0040,             //数组
         Tuple = 0x0080,             //元组
         Coroutine = 0x0100,         //携程
         Cast = 0x0200,              //类型转换
         Type = 0x0400,              //类型
-        Method = 0x0800,            //类型
+        Method = 0x0800,            //方法
     }
     internal struct Token
     {
@@ -175,7 +174,7 @@
                 case TokenType.IncrementRight: return LEFT_VALUE;
                 case TokenType.DecrementLeft: return NOT_VALUE;
                 case TokenType.DecrementRight: return LEFT_VALUE;
-                default: return TokenAttribute.Invalid;
+                default: return 0;
             }
         }
         public static bool ContainAny(this TokenAttribute attribute, TokenAttribute other)

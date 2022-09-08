@@ -243,6 +243,7 @@ namespace RainScript.Compiler
                             return true;
                         }
                     }
+                    //todo 接口必须实现，所以直接在父类中找就可以了
                     foreach (var item in index.Inherits)
                         if (TryFindMemberDeclarartion(manager, name, item, out result, pool)) 
                             return true;

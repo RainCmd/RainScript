@@ -146,6 +146,8 @@
         public const string BREAK = "break";
         public const string CONTINUE = "continue";
         public const string RETURN = "return";
+        public const string IS = "is";
+        public const string AS = "as";
         public const string START = "start";//开启新的协程
         public const string WAIT = "wait";
         public const string EXIT = "exit";
@@ -199,6 +201,8 @@
             if (segment == BREAK) return true;
             if (segment == CONTINUE) return true;
             if (segment == RETURN) return true;
+            if (segment == IS) return true;
+            if (segment == AS) return true;
             if (segment == START) return true;
             if (segment == WAIT) return true;
             if (segment == EXIT) return true;

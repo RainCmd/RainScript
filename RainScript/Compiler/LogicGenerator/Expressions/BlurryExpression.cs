@@ -101,7 +101,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         public readonly Anchor[] parameters;
         public readonly ListSegment<Lexical> body;
-        public override TokenAttribute Attribute => TokenAttribute.Invalid;
+        public override TokenAttribute Attribute => TokenAttribute.Temporary;
         public BlurryLambdaExpression(Anchor anchor, Anchor[] parameters, ListSegment<Lexical> body) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.parameters = parameters;

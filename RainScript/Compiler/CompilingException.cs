@@ -169,6 +169,10 @@ namespace RainScript.Compiler
         /// 不是成员方法
         /// </summary>
         GENERATOR_NOT_MEMBER_METHOD,
+        /// <summary>
+        /// 不是个类型
+        /// </summary>
+        GENERATOR_NOT_TYPE,
         #endregion
     }
     /// <summary>

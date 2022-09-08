@@ -209,6 +209,7 @@ namespace RainScript.Compiler
                 }
             }
         }
+        //todo 成员方法还要考虑与父类方法的重载，所以这里可能要返回方法数组
         public IMethod GetMethod(Declaration declaration)
         {
             if (declaration.library == LIBRARY.KERNEL)

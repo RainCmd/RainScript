@@ -1,4 +1,6 @@
 ﻿using RainScript.Compiler.LogicGenerator.Expressions;
+using System;
+using System.Data;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -1209,6 +1211,33 @@ namespace RainScript.Compiler.LogicGenerator
             declaration = default;
             return false;
         }
+        private bool TryFindDeclaration(ListSegment<Lexical> lexicals, ref int index, out Declaration declaration)
+        {
+            if (index < lexicals.Count)
+            {
+                var lexical = lexicals[index];
+                if (lexical.type == LexicalType.Word)
+                {
+                    if (lexical.anchor.Segment == KeyWorld.GLOBAL)
+                    {
+                        if (CheckNext(lexicals, ref index, LexicalType.Dot) && CheckNext(lexicals, ref index, LexicalType.Word))
+                        {
+                            lexical = lexicals[index];
+                            if (lexical.anchor.Segment == KeyWorld.KERNEL) return TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out declaration);
+                            else if (lexical.anchor.Segment == manager.library.name) return TryFindDeclaration(lexicals, ref index, manager.library, out declaration);
+                            else foreach (var item in manager.relies)
+                                    if (lexical.anchor.Segment == item.name)
+                                        return TryFindDeclaration(lexicals, ref index, item, out declaration);
+                        }
+                    }
+                    else if (lexical.anchor.Segment == KeyWorld.KERNEL) return TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out declaration);
+                    else if (TryFindDeclaration(lexical.anchor, out declaration)) return true;
+                    else if (context.TryFindSpace(manager, lexical.anchor, out var space, pool, exceptions)) return TryFindDeclaration(lexicals, ref index, space, out declaration);
+                }
+            }
+            declaration = default;
+            return false;
+        }
         private bool TryPushDeclarationExpression(ListSegment<Lexical> lexicals, ref int index, ScopeStack<Expression> expressionStack, Anchor anchor, Declaration declaration, ref TokenAttribute attribute)
         {
             if (declaration.code == DeclarationCode.Definition || declaration.code == DeclarationCode.Delegate || declaration.code == DeclarationCode.Coroutine || declaration.code == DeclarationCode.Interface)
@@ -1624,6 +1653,12 @@ namespace RainScript.Compiler.LogicGenerator
                                                 break;
                                             }
                                         }
+                                        else if (VectorMemberExpression.TryCreate(lexical.anchor, expression, out var vectorMember))
+                                        {
+                                            expressionStack.Push(vectorMember);
+                                            attribute = vectorMember.Attribute;
+                                            break;
+                                        }
                                         else
                                         {
                                             exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
@@ -1810,26 +1845,8 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.GLOBAL)
                                 {
-                                    lexical = lexicals[index];
-                                    if (CheckNext(lexicals, ref index, LexicalType.Dot) && CheckNext(lexicals, ref index, LexicalType.Word))
-                                    {
-                                        ISpace space = null;
-                                        if (lexical.anchor.Segment == KeyWorld.KERNEL) space = RelyKernel.kernel;
-                                        else if (lexical.anchor.Segment == manager.library.name) space = manager.library;
-                                        else foreach (var item in manager.relies)
-                                                if (item.name == lexical.anchor.Segment)
-                                                {
-                                                    space = item;
-                                                    break;
-                                                }
-                                        if (space == null)
-                                        {
-                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_LIBRARY_NOT_FOUND);
-                                            goto parse_fail;
-                                        }
-                                        else if (!TryFindDeclaration(lexicals, ref index, space, out var declaration) || !TryPushDeclarationExpression(lexicals, ref index, expressionStack, lexicals[index].anchor, declaration, ref attribute))
-                                            goto parse_fail;
-                                    }
+                                    if (TryFindDeclaration(lexicals, ref index, out var declaration) && TryPushDeclarationExpression(lexicals, ref index, expressionStack, lexicals[index].anchor, declaration, ref attribute)) break;
+                                    goto parse_fail;
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.BASE)
                                 {
@@ -1970,10 +1987,259 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.BOOL)
                                 {
-
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.BOOL_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.INTEGER)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.INTEGER_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.REAL)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.REAL_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.REAL2)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.REAL2_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.REAL3)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.REAL3_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.REAL4)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.REAL4_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.STRING)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.STRING_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.HANDLE)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.HANDLE_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.ENTITY)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.ENTITY_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.FUNCTION)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.FUNCTION_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.COROUTINE)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.COROUTINE_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.ARRAY)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.ARRAY_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.INTERFACE)
+                                {
+                                    var expression = new TypeExpression(lexical.anchor, RelyKernel.INTERFACE_TYPE);
+                                    expressionStack.Push(expression);
+                                    attribute = expression.Attribute;
+                                    break;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.IS)
+                                {
+                                    if (attribute.ContainAny(TokenAttribute.Temporary))
+                                    {
+                                        var expression = expressionStack.Pop();
+                                        if (expression.returns.Length == 1)
+                                        {
+                                            var startIndex = index + 1;
+                                            if (TryFindDeclaration(lexicals, ref startIndex, out var declaration))
+                                            {
+                                                if (declaration.code == DeclarationCode.Definition || declaration.code == DeclarationCode.Delegate || declaration.code == DeclarationCode.Coroutine || declaration.code == DeclarationCode.Interface)
+                                                {
+                                                    startIndex++;
+                                                    var dimension = Lexical.ExtractDimension(lexicals, ref startIndex);
+                                                    var type = new CompilingType(new CompilingDefinition(declaration), dimension);
+                                                    VariableLocalExpression localExpression = null;
+                                                    if (CheckNext(lexicals, ref startIndex, LexicalType.Word))
+                                                    {
+                                                        var local = localContext.AddLocal(lexicals[startIndex].anchor, type);
+                                                        if (KeyWorld.IsKeyWorld(local.anchor.Segment)) exceptions.Add(local.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
+                                                        localExpression = new VariableLocalExpression(local.anchor, local.Declaration, TokenAttribute.Variable, type);
+                                                    }
+                                                    expression = new IsExpression(lexical.anchor, expression, type, localExpression);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    index = startIndex;
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    exceptions.Add(lexicals[index + 1, startIndex - 1], CompilingExceptionCode.GENERATOR_NOT_TYPE);
+                                                    goto parse_fail;
+                                                }
+                                            }
+                                            else if (startIndex < lexicals.Count) exceptions.Add(lexicals[index + 1, startIndex - 1], CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
+                                            else exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                            goto parse_fail;
+                                        }
+                                    }
+                                    goto default;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.AS)
+                                {
+                                    if (attribute.ContainAny(TokenAttribute.Temporary))
+                                    {
+                                        var expression = expressionStack.Pop();
+                                        if (expression.returns.Length == 1)
+                                        {
+                                            var startIndex = index + 1;
+                                            if (TryFindDeclaration(lexicals, ref startIndex, out var declaration))
+                                            {
+                                                if (declaration.code == DeclarationCode.Definition || declaration.code == DeclarationCode.Delegate || declaration.code == DeclarationCode.Coroutine || declaration.code == DeclarationCode.Interface)
+                                                {
+                                                    startIndex++;
+                                                    var dimension = Lexical.ExtractDimension(lexicals, ref startIndex);
+                                                    var type = new CompilingType(new CompilingDefinition(declaration), dimension);
+                                                    expression = new AsExpression(lexical.anchor, expression, type);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    index = startIndex;
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    exceptions.Add(lexicals[index + 1, startIndex - 1], CompilingExceptionCode.GENERATOR_NOT_TYPE);
+                                                    goto parse_fail;
+                                                }
+                                            }
+                                            else if (startIndex < lexicals.Count) exceptions.Add(lexicals[index + 1, startIndex - 1], CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
+                                            else exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                            goto parse_fail;
+                                        }
+                                    }
+                                    goto default;
+                                }
+                                else if (KeyWorld.IsKeyWorld(lexical.anchor.Segment)) goto default;
+                                else if (TryFindDeclaration(lexical.anchor, out var declaration))
+                                {
+                                    switch (declaration.code)
+                                    {
+                                        case DeclarationCode.Invalid: goto default;
+                                        case DeclarationCode.Definition:
+                                            {
+                                                index++;
+                                                var expression = new TypeExpression(lexical.anchor, new CompilingType(new CompilingDefinition(declaration), Lexical.ExtractDimension(lexicals, ref index)));
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                            }
+                                            break;
+                                        case DeclarationCode.MemberVariable:
+                                            {
+                                                if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+                                                {
+                                                    var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(default, local.Declaration, TokenAttribute.Temporary, local.type), GetVariableType(declaration));
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    break;
+                                                }
+                                                else goto default;
+                                            }
+                                        case DeclarationCode.MemberMethod:
+                                            {
+                                                if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+                                                {
+                                                    var expression = new MethodVirtualExpression(lexical.anchor, new VariableLocalExpression(default, local.Declaration, TokenAttribute.Temporary, local.type), declaration);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    break;
+                                                }
+                                                else goto default;
+                                            }
+                                        case DeclarationCode.MemberFunction:
+                                        case DeclarationCode.Constructor:
+                                        case DeclarationCode.ConstructorFunction: goto default;
+                                        case DeclarationCode.Delegate:
+                                        case DeclarationCode.Coroutine:
+                                        case DeclarationCode.Interface: goto case DeclarationCode.Definition;
+                                        case DeclarationCode.InterfaceMethod:
+                                        case DeclarationCode.InterfaceFunction: goto default;
+                                        case DeclarationCode.GlobalVariable:
+                                            {
+                                                var expression = new VariableGlobalExpression(lexical.anchor, declaration, IsConstant(declaration), GetVariableType(declaration));
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                            }
+                                            break;
+                                        case DeclarationCode.GlobalMethod:
+                                            {
+                                                var expression = new MethodGlobalExpression(lexical.anchor, declaration);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                            }
+                                            break;
+                                        case DeclarationCode.GlobalFunction: goto default;
+                                        case DeclarationCode.NativeMethod:
+                                            {
+                                                var expression = new MethodNativeExpression(lexical.anchor, declaration);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                            }
+                                            break;
+                                        case DeclarationCode.NativeFunction:
+                                        case DeclarationCode.Lambda: goto default;
+                                        case DeclarationCode.LocalVariable:
+                                            {
+                                                var expression = new VariableLocalExpression(lexical.anchor, declaration, TokenAttribute.Variable, GetVariableType(declaration));
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                            }
+                                            break;
+                                        default: throw ExceptionGeneratorCompiler.Unknow();
+                                    }
+                                }
+                                else if (context.TryFindSpace(manager, lexical.anchor, out var space, pool, exceptions))
+                                {
+                                    if (!TryFindDeclaration(lexicals, ref index, space, out declaration) || !TryPushDeclarationExpression(lexicals, ref index, expressionStack, lexicals[index].anchor, declaration, ref attribute))
+                                        goto parse_fail;
+                                }
+                                else
+                                {
+                                    exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
+                                    goto parse_fail;
                                 }
                             }
-                            //todo word
                             break;
                         case LexicalType.Backslash:
                         default:
