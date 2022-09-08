@@ -210,6 +210,7 @@ namespace RainScript.Compiler
             }
         }
         //todo 成员方法还要考虑与父类方法的重载，所以这里可能要返回方法数组
+        //可以考虑加个GetMethodOverride接口，获取父类中同名方法
         public IMethod GetMethod(Declaration declaration)
         {
             if (declaration.library == LIBRARY.KERNEL)
@@ -236,6 +237,18 @@ namespace RainScript.Compiler
                 else if (declaration.code == DeclarationCode.NativeMethod) return rely.natives[declaration.index];
             }
             return null;
+        }
+        public bool TryGetConstructor(CompilingType type, out IMethod method)
+        {
+            if (type.definition.library == LIBRARY.KERNEL || type.dimension > 0)
+            {
+                method = default;
+                return false;
+            }
+            else
+            {
+
+            }
         }
         public bool TryGetParameters(Declaration declaration, out CompilingType[] types)
         {

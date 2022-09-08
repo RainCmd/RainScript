@@ -292,8 +292,8 @@ namespace RainScript.Compiler.File
                 if (Lexical.TryAnalysis(lexicals, text, text[line].segment, exceptions))
                     if (Lexical.TryExtractName(lexicals, 1, out var index, out var names, pool))
                     {
-                        if (index < lexicals.Count) exceptions.Add(lexicals[index].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
-                        var space = this.compiling;
+                        if (index + 1 < lexicals.Count) exceptions.Add(lexicals[index + 1].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                        var space = compiling;
                         foreach (var name in names) space = space.GetChild(name.anchor.Segment);
                         names.Dispose();
                         var child = new Space(this, space, text, line + 1, text[line].indent, pool, exceptions);
@@ -309,7 +309,7 @@ namespace RainScript.Compiler.File
                 if (Lexical.TryAnalysis(lexicals, text, text[line].segment, exceptions))
                     if (Lexical.TryExtractName(lexicals, 1, out var index, out var name, pool))
                     {
-                        if (index < lexicals.Count) exceptions.Add(lexicals[index].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                        if (index + 1 < lexicals.Count) exceptions.Add(lexicals[index + 1].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                         imports.Add(name);
                     }
                     else exceptions.Add(text, line, CompilingExceptionCode.SYNTAX_MISSING_NAME);
@@ -410,7 +410,7 @@ namespace RainScript.Compiler.File
                 }
             return line;
         }
-        private bool TryParseCoroutine(IList<Lexical> lexicals, int index, Visibility visibility, out Coroutine coroutine, CollectionPool pool, ExceptionCollector exceptions)
+        private bool TryParseCoroutine(ListSegment<Lexical> lexicals, int index, Visibility visibility, out Coroutine coroutine, CollectionPool pool, ExceptionCollector exceptions)
         {
             if (index < lexicals.Count)
                 if (lexicals[index].type == LexicalType.Less)
@@ -440,14 +440,13 @@ namespace RainScript.Compiler.File
                                 {
                                     index = end;
                                     returns.Add(new Type(typeName, Lexical.ExtractDimension(lexicals, ref index)));
-                                    if (index < lexicals.Count)
+                                    if (++index < lexicals.Count)
                                     {
                                         if (lexicals[index].type == LexicalType.Greater)
                                         {
-                                            index++;
-                                            if (index < lexicals.Count && lexicals[index].type == LexicalType.Word)
+                                            if (++index < lexicals.Count && lexicals[index].type == LexicalType.Word)
                                             {
-                                                if (index + 1 < lexicals.Count) exceptions.Add(lexicals, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                                                if (index + 1 < lexicals.Count) exceptions.Add(lexicals[index + 1].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                                                 coroutine = new Coroutine(lexicals[index].anchor, visibility, this, returns);
                                                 return true;
                                             }
@@ -493,7 +492,7 @@ namespace RainScript.Compiler.File
             coroutine = default;
             return false;
         }
-        private bool TryParseInterface(TextInfo text, ref int line, IList<Lexical> lexicals, int index, Visibility visibility, out Interface definition, CollectionPool pool, ExceptionCollector exceptions)
+        private bool TryParseInterface(TextInfo text, ref int line, ListSegment<Lexical> lexicals, int index, Visibility visibility, out Interface definition, CollectionPool pool, ExceptionCollector exceptions)
         {
             if (index < lexicals.Count)
             {
@@ -504,7 +503,7 @@ namespace RainScript.Compiler.File
                     while (Lexical.TryExtractName(lexicals, index, out var endIndex, out var interfaceName, pool))
                     {
                         interfaces.Add(interfaceName);
-                        index = endIndex;
+                        index = endIndex + 1;
                     }
                     if (index < lexicals.Count) exceptions.Add(lexicals[index].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                     var functions = pool.GetList<Interface.Function>();
@@ -539,7 +538,7 @@ namespace RainScript.Compiler.File
             definition = null;
             return false;
         }
-        private bool TryParseDefinition(TextInfo text, ref int line, IList<Lexical> lexicals, int index, Visibility visibility, out Definition definition, CollectionPool pool, ExceptionCollector exceptions)
+        private bool TryParseDefinition(TextInfo text, ref int line, ListSegment<Lexical> lexicals, int index, Visibility visibility, out Definition definition, CollectionPool pool, ExceptionCollector exceptions)
         {
             if (index < lexicals.Count)
             {
@@ -550,7 +549,7 @@ namespace RainScript.Compiler.File
                     while (Lexical.TryExtractName(lexicals, index, out var endIndex, out var inheritName, pool))
                     {
                         inherits.Add(inheritName);
-                        index = endIndex;
+                        index = endIndex + 1;
                     }
                     if (index < lexicals.Count) exceptions.Add(lexicals[index].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                     var variables = pool.GetList<Definition.Variable>();
@@ -614,16 +613,15 @@ namespace RainScript.Compiler.File
             definition = null;
             return false;
         }
-        private bool TryParseVariable(IList<Lexical> lexicals, int index, out Anchor name, out Type type, out Anchor expression, CollectionPool pool)
+        private bool TryParseVariable(ListSegment<Lexical> lexicals, int index, out Anchor name, out Type type, out Anchor expression, CollectionPool pool)
         {
             if (Lexical.TryExtractName(lexicals, index, out var nameEnd, out var typeName, pool))
             {
                 index = nameEnd;
                 type = new Type(typeName, Lexical.ExtractDimension(lexicals, ref index));
-                if (index < lexicals.Count && lexicals[index].type == LexicalType.Word)
+                if (++index < lexicals.Count && lexicals[index].type == LexicalType.Word)
                 {
-                    name = lexicals[index].anchor;
-                    index++;
+                    name = lexicals[index++].anchor;
                     if (index >= lexicals.Count)
                     {
                         expression = default;
@@ -631,8 +629,7 @@ namespace RainScript.Compiler.File
                     }
                     else if (lexicals[index].type == LexicalType.Assignment)
                     {
-                        index++;
-                        if (index < lexicals.Count) expression = new Anchor(lexicals[index].anchor.textInfo, lexicals[index].anchor.start, lexicals[index].anchor.end);
+                        if (++index < lexicals.Count) expression = new Anchor(lexicals[index].anchor.textInfo, lexicals[index].anchor.start, lexicals[index].anchor.end);
                         else expression = default;
                         return true;
                     }
@@ -644,13 +641,13 @@ namespace RainScript.Compiler.File
             expression = default;
             return false;
         }
-        private bool TryParseFunction(IList<Lexical> lexicals, int start, out int index, out Anchor name, out ScopeList<Parameter> paraemters, out ScopeList<Type> returns, CollectionPool pool)
+        private bool TryParseFunction(ListSegment<Lexical> lexicals, int start, out int index, out Anchor name, out ScopeList<Parameter> paraemters, out ScopeList<Type> returns, CollectionPool pool)
         {
             paraemters = null;
             returns = pool.GetList<Type>();
             if (Lexical.TryExtractName(lexicals, start, out index, out var nameList, pool))
             {
-                if (index < lexicals.Count)
+                if (++index < lexicals.Count)
                 {
                     if (lexicals[index].type == LexicalType.BracketLeft0)
                     {
@@ -676,7 +673,7 @@ namespace RainScript.Compiler.File
                     else
                     {
                         returns.Add(new Type(nameList, Lexical.ExtractDimension(lexicals, ref index)));
-                        while (index < lexicals.Count)
+                        while (++index < lexicals.Count)
                         {
                             if (lexicals[index].type == LexicalType.Comma)
                             {
@@ -704,41 +701,53 @@ namespace RainScript.Compiler.File
             returns.Dispose();
             return false;
         }
-        private bool TryParseParameters(IList<Lexical> lexicals, int start, out int index, out ScopeList<Parameter> parameters, CollectionPool pool)
+        private bool TryParseParameters(ListSegment<Lexical> lexicals, int start, out int index, out ScopeList<Parameter> parameters, CollectionPool pool)
         {
             index = start;
-            if (lexicals[index++].type == LexicalType.BracketLeft0)
+            if (lexicals[index].type == LexicalType.BracketLeft0)
             {
                 parameters = pool.GetList<Parameter>();
-                while (index < lexicals.Count)
+                if (index + 1 < lexicals.Count && lexicals[index + 1].type == LexicalType.BracketRight0)
                 {
-                    if (Lexical.TryExtractName(lexicals, index, out var nameEnd, out var typeName, pool))
+                    index++;
+                    return true;
+                }
+                while (++index < lexicals.Count)
+                {
+                    if (Lexical.TryExtractName(lexicals, index, out var end, out var typeName, pool))
                     {
-                        index = nameEnd;
-                        var dimension = Lexical.ExtractDimension(lexicals, ref index);
+                        var type = new Type(typeName, Lexical.ExtractDimension(lexicals, ref end));
+                        index = end + 1;
                         if (index < lexicals.Count)
                         {
-                            var lexical = lexicals[index++];
-                            if (lexical.type == LexicalType.Word)
+                            var lexical = lexicals[index];
+                            if (lexical.type == LexicalType.BracketRight0)
                             {
-                                parameters.Add(new Parameter(lexical.anchor, new Type(typeName, dimension)));
-                                if (index < lexicals.Count)
+                                parameters.Add(new Parameter(default, type));
+                                return true;
+                            }
+                            else if (lexical.type == LexicalType.Word)
+                            {
+                                parameters.Add(new Parameter(lexical.anchor, type));
+                                if (++index < lexicals.Count)
                                 {
-                                    lexical = lexicals[index++];
+                                    lexical = lexicals[index];
                                     if (lexical.type == LexicalType.BracketRight0) return true;
                                     else if (lexical.type != LexicalType.Comma) break;
                                 }
+                                else break;
                             }
-                            else if (lexical.type == LexicalType.Comma)
-                                parameters.Add(new Parameter(default, new Type(typeName, dimension)));
-                            else if (lexical.type == LexicalType.BracketRight0)
+                            else if (lexical.type != LexicalType.Comma)
                             {
-                                parameters.Add(new Parameter(default, new Type(typeName, dimension)));
-                                return true;
+                                type.Dispose();
+                                break;
                             }
-                            else break;
                         }
-                        else typeName.Dispose();
+                        else
+                        {
+                            type.Dispose();
+                            break;
+                        }
                     }
                     else break;
                 }

@@ -20,6 +20,24 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             throw new NotImplementedException();
         }
     }
+    internal class InvokerQuestionDelegateExpression : Expression
+    {
+        private readonly Expression invoker;
+        private readonly Expression parameter;
+        private readonly TokenAttribute attribute;
+        public override TokenAttribute Attribute => attribute;
+        public InvokerQuestionDelegateExpression(Anchor anchor, Expression invoker, Expression parameter, CompilingType[] returns) : base(anchor, returns)
+        {
+            this.invoker = invoker;
+            this.parameter = parameter;
+            if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
+            else attribute = TokenAttribute.Tuple;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new NotImplementedException();
+        }
+    }
     internal class InvokerNativeExpression : Expression
     {
         private readonly Declaration declaration;

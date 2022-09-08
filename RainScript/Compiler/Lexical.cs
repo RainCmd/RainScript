@@ -51,6 +51,7 @@ namespace RainScript.Compiler
         Dot,                    // .
         Question,               // ?
         QuestionDot,            // ?.
+        QuestionInvoke,         // ?(
         Colon,                  // :
         ConstReal,              // 数字(实数)
         ConstNumber,            // 数字(整数)
@@ -202,6 +203,7 @@ namespace RainScript.Compiler
                         return true;
                     case '?':
                         if (segment.Equals('.', index + 1)) lexical = new Lexical(LexicalType.QuestionDot, text, segment[index, index + 1]);
+                        else if (segment.Equals('(', index + 1)) lexical = new Lexical(LexicalType.QuestionInvoke, text, segment[index, index + 1]);
                         else lexical = new Lexical(LexicalType.Question, text, segment[index, index]);
                         return true;
                     case ':':
@@ -323,7 +325,7 @@ namespace RainScript.Compiler
         }
 
 
-        public static bool TryExtractName(IList<Lexical> lexicals, int start, out int index, out ScopeList<Lexical> name, CollectionPool pool)
+        public static bool TryExtractName(ListSegment<Lexical> lexicals, int start, out int index, out ScopeList<Lexical> name, CollectionPool pool)
         {
             name = pool.GetList<Lexical>();
             index = start;
@@ -331,18 +333,18 @@ namespace RainScript.Compiler
             {
                 if (lexicals[index].type == LexicalType.Word) name.Add(lexicals[index]);
                 else break;
-                if (++index >= lexicals.Count) return true;
-                else if (lexicals[index].type == LexicalType.Dot) index++;
-                else break;
+                if (index + 1 >= lexicals.Count) return true;
+                else if (lexicals[index + 1].type == LexicalType.Dot) index += 2;
+                else return true;
             }
             name.Dispose();
             return false;
         }
-        public static uint ExtractDimension(IList<Lexical> lexicals, ref int index)
+        public static uint ExtractDimension(ListSegment<Lexical> lexicals, ref int index)
         {
             var dimension = 0u;
-            while (index + 1 < lexicals.Count)
-                if (lexicals[index].type == LexicalType.BracketLeft1 && lexicals[index + 1].type == LexicalType.BracketRight1)
+            while (index + 2 < lexicals.Count)
+                if (lexicals[index + 1].type == LexicalType.BracketLeft1 && lexicals[index + 2].type == LexicalType.BracketRight1)
                 {
                     dimension++;
                     index += 2;

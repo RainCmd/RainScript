@@ -2,6 +2,19 @@
 
 namespace RainScript.Compiler.LogicGenerator.Expressions
 {
+    internal class ArrayCreateExpression : Expression
+    {
+        private readonly Expression length;
+        public override TokenAttribute Attribute => TokenAttribute.Value | TokenAttribute.Array;
+        public ArrayCreateExpression(Anchor anchor, Expression length, CompilingType type) : base(anchor, type)
+        {
+            this.length = length;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            throw new NotImplementedException();
+        }
+    }
     internal class ArrayEvaluationExpression : VariableExpression
     {
         private readonly Expression array;
@@ -18,7 +31,6 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             throw new NotImplementedException();
         }
-
         public override void GeneratorAssignment(GeneratorParameter parameter)
         {
             throw new NotImplementedException();
