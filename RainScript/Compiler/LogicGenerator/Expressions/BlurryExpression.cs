@@ -87,7 +87,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     internal class BlurryCoroutineExpression : Expression
     {
         public readonly Expression invoker;
-        public override TokenAttribute Attribute => TokenAttribute.Coroutine;
+        public override TokenAttribute Attribute => TokenAttribute.Coroutine | TokenAttribute.Value;
         public BlurryCoroutineExpression(Anchor anchor, Expression invoker) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.invoker = invoker;

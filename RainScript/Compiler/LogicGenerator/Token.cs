@@ -106,8 +106,6 @@
         }
         public static TokenAttribute Precondition(this TokenType type)
         {
-            const TokenAttribute RIGHT_VALUE = TokenAttribute.Constant | TokenAttribute.Assignable | TokenAttribute.Value;
-            const TokenAttribute NOT_VALUE = TokenAttribute.None | TokenAttribute.Operator;
             switch (type)
             {
                 case TokenType.Less:
@@ -127,13 +125,13 @@
                 case TokenType.Minus:
                 case TokenType.Mul:
                 case TokenType.Div:
-                case TokenType.Mod: return RIGHT_VALUE;
+                case TokenType.Mod: return TokenAttribute.Value;
                 case TokenType.Not:
                 case TokenType.Inverse:
                 case TokenType.Positive:
                 case TokenType.Negative:
-                case TokenType.IncrementLeft: return NOT_VALUE;
-                case TokenType.DecrementLeft: return NOT_VALUE;
+                case TokenType.IncrementLeft:
+                case TokenType.DecrementLeft: return TokenAttribute.None | TokenAttribute.Operator;
                 default: return 0;
             }
         }

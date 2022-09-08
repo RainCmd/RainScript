@@ -13,7 +13,7 @@
         public VariableLocalExpression(Anchor anchor, Declaration declaration, TokenAttribute attribute, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            this.attribute = attribute.AddTypeAttribute(type);
+            this.attribute = attribute.AddTypeAttribute(type) | TokenAttribute.Value;
         }
         public override void Generator(GeneratorParameter parameter)
         {
@@ -32,7 +32,7 @@
         public VariableGlobalExpression(Anchor anchor, Declaration declaration, bool constant, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            attribute = constant ? TokenAttribute.Constant : TokenAttribute.Assignable;
+            attribute = constant ? TokenAttribute.Constant : (TokenAttribute.Assignable | TokenAttribute.Value);
             attribute = attribute.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
@@ -52,7 +52,7 @@
         public VariableMemberExpression(Anchor anchor, Declaration declaration, Expression target, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            attribute = TokenAttribute.Assignable.AddTypeAttribute(type);
+            attribute = TokenAttribute.Value.AddTypeAttribute(type) | TokenAttribute.Assignable;
         }
         public override void Generator(GeneratorParameter parameter)
         {
@@ -63,7 +63,7 @@
             throw new System.NotImplementedException();
         }
     }
-    internal class VariableQuestionMemberExpression : VariableExpression
+    internal class VariableQuestionMemberExpression : Expression
     {
         private readonly Declaration declaration;
         private readonly TokenAttribute attribute;
@@ -71,13 +71,9 @@
         public VariableQuestionMemberExpression(Anchor anchor, Declaration declaration, Expression target, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            attribute = TokenAttribute.Assignable.AddTypeAttribute(type);
+            attribute = TokenAttribute.Value.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
-        {
-            throw new System.NotImplementedException();
-        }
-        public override void GeneratorAssignment(GeneratorParameter parameter)
         {
             throw new System.NotImplementedException();
         }

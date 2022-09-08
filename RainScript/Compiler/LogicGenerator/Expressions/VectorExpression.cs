@@ -10,8 +10,8 @@
         {
             this.target = target;
             this.indices = indices;
-            if (target.Attribute.ContainAny(TokenAttribute.Assignable)) attribute = TokenAttribute.Assignable.AddTypeAttribute(type);
-            else attribute = TokenAttribute.Value.AddTypeAttribute(type);
+            attribute = TokenAttribute.Value.AddTypeAttribute(type);
+            if (target.Attribute.ContainAny(TokenAttribute.Assignable)) attribute |= TokenAttribute.Assignable;
         }
         public override void Generator(GeneratorParameter parameter)
         {

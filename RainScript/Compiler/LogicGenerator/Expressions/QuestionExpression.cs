@@ -14,9 +14,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             this.condition = condition;
             this.left = left;
             this.right = right;
-            attribute = TokenAttribute.Value;
-            if (returns.Length == 1) attribute = attribute.AddTypeAttribute(returns[0]);
-            else attribute |= TokenAttribute.Tuple;
+            if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
+            else attribute = TokenAttribute.Tuple;
         }
         public override void Generator(GeneratorParameter parameter)
         {

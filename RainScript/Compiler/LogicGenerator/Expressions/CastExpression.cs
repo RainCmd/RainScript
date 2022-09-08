@@ -3,10 +3,12 @@
     internal abstract class CastExpression : Expression
     {
         protected Expression expression;
-        public override TokenAttribute Attribute => TokenAttribute.Value;
+        private readonly TokenAttribute attribute;
+        public override TokenAttribute Attribute => attribute;
         protected CastExpression(Anchor anchor, Expression expression, CompilingType type) : base(anchor, type)
         {
             this.expression = expression;
+            attribute = TokenAttribute.Value.AddTypeAttribute(type);
         }
     }
     internal class IntegerToRealExpression : CastExpression

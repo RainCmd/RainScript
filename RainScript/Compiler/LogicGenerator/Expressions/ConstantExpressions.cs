@@ -119,7 +119,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     internal class ConstantStringExpression : Expression
     {
         private readonly string value;
-        public override TokenAttribute Attribute => TokenAttribute.Constant;
+        public override TokenAttribute Attribute => TokenAttribute.Constant | TokenAttribute.Array;
         public ConstantStringExpression(Anchor anchor, string value) : base(anchor, RelyKernel.STRING_TYPE)
         {
             this.value = value;

@@ -6,13 +6,12 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         public readonly Expression[] expressions;
         private readonly TokenAttribute attribute;
-        public override TokenAttribute Attribute { get { return attribute; } }
+        public override TokenAttribute Attribute => attribute;
         private TupleExpression(Anchor anchor, Expression[] expressions, CompilingType[] returns) : base(anchor, returns)
         {
             this.expressions = expressions;
             attribute = TokenAttribute.Assignable;
             foreach (var item in expressions) attribute &= item.Attribute;
-            if (attribute != TokenAttribute.Assignable) attribute = TokenAttribute.Value;
             attribute |= TokenAttribute.Tuple;
         }
         public override void Generator(GeneratorParameter parameter)
@@ -66,16 +65,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.source = source;
             this.elementIndices = elementIndices;
-            if (returns.Length == 1)
-            {
-                attribute = source.Attribute.ContainAny(TokenAttribute.Assignable) ? TokenAttribute.Assignable : TokenAttribute.Value;
-                attribute = attribute.AddTypeAttribute(returns[0]);
-            }
-            else
-            {
-                attribute = TokenAttribute.Tuple;
-                if (source.Attribute.ContainAny(TokenAttribute.Assignable)) attribute |= TokenAttribute.Assignable;
-            }
+            if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
+            else attribute = TokenAttribute.Tuple;
         }
         public override void Generator(GeneratorParameter parameter)
         {
@@ -85,7 +76,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     internal class TupleAssignmentExpression : Expression
     {
         private readonly Expression[] expressions;
-        public override TokenAttribute Attribute { get { return TokenAttribute.Tuple; } }
+        public override TokenAttribute Attribute => TokenAttribute.Tuple;
         public TupleAssignmentExpression(Anchor anchor, Expression[] expressions, CompilingType[] returns) : base(anchor, returns)
         {
             this.expressions = expressions;
