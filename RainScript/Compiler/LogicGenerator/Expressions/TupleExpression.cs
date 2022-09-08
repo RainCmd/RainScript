@@ -10,9 +10,9 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         private TupleExpression(Anchor anchor, Expression[] expressions, CompilingType[] returns) : base(anchor, returns)
         {
             this.expressions = expressions;
-            attribute = TokenAttribute.Variable;
+            attribute = TokenAttribute.Assignable;
             foreach (var item in expressions) attribute &= item.Attribute;
-            if (attribute != TokenAttribute.Variable) attribute = TokenAttribute.Temporary;
+            if (attribute != TokenAttribute.Assignable) attribute = TokenAttribute.Value;
             attribute |= TokenAttribute.Tuple;
         }
         public override void Generator(GeneratorParameter parameter)
@@ -68,13 +68,13 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             this.elementIndices = elementIndices;
             if (returns.Length == 1)
             {
-                attribute = source.Attribute.ContainAny(TokenAttribute.Variable) ? TokenAttribute.Variable : TokenAttribute.Temporary;
+                attribute = source.Attribute.ContainAny(TokenAttribute.Assignable) ? TokenAttribute.Assignable : TokenAttribute.Value;
                 attribute = attribute.AddTypeAttribute(returns[0]);
             }
             else
             {
                 attribute = TokenAttribute.Tuple;
-                if (source.Attribute.ContainAny(TokenAttribute.Variable)) attribute |= TokenAttribute.Variable;
+                if (source.Attribute.ContainAny(TokenAttribute.Assignable)) attribute |= TokenAttribute.Assignable;
             }
         }
         public override void Generator(GeneratorParameter parameter)

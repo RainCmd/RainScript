@@ -32,7 +32,7 @@
         public VariableGlobalExpression(Anchor anchor, Declaration declaration, bool constant, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            attribute = constant ? TokenAttribute.Constant : TokenAttribute.Variable;
+            attribute = constant ? TokenAttribute.Constant : TokenAttribute.Assignable;
             attribute = attribute.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
@@ -52,7 +52,7 @@
         public VariableMemberExpression(Anchor anchor, Declaration declaration, Expression target, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            attribute = TokenAttribute.Variable.AddTypeAttribute(type);
+            attribute = TokenAttribute.Assignable.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
         {
@@ -71,7 +71,7 @@
         public VariableQuestionMemberExpression(Anchor anchor, Declaration declaration, Expression target, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            attribute = TokenAttribute.Variable.AddTypeAttribute(type);
+            attribute = TokenAttribute.Assignable.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
         {
@@ -92,7 +92,7 @@
         {
             this.left = left;
             this.right = right;
-            attribute = TokenAttribute.Temporary.AddTypeAttribute(type);
+            attribute = TokenAttribute.Value.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
         {

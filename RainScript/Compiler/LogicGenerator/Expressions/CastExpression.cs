@@ -3,7 +3,7 @@
     internal abstract class CastExpression : Expression
     {
         protected Expression expression;
-        public override TokenAttribute Attribute => TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Value;
         protected CastExpression(Anchor anchor, Expression expression, CompilingType type) : base(anchor, type)
         {
             this.expression = expression;

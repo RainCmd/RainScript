@@ -1,4 +1,5 @@
-﻿using RainScript.Compiler.LogicGenerator.Expressions;
+﻿using RainScript.Compiler.Compiling;
+using RainScript.Compiler.LogicGenerator.Expressions;
 using System;
 using System.Data;
 #if FIXED
@@ -583,7 +584,7 @@ namespace RainScript.Compiler.LogicGenerator
             {
                 if (TryParse(lexicals[0, assignmentIndex - 1], out var left) && TryParse(lexicals[assignmentIndex + 1, -1], out var right))
                 {
-                    if (left.Attribute.ContainAny(TokenAttribute.Variable))
+                    if (left.Attribute.ContainAny(TokenAttribute.Assignable))
                     {
                         var assignment = lexicals[assignmentIndex];
                         if (left.returns.Length > 1 && left.returns.Length == right.returns.Length)
@@ -613,12 +614,12 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.BitAndAssignment:
                                     if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.BOOL_And, left, right, RelyKernel.BOOL_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_And, left, right, RelyKernel.BOOL_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
@@ -626,12 +627,12 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.BitOrAssignment:
                                     if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.BOOL_Or, left, right, RelyKernel.BOOL_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_Or, left, right, RelyKernel.BOOL_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
@@ -639,12 +640,12 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.BitXorAssignment:
                                     if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.BOOL_Xor, left, right, RelyKernel.BOOL_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_Xor, left, right, RelyKernel.BOOL_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
@@ -652,7 +653,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.ShiftLeftAssignment:
                                     if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
@@ -660,7 +661,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.ShiftRightAssignment:
                                     if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
@@ -668,7 +669,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.PlusAssignment:
                                     if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     else if (lrt == RelyKernel.REAL_TYPE)
@@ -680,7 +681,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.INTEGER_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.INTEGER_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -698,7 +699,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL2_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL2_Plus, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Plus, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -716,7 +717,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL3_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL3_Plus, left, right, RelyKernel.REAL3_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Plus, left, right, RelyKernel.REAL3_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -734,13 +735,13 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL4_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL4_Plus, left, right, RelyKernel.REAL4_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Plus, left, right, RelyKernel.REAL4_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
                                     else if (lrt == RelyKernel.STRING_TYPE && rrt == RelyKernel.STRING_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
@@ -748,7 +749,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.MinusAssignment:
                                     if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     else if (lrt == RelyKernel.REAL_TYPE)
@@ -760,7 +761,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.INTEGER_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.INTEGER_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -778,7 +779,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL2_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL2_Minus, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Minus, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -796,7 +797,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL3_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL3_Minus, left, right, RelyKernel.REAL3_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Minus, left, right, RelyKernel.REAL3_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -814,7 +815,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL4_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL4_Minus, left, right, RelyKernel.REAL4_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Minus, left, right, RelyKernel.REAL4_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -823,7 +824,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.MulAssignment:
                                     if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     else if (lrt == RelyKernel.REAL_TYPE)
@@ -835,7 +836,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.INTEGER_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -843,7 +844,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         if (rrt == RelyKernel.REAL3_TYPE)
@@ -858,7 +859,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL2_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vv, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vv, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -866,7 +867,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         if (rrt == RelyKernel.REAL2_TYPE)
@@ -881,7 +882,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL3_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vv, left, right, RelyKernel.REAL3_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vv, left, right, RelyKernel.REAL3_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -889,7 +890,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         if (rrt == RelyKernel.REAL2_TYPE)
@@ -904,7 +905,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL4_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vv, left, right, RelyKernel.REAL4_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vv, left, right, RelyKernel.REAL4_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -913,7 +914,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.DivAssignment:
                                     if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     else if (lrt == RelyKernel.REAL_TYPE)
@@ -925,7 +926,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.INTEGER_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -933,7 +934,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         if (rrt == RelyKernel.REAL3_TYPE)
@@ -948,7 +949,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL2_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vv, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vv, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -956,7 +957,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         else if (rrt == RelyKernel.REAL4_TYPE)
@@ -966,7 +967,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL3_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vv, left, right, RelyKernel.REAL3_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vv, left, right, RelyKernel.REAL3_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -974,12 +975,12 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         if (rrt == RelyKernel.REAL4_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vv, left, right, RelyKernel.REAL4_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vv, left, right, RelyKernel.REAL4_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -988,7 +989,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.ModAssignment:
                                     if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new OperationExpression(assignment.anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
                                         goto case LexicalType.Assignment;
                                     }
                                     else if (lrt == RelyKernel.REAL_TYPE)
@@ -1000,7 +1001,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.INTEGER_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -1008,7 +1009,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         if (rrt == RelyKernel.REAL3_TYPE)
@@ -1023,7 +1024,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL2_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vv, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vv, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -1031,7 +1032,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         else if (rrt == RelyKernel.REAL4_TYPE)
@@ -1041,7 +1042,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         if (rrt == RelyKernel.REAL3_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vv, left, right, RelyKernel.REAL3_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vv, left, right, RelyKernel.REAL3_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -1049,12 +1050,12 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (rrt == RelyKernel.REAL_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                         if (rrt == RelyKernel.REAL4_TYPE)
                                         {
-                                            right = new OperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vv, left, right, RelyKernel.REAL4_TYPE);
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vv, left, right, RelyKernel.REAL4_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
                                     }
@@ -1171,9 +1172,457 @@ namespace RainScript.Compiler.LogicGenerator
             result = default;
             return false;
         }
+        private bool TryPopExpression(ScopeStack<Expression> expressionStack, Anchor anchor, out Expression left, out Expression right)
+        {
+            if (expressionStack.Count >= 2)
+            {
+                right = expressionStack.Pop();
+                left = expressionStack.Pop();
+                if (left.returns.Length == 1 && right.returns.Length == 1)
+                {
+                    var leftType = left.returns[0];
+                    var rightType = right.returns[0];
+                    if (leftType == rightType) return true;
+                    else if (leftType == RelyKernel.INTEGER_TYPE)
+                    {
+                        if (rightType == RelyKernel.REAL_TYPE || rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE)
+                        {
+                            left = new IntegerToRealExpression(left.anchor, left);
+                            return true;
+                        }
+                    }
+                    else if (leftType == RelyKernel.REAL_TYPE)
+                    {
+                        if (rightType == RelyKernel.INTEGER_TYPE)
+                        {
+                            right = new IntegerToRealExpression(right.anchor, right);
+                            return true;
+                        }
+                        else return rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE;
+                    }
+                    else if (leftType == RelyKernel.REAL2_TYPE)
+                    {
+                        if (rightType == RelyKernel.INTEGER_TYPE)
+                        {
+                            right = new IntegerToRealExpression(right.anchor, right);
+                            return true;
+                        }
+                        else if (rightType == RelyKernel.REAL_TYPE) return true;
+                        else if (rightType == RelyKernel.REAL3_TYPE)
+                        {
+                            left = new Real2ToReal3Expression(left.anchor, left);
+                            return true;
+                        }
+                        else if (rightType == RelyKernel.REAL4_TYPE)
+                        {
+                            left = new Real2ToReal4Expression(left.anchor, left);
+                            return true;
+                        }
+                    }
+                    else if (leftType == RelyKernel.REAL3_TYPE)
+                    {
+                        if (rightType == RelyKernel.INTEGER_TYPE)
+                        {
+                            right = new IntegerToRealExpression(right.anchor, right);
+                            return true;
+                        }
+                        else if (rightType == RelyKernel.REAL_TYPE) return true;
+                        else if (rightType == RelyKernel.REAL2_TYPE)
+                        {
+                            right = new Real2ToReal3Expression(right.anchor, right);
+                            return true;
+                        }
+                        else if (rightType == RelyKernel.REAL4_TYPE)
+                        {
+                            left = new Real3ToReal4Expression(left.anchor, left);
+                            return true;
+                        }
+                    }
+                    else if (leftType == RelyKernel.REAL4_TYPE)
+                    {
+                        if (rightType == RelyKernel.INTEGER_TYPE)
+                        {
+                            right = new IntegerToRealExpression(right.anchor, right);
+                            return true;
+                        }
+                        else if (rightType == RelyKernel.REAL_TYPE) return true;
+                        else if (rightType == RelyKernel.REAL2_TYPE)
+                        {
+                            right = new Real2ToReal4Expression(right.anchor, right);
+                            return true;
+                        }
+                        else if (rightType == RelyKernel.REAL3_TYPE)
+                        {
+                            right = new Real3ToReal4Expression(right.anchor, right);
+                            return true;
+                        }
+                    }
+                    else if (leftType.IsHandle && rightType.IsHandle) return true;
+                }
+                exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+            }
+            else exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+            left = default;
+            right = default;
+            return false;
+        }
+        private bool TryPopExpression(ScopeStack<Expression> expressionStack, Anchor anchor, out Expression expression)
+        {
+            if (expressionStack.Count > 0)
+            {
+                expression = expressionStack.Pop();
+                if (expression.returns.Length == 1) return true;
+                else exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+            }
+            else exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+            expression = default;
+            return false;
+        }
+        private TokenAttribute PushOperationExpression(ScopeStack<Expression> expressionStack, Anchor anchor, CommandMacro command, Expression left, Expression right, CompilingType type)
+        {
+            var expression = new BinaryOperationExpression(anchor, command, left, right, type);
+            expressionStack.Push(expression);
+            return expression.Attribute;
+        }
+        private TokenAttribute PushOperationExpression(ScopeStack<Expression> expressionStack, Anchor anchor, CommandMacro command, Expression expression)
+        {
+            expression = new UnaryOperationExpression(anchor, command, expression);
+            expressionStack.Push(expression);
+            return expression.Attribute;
+        }
         private TokenAttribute PopToken(ScopeStack<Expression> expressionStack, Token token)
         {
-
+            var anchor = token.lexical.anchor;
+            switch (token.type)
+            {
+                case TokenType.Less:
+                    if (TryPopExpression(expressionStack, anchor, out var left, out var right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Less, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Less, left, right, RelyKernel.BOOL_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Greater:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Grater, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Grater, left, right, RelyKernel.BOOL_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.LessEquals:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_LessThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_LessThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.GreaterEquals:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_GraterThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_GraterThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Equals:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.ENTITY_TYPE && right.returns[0] == RelyKernel.ENTITY_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.ENTITY_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0].IsHandle && right.returns[0].IsHandle)
+                        {
+                            if (left.returns[0].dimension == 0 && left.returns[0].definition.code == TypeCode.Function && right.returns[0].dimension == 0 && right.returns[0].definition.code == TypeCode.Function) return PushOperationExpression(expressionStack, anchor, CommandMacro.DELEGATE_Equals, left, right, RelyKernel.BOOL_TYPE);
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.HANDLE_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else goto default;
+                    }
+                    break;
+                case TokenType.NotEquals:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.ENTITY_TYPE && right.returns[0] == RelyKernel.ENTITY_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.ENTITY_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0].IsHandle && right.returns[0].IsHandle)
+                        {
+                            if (left.returns[0].dimension == 0 && left.returns[0].definition.code == TypeCode.Function && right.returns[0].dimension == 0 && right.returns[0].definition.code == TypeCode.Function) return PushOperationExpression(expressionStack, anchor, CommandMacro.DELEGATE_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.HANDLE_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else goto default;
+                    }
+                    break;
+                case TokenType.LogicAnd:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            var logicExpression = new LogicAndExpression(anchor, left, right);
+                            expressionStack.Push(logicExpression);
+                            return logicExpression.Attribute;
+                        }
+                    }
+                    break;
+                case TokenType.LogicOr:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            var logicExpression = new LogicOrExpression(anchor, left, right);
+                            expressionStack.Push(logicExpression);
+                            return logicExpression.Attribute;
+                        }
+                        else goto default;
+                    }
+                    break;
+                case TokenType.BitAnd:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_And, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.BitOr:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Or, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.BitXor:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Xor, left, right, RelyKernel.BOOL_TYPE);
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.ShiftLeft:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.ShiftRight:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Plus:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.REAL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Plus, left, right, RelyKernel.REAL2_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Plus, left, right, RelyKernel.REAL3_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Plus, left, right, RelyKernel.REAL4_TYPE);
+                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Minus:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.REAL_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Minus, left, right, RelyKernel.REAL2_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Minus, left, right, RelyKernel.REAL3_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Minus, left, right, RelyKernel.REAL4_TYPE);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Mul:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.REAL_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_rv, left, right, RelyKernel.REAL2_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_rv, left, right, RelyKernel.REAL3_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_rv, left, right, RelyKernel.REAL4_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_vv, left, right, RelyKernel.REAL2_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL3_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_vv, left, right, RelyKernel.REAL3_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL4_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_vv, left, right, RelyKernel.REAL4_TYPE);
+                        }
+                        goto default;
+                    }
+                    break;
+                case TokenType.Div:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.REAL_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_rv, left, right, RelyKernel.REAL2_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_rv, left, right, RelyKernel.REAL3_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_rv, left, right, RelyKernel.REAL4_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_vv, left, right, RelyKernel.REAL2_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL3_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_vv, left, right, RelyKernel.REAL3_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL4_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_vv, left, right, RelyKernel.REAL4_TYPE);
+                        }
+                        goto default;
+                    }
+                    break;
+                case TokenType.Mod:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.REAL_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_rv, left, right, RelyKernel.REAL2_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_rv, left, right, RelyKernel.REAL3_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_rv, left, right, RelyKernel.REAL4_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_vv, left, right, RelyKernel.REAL2_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL3_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_vv, left, right, RelyKernel.REAL3_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE)
+                        {
+                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL4_TYPE);
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_vv, left, right, RelyKernel.REAL4_TYPE);
+                        }
+                        goto default;
+                    }
+                    break;
+                case TokenType.Not:
+                    if (TryPopExpression(expressionStack, anchor, out var expression))
+                    {
+                        if (expression.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Not, expression);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Inverse:
+                    if (TryPopExpression(expressionStack, anchor, out expression))
+                    {
+                        if (expression.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Not, expression);
+                        else if (expression.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Inverse, expression);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Positive:
+                    if (TryPopExpression(expressionStack, anchor, out expression))
+                    {
+                        var type = expression.returns[0];
+                        if (type == RelyKernel.BOOL_TYPE || type == RelyKernel.INTEGER_TYPE || type == RelyKernel.REAL_TYPE || type == RelyKernel.REAL2_TYPE || type == RelyKernel.REAL3_TYPE || type == RelyKernel.REAL4_TYPE)
+                        {
+                            expressionStack.Push(expression);
+                            return expression.Attribute;
+                        }
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Negative:
+                    if (TryPopExpression(expressionStack, anchor, out expression))
+                    {
+                        if (expression.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Negative, expression);
+                        else if (expression.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Negative, expression);
+                        else if (expression.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Negative, expression);
+                        else if (expression.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Negative, expression);
+                        else if (expression.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Negative, expression);
+                        else goto default;
+                    }
+                    break;
+                case TokenType.IncrementLeft:
+                    if (TryPopExpression(expressionStack, anchor, out expression))
+                    {
+                        if (expression is VariableExpression variable)
+                        {
+                            if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
+                            {
+                                expression = new OperationPrevIncrementExpression(anchor, CommandMacro.INTEGER_Increment, variable);
+                                expressionStack.Push(expression);
+                                return expression.Attribute;
+                            }
+                            else if (expression.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                expression = new OperationPrevIncrementExpression(anchor, CommandMacro.REAL_Increment, variable);
+                                expressionStack.Push(expression);
+                                return expression.Attribute;
+                            }
+                            else goto default;
+                        }
+                        else exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
+                    }
+                    break;
+                case TokenType.DecrementLeft:
+                    if (TryPopExpression(expressionStack, anchor, out expression))
+                    {
+                        if (expression is VariableExpression variable)
+                        {
+                            if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
+                            {
+                                expression = new OperationPrevIncrementExpression(anchor, CommandMacro.INTEGER_Decrement, variable);
+                                expressionStack.Push(expression);
+                                return expression.Attribute;
+                            }
+                            else if (expression.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                expression = new OperationPrevIncrementExpression(anchor, CommandMacro.REAL_Decrement, variable);
+                                expressionStack.Push(expression);
+                                return expression.Attribute;
+                            }
+                            else goto default;
+                        }
+                        else exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
+                    }
+                    break;
+                default:
+                    exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                    break;
+            }
+            return TokenAttribute.None;
         }
         private void PushToken(ScopeStack<Expression> expressionStack, ScopeStack<Token> tokenStack, Token token, TokenAttribute attribute)
         {
@@ -1368,7 +1817,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
                                         goto parse_fail;
                                     }
-                                    else if (attribute.ContainAny(TokenAttribute.Function))
+                                    else if (attribute.ContainAny(TokenAttribute.Callable))
                                     {
                                         var delegateExpression = expressionStack.Pop();
                                         if (delegateExpression.returns.Length != 1 || delegateExpression.returns[0].dimension > 0 || delegateExpression.returns[0].definition.code != TypeCode.Function) throw ExceptionGeneratorCompiler.InvalidCompilingType(delegateExpression.returns[0]);
@@ -1580,10 +2029,46 @@ namespace RainScript.Compiler.LogicGenerator
                             attribute = TokenAttribute.Operator;
                             break;
                         case LexicalType.Increment:
-                            if (attribute.ContainAny(TokenAttribute.Variable)) PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.IncrementRight), attribute);
-                            else PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.IncrementLeft), attribute);
-                            attribute = TokenAttribute.Operator;
-                            break;
+                            if (attribute.ContainAny(TokenAttribute.Assignable))
+                            {
+                                if (TryPopExpression(expressionStack, lexical.anchor, out var expression))
+                                {
+                                    if (expression is VariableExpression variable)
+                                    {
+                                        if (variable.returns[0] == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            expression = new OperationPostIncrementExpression(lexical.anchor, CommandMacro.INTEGER_Increment, variable);
+                                            expressionStack.Push(expression);
+                                            attribute = expression.Attribute;
+                                            break;
+                                        }
+                                        else if (variable.returns[0] == RelyKernel.REAL_TYPE)
+                                        {
+                                            expression = new OperationPostIncrementExpression(lexical.anchor, CommandMacro.REAL_Increment, variable);
+                                            expressionStack.Push(expression);
+                                            attribute = expression.Attribute;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                            goto parse_fail;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
+                                        goto parse_fail;
+                                    }
+                                }
+                                else goto parse_fail;
+                            }
+                            else
+                            {
+                                PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.IncrementLeft), attribute);
+                                attribute = TokenAttribute.Operator;
+                                break;
+                            }
                         case LexicalType.PlusAssignment: goto default;
                         case LexicalType.Minus:
                             if (attribute.ContainAny(TokenAttribute.None)) PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Negative), attribute);
@@ -1591,9 +2076,46 @@ namespace RainScript.Compiler.LogicGenerator
                             attribute = TokenAttribute.Operator;
                             break;
                         case LexicalType.Decrement:
-                            if (attribute.ContainAny(TokenAttribute.Variable)) PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.DecrementRight), attribute);
-                            else PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.DecrementLeft), attribute);
-                            break;
+                            if (attribute.ContainAny(TokenAttribute.Assignable))
+                            {
+                                if (TryPopExpression(expressionStack, lexical.anchor, out var expression))
+                                {
+                                    if (expression is VariableExpression variable)
+                                    {
+                                        if (variable.returns[0] == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            expression = new OperationPostIncrementExpression(lexical.anchor, CommandMacro.INTEGER_Decrement, variable);
+                                            expressionStack.Push(expression);
+                                            attribute = expression.Attribute;
+                                            break;
+                                        }
+                                        else if (variable.returns[0] == RelyKernel.REAL_TYPE)
+                                        {
+                                            expression = new OperationPostIncrementExpression(lexical.anchor, CommandMacro.REAL_Decrement, variable);
+                                            expressionStack.Push(expression);
+                                            attribute = expression.Attribute;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                            goto parse_fail;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
+                                        goto parse_fail;
+                                    }
+                                }
+                                else goto parse_fail;
+                            }
+                            else
+                            {
+                                PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.DecrementLeft), attribute);
+                                attribute = TokenAttribute.Operator;
+                                break;
+                            }
                         case LexicalType.MinusAssignment: goto default;
                         case LexicalType.Mul:
                             PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Mul), attribute);
@@ -1631,7 +2153,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 lexical = lexicals[++index];
                                 if (lexical.type == LexicalType.Word)
                                 {
-                                    if (attribute.ContainAny(TokenAttribute.Constant | TokenAttribute.Variable | TokenAttribute.Temporary | TokenAttribute.Array | TokenAttribute.Coroutine) && expressionStack.Peek().returns.Length == 1)
+                                    if (attribute.ContainAny(TokenAttribute.Constant | TokenAttribute.Assignable | TokenAttribute.Value | TokenAttribute.Array | TokenAttribute.Coroutine) && expressionStack.Peek().returns.Length == 1)
                                     {
                                         var expression = expressionStack.Peek();
                                         var type = expression.returns[0];
@@ -1680,7 +2202,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 lexical = lexicals[++index];
                                 if (lexical.type == LexicalType.Word)
                                 {
-                                    if (attribute.ContainAny(TokenAttribute.Constant | TokenAttribute.Variable | TokenAttribute.Temporary | TokenAttribute.Array | TokenAttribute.Coroutine) && expressionStack.Peek().returns.Length == 1)
+                                    if (attribute.ContainAny(TokenAttribute.Constant | TokenAttribute.Assignable | TokenAttribute.Value | TokenAttribute.Array | TokenAttribute.Coroutine) && expressionStack.Peek().returns.Length == 1)
                                     {
                                         var expression = expressionStack.Peek();
                                         var type = expression.returns[0];
@@ -1862,14 +2384,14 @@ namespace RainScript.Compiler.LogicGenerator
                                                 {
                                                     if (declaration.code == DeclarationCode.MemberVariable)
                                                     {
-                                                        var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Temporary, local.type), GetVariableType(declaration));
+                                                        var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Value, local.type), GetVariableType(declaration));
                                                         expressionStack.Push(expression);
                                                         attribute = expression.Attribute;
                                                         break;
                                                     }
                                                     else if (declaration.code == DeclarationCode.MemberMethod)
                                                     {
-                                                        var expression = new MethodMemberExpression(lexical.anchor, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Temporary, local.type), declaration);
+                                                        var expression = new MethodMemberExpression(lexical.anchor, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Value, local.type), declaration);
                                                         expressionStack.Push(expression);
                                                         attribute = expression.Attribute;
                                                         break;
@@ -1909,14 +2431,14 @@ namespace RainScript.Compiler.LogicGenerator
                                                 {
                                                     if (declaration.code == DeclarationCode.MemberVariable)
                                                     {
-                                                        var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Temporary, local.type), GetVariableType(declaration));
+                                                        var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Value, local.type), GetVariableType(declaration));
                                                         expressionStack.Push(expression);
                                                         attribute = expression.Attribute;
                                                         break;
                                                     }
                                                     else if (declaration.code == DeclarationCode.MemberMethod)
                                                     {
-                                                        var expression = new MethodVirtualExpression(lexical.anchor, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Temporary, local.type), declaration);
+                                                        var expression = new MethodVirtualExpression(lexical.anchor, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Value, local.type), declaration);
                                                         expressionStack.Push(expression);
                                                         attribute = expression.Attribute;
                                                         break;
@@ -1932,7 +2454,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else
                                         {
-                                            var expression = new VariableLocalExpression(lexical.anchor, local.Declaration, TokenAttribute.Temporary, local.type);
+                                            var expression = new VariableLocalExpression(lexical.anchor, local.Declaration, TokenAttribute.Value, local.type);
                                             expressionStack.Push(expression);
                                             attribute = expression.Attribute;
                                             break;
@@ -2078,7 +2600,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.IS)
                                 {
-                                    if (attribute.ContainAny(TokenAttribute.Temporary))
+                                    if (attribute.ContainAny(TokenAttribute.Value))
                                     {
                                         var expression = expressionStack.Pop();
                                         if (expression.returns.Length == 1)
@@ -2096,7 +2618,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     {
                                                         var local = localContext.AddLocal(lexicals[startIndex].anchor, type);
                                                         if (KeyWorld.IsKeyWorld(local.anchor.Segment)) exceptions.Add(local.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
-                                                        localExpression = new VariableLocalExpression(local.anchor, local.Declaration, TokenAttribute.Variable, type);
+                                                        localExpression = new VariableLocalExpression(local.anchor, local.Declaration, TokenAttribute.Assignable, type);
                                                     }
                                                     expression = new IsExpression(lexical.anchor, expression, type, localExpression);
                                                     expressionStack.Push(expression);
@@ -2119,7 +2641,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.AS)
                                 {
-                                    if (attribute.ContainAny(TokenAttribute.Temporary))
+                                    if (attribute.ContainAny(TokenAttribute.Value))
                                     {
                                         var expression = expressionStack.Pop();
                                         if (expression.returns.Length == 1)
@@ -2169,7 +2691,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             {
                                                 if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
                                                 {
-                                                    var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(default, local.Declaration, TokenAttribute.Temporary, local.type), GetVariableType(declaration));
+                                                    var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(default, local.Declaration, TokenAttribute.Value, local.type), GetVariableType(declaration));
                                                     expressionStack.Push(expression);
                                                     attribute = expression.Attribute;
                                                     break;
@@ -2180,7 +2702,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             {
                                                 if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
                                                 {
-                                                    var expression = new MethodVirtualExpression(lexical.anchor, new VariableLocalExpression(default, local.Declaration, TokenAttribute.Temporary, local.type), declaration);
+                                                    var expression = new MethodVirtualExpression(lexical.anchor, new VariableLocalExpression(default, local.Declaration, TokenAttribute.Value, local.type), declaration);
                                                     expressionStack.Push(expression);
                                                     attribute = expression.Attribute;
                                                     break;
@@ -2221,7 +2743,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         case DeclarationCode.Lambda: goto default;
                                         case DeclarationCode.LocalVariable:
                                             {
-                                                var expression = new VariableLocalExpression(lexical.anchor, declaration, TokenAttribute.Variable, GetVariableType(declaration));
+                                                var expression = new VariableLocalExpression(lexical.anchor, declaration, TokenAttribute.Assignable, GetVariableType(declaration));
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
                                             }

@@ -168,6 +168,13 @@
                 else return definition.code.FieldSize();
             } 
         }
+        public bool IsHandle
+        {
+            get
+            {
+                return dimension > 0 || definition.code == TypeCode.Handle || definition.code == TypeCode.Interface || definition.code == TypeCode.Function || definition.code == TypeCode.Coroutine;
+            }
+        }
         public CompilingType(Type type, Visibility visibility) : this(new CompilingDefinition(type.definition, visibility), type.dimension) { }
         public CompilingType(CompilingDefinition definition, uint dimension)
         {

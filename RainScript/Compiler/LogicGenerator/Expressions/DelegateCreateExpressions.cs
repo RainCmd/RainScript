@@ -5,7 +5,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     internal class DelegateCreateLambdaFunctionExpression : Expression
     {
         public readonly Declaration function;
-        public override TokenAttribute Attribute => TokenAttribute.Function | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Callable | TokenAttribute.Value;
         public DelegateCreateLambdaFunctionExpression(Anchor anchor, Declaration function, CompilingType type) : base(anchor, type)
         {
             this.function = function;
@@ -18,7 +18,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     internal class DelegateCreateGlobalFunctionExpression : Expression
     {
         public readonly Declaration function;
-        public override TokenAttribute Attribute => TokenAttribute.Function | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Callable | TokenAttribute.Value;
         public DelegateCreateGlobalFunctionExpression(Anchor anchor, Declaration function, CompilingType type) : base(anchor, type)
         {
             this.function = function;
@@ -32,7 +32,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         private readonly Expression source;
         public readonly Declaration function;
-        public override TokenAttribute Attribute => TokenAttribute.Function | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Callable | TokenAttribute.Value;
         public DelegateCreateMemberFunctionExpression(Anchor anchor, Declaration function, Expression source, CompilingType type) : base(anchor, type)
         {
             this.function = function;
@@ -47,7 +47,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         private readonly Expression source;
         public readonly Declaration function;
-        public override TokenAttribute Attribute => TokenAttribute.Function | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Callable | TokenAttribute.Value;
         public DelegateCreateVirtualMemberFunctionExpression(Anchor anchor, Declaration function, Expression source, CompilingType type) : base(anchor, type)
         {
             this.function = function;
@@ -62,7 +62,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         private readonly Expression source;
         public readonly Declaration function;
-        public override TokenAttribute Attribute => TokenAttribute.Function | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Callable | TokenAttribute.Value;
         public DelegateCreateQuestionMemberFunctionExpression(Anchor anchor, Declaration function, Expression source, CompilingType type) : base(anchor, type)
         {
             this.function = function;

@@ -4,7 +4,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
 {
     internal class BlurryVariableDeclarationExpression : Expression
     {
-        public override TokenAttribute Attribute => TokenAttribute.Variable;
+        public override TokenAttribute Attribute => TokenAttribute.Assignable;
         public BlurryVariableDeclarationExpression(Anchor anchor) : base(anchor, RelyKernel.BLURRY_TYPE) { }
         public override void Generator(GeneratorParameter parameter)
         {
@@ -16,7 +16,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         public readonly Expression target;
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Value;
         public MethodMemberExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.target = target;
@@ -31,7 +31,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         public readonly Expression target;
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Value;
         public MethodVirtualExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.target = target;
@@ -46,7 +46,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         public readonly Expression target;
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Value;
         public MethodQuestionExpression(Anchor anchor, Expression target, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.target = target;
@@ -60,7 +60,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     internal class MethodGlobalExpression : Expression
     {
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Value;
         public MethodGlobalExpression(Anchor anchor, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.declaration = declaration;
@@ -73,7 +73,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     internal class MethodNativeExpression : Expression
     {
         public readonly Declaration declaration;
-        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Method | TokenAttribute.Value;
         public MethodNativeExpression(Anchor anchor, Declaration declaration) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.declaration = declaration;
@@ -101,7 +101,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         public readonly Anchor[] parameters;
         public readonly ListSegment<Lexical> body;
-        public override TokenAttribute Attribute => TokenAttribute.Temporary;
+        public override TokenAttribute Attribute => TokenAttribute.Value;
         public BlurryLambdaExpression(Anchor anchor, Anchor[] parameters, ListSegment<Lexical> body) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.parameters = parameters;

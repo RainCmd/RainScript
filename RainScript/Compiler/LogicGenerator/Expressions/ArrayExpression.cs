@@ -12,7 +12,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.array = array;
             this.index = index;
-            attribute = TokenAttribute.Variable.AddTypeAttribute(elementType);
+            attribute = TokenAttribute.Assignable.AddTypeAttribute(elementType);
         }
         public override void Generator(GeneratorParameter parameter)
         {
@@ -28,7 +28,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         public readonly Expression array;
         public readonly Expression range;
-        public override TokenAttribute Attribute => TokenAttribute.Temporary | TokenAttribute.Array;
+        public override TokenAttribute Attribute => TokenAttribute.Value | TokenAttribute.Array;
         public ArraySubExpression(Anchor anchor, Expression array, Expression range) : base(anchor, array.returns)
         {
             this.array = array;

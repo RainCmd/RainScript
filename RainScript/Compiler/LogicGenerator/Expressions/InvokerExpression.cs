@@ -12,7 +12,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.invoker = invoker;
             this.parameter = parameter;
-            attribute = TokenAttribute.Temporary;
+            attribute = TokenAttribute.Value;
             if (returns.Length == 1) attribute = attribute.AddTypeAttribute(returns[0]);
             else attribute |= TokenAttribute.Tuple;
         }
@@ -31,7 +31,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.declaration = declaration;
             this.parameter = parameter;
-            attribute = TokenAttribute.Temporary;
+            attribute = TokenAttribute.Value;
             if (returns.Length == 1) attribute = attribute.AddTypeAttribute(returns[0]);
             else attribute |= TokenAttribute.Tuple;
         }
@@ -50,7 +50,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.declaration = declaration;
             this.parameter = parameter;
-            attribute = TokenAttribute.Temporary;
+            attribute = TokenAttribute.Value;
             if (returns.Length == 1) attribute = attribute.AddTypeAttribute(returns[0]);
             else attribute |= TokenAttribute.Tuple;
         }
@@ -71,7 +71,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             this.target = target;
             this.parameter = parameter;
             this.declaration = declaration;
-            attribute = TokenAttribute.Temporary;
+            attribute = TokenAttribute.Value;
             if (returns.Length == 1) attribute = attribute.AddTypeAttribute(returns[0]);
             else attribute |= TokenAttribute.Tuple;
         }
@@ -92,7 +92,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             this.target = target;
             this.parameter = parameter;
             this.declaration = declaration;
-            attribute = TokenAttribute.Temporary;
+            attribute = TokenAttribute.Value;
             if (returns.Length == 1) attribute = attribute.AddTypeAttribute(returns[0]);
             else attribute |= TokenAttribute.Tuple;
         }
@@ -113,7 +113,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             this.target = target;
             this.parameter = parameter;
             this.declaration = declaration;
-            attribute = TokenAttribute.Temporary;
+            attribute = TokenAttribute.Value;
             if (returns.Length == 1) attribute = attribute.AddTypeAttribute(returns[0]);
             else attribute |= TokenAttribute.Tuple;
         }

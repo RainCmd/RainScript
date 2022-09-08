@@ -17,7 +17,6 @@ namespace RainScript.Compiler
             valid = !valid;
             Assert();
         }
-
         public void OnRecycle()
         {
             Assert();
@@ -131,7 +130,6 @@ namespace RainScript.Compiler
         {
             detector.OnInit();
         }
-
         void IRecyclable.OnRecycle()
         {
             detector.OnRecycle();
@@ -155,7 +153,6 @@ namespace RainScript.Compiler
         {
             detector.OnInit();
         }
-
         void IRecyclable.OnRecycle()
         {
             detector.OnRecycle();
@@ -179,7 +176,6 @@ namespace RainScript.Compiler
         {
             detector.OnInit();
         }
-
         void IRecyclable.OnRecycle()
         {
             detector.OnRecycle();
@@ -203,7 +199,6 @@ namespace RainScript.Compiler
         {
             detector.OnInit();
         }
-
         void IRecyclable.OnRecycle()
         {
             detector.OnRecycle();
