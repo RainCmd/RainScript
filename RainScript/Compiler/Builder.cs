@@ -119,7 +119,6 @@ namespace RainScript.Compiler
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.DeclaractionParseFail();
 
                         foreach (var item in fileSpaces) item.Tidy(manager, pool, exceptions);
-                        //todo 检查类型的接口是否全部实现过
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.DeclaractionTidyFail();
 
                         foreach (var item in fileSpaces) item.Link(manager, pool, exceptions);
@@ -129,6 +128,9 @@ namespace RainScript.Compiler
                     }
                     manager.library.DeclarationValidityCheck(pool, exceptions);
                     if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.DeclaractionIllegal();
+
+                    manager.library.InterfaceImplementsCheck(manager, pool, exceptions);
+                    if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.InterfaceImplements();
 
                     using (var referenceGenerator = new ReferenceGenerator.Library(manager, pool, exceptions))
                     {

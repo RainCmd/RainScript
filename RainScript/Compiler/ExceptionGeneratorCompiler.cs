@@ -73,6 +73,10 @@ namespace RainScript.Compiler
         {
             return new ExpectedException("声明定义不合法");
         }
+        public static ExpectedException InterfaceImplements()
+        {
+            return new ExpectedException("有接口没实现");
+        }
         public static ExpectedException DeclaractionReferenceGeneratorFail()
         {
             return new ExpectedException("引用信息生成失败");

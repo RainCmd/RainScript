@@ -98,6 +98,10 @@
             while (size-- > 0) data[point + size] = temp[size];
         }
 
+        public void GeneratorLibrary2(GeneratorParameter parameter)
+        {
+
+        }
         public Library GeneratorLibrary(GeneratorParameter parameter)
         {
             var definitions = new DefinitionInfo[parameter.manager.library.definitions.Count];

@@ -95,6 +95,10 @@ namespace RainScript.Compiler
         /// </summary>
         COMPILING_CIRCULAR_INHERIT,
         /// <summary>
+        /// 接口未实现
+        /// </summary>
+        COMPILING_INTERFACE_NOT_IMPLEMENTS,
+        /// <summary>
         /// 声明未找到
         /// </summary>
         COMPILING_DECLARATION_NOT_FOUND,

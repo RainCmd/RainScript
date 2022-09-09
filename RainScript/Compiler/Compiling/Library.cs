@@ -448,5 +448,80 @@ namespace RainScript.Compiler.Compiling
             inherits.Remove(index);
             checkedSet.Add(index);
         }
+        public void InterfaceImplementsCheck(DeclarationManager manager, CollectionPool pool, ExceptionCollector exceptions)
+        {
+            foreach (var definition in definitions)
+                using (var set = pool.GetSet<CompilingDefinition>())
+                    foreach (var inherite in definition.inherits)
+                        if (set.Add(inherite))
+                            InterfaceImplementsCheck(manager, set, definition, inherite, pool, exceptions);
+        }
+        private void InterfaceImplementsCheck(DeclarationManager manager, ScopeSet<CompilingDefinition> set, Definition definition, CompilingDefinition inherite, CollectionPool pool, ExceptionCollector exceptions)
+        {
+            if (inherite.code == TypeCode.Interface)
+            {
+                if (manager.TryGetInterface(inherite, out var result))
+                {
+                    foreach (var item in result.Inherits)
+                        if (set.Add(item))
+                            InterfaceImplementsCheck(manager, set, definition, item, pool, exceptions);
+                    for (int methodIndex = 0; methodIndex < result.MethodCount; methodIndex++)
+                    {
+                        var method = result.GetMethod(methodIndex);
+                        for (int functionIndex = 0; functionIndex < method.FunctionCount; functionIndex++)
+                            if (!InterfaceImplementsCheck(manager, definition, result.Declaration.visibility, method.GetFunction(functionIndex), exceptions))
+                                exceptions.Add(definition.name, CompilingExceptionCode.COMPILING_INTERFACE_NOT_IMPLEMENTS, manager.GetDeclarationFullName(method.GetFunction(functionIndex).Declaration));
+                    }
+                }
+                else throw ExceptionGeneratorCompiler.Unknow();
+            }
+            else throw ExceptionGeneratorCompiler.Unknow();
+        }
+        private bool InterfaceImplementsCheck(DeclarationManager manager, IDefinition definition, Visibility visibility, IFunction function, ExceptionCollector exceptions)
+        {
+            for (int methodIndex = 0; methodIndex < definition.MethodCount; methodIndex++)
+            {
+                var method = definition.GetMethod(methodIndex);
+                if (method.Name == function.Name)
+                {
+                    while (method != null)
+                    {
+                        for (int functionIndex = 0; functionIndex < method.FunctionCount; functionIndex++)
+                        {
+                            var func = method.GetFunction(functionIndex);
+                            if (CompilingType.IsEquals(func.Parameters, function.Parameters))
+                            {
+                                if (CompilingType.IsEquals(func.Returns, function.Returns))
+                                {
+                                    if (Access(visibility, func.Declaration.visibility)) return true;
+                                    else
+                                    {
+                                        exceptions.Add(CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE, manager.GetDeclarationFullName(func.Declaration));
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(func.Declaration));
+                                    exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(function.Declaration));
+                                    return false;
+                                }
+                            }
+                        }
+                        method = manager.GetOverrideMethod(method);
+                    }
+                    break;
+                }
+            }
+            return manager.TryGetDefinition(manager.GetParent(definition.Parent), out var parent) && InterfaceImplementsCheck(manager, parent, visibility, function, exceptions);
+        }
+        public static bool Access(Visibility visibility, Visibility target)
+        {
+            if (target.ContainAny(Visibility.Protected)) return false;
+            if (visibility == Visibility.Space) return target.ContainAny(Visibility.Public | Visibility.Internal | Visibility.Space);
+            else if (visibility == Visibility.Internal) return target.ContainAny(Visibility.Public | Visibility.Internal);
+            else if (visibility == Visibility.Public) return target.ContainAny(Visibility.Public);
+            return false;
+        }
     }
 }
