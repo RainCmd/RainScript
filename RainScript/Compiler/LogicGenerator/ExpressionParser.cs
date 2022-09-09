@@ -1,4 +1,6 @@
-﻿using RainScript.Compiler.LogicGenerator.Expressions;
+﻿using RainScript.Compiler.File;
+using RainScript.Compiler.LogicGenerator.Expressions;
+using System.Data;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -74,16 +76,18 @@ namespace RainScript.Compiler.LogicGenerator
                 if (type == RelyKernel.NULL_TYPE || type == RelyKernel.BLURRY_TYPE) return false;
             return true;
         }
-        private bool CanConvert(CompilingType source, CompilingType type, out bool convert)
+        private bool CanConvert(CompilingType source, CompilingType type, out bool convert, out uint measure)
         {
             if (source == RelyKernel.BLURRY_TYPE)
             {
                 convert = default;
+                measure = default;
                 return false;
             }
             else if (type == RelyKernel.BLURRY_TYPE)
             {
                 convert = true;
+                measure = 0;
                 return source != RelyKernel.BLURRY_TYPE && source != RelyKernel.NULL_TYPE;
             }
             else if (source == RelyKernel.NULL_TYPE)
@@ -91,17 +95,20 @@ namespace RainScript.Compiler.LogicGenerator
                 if (type == RelyKernel.ENTITY_TYPE)
                 {
                     convert = true;
+                    measure = 0;
                     return true;
                 }
                 else if (type.dimension > 0 || type.definition.code == TypeCode.Handle || type.definition.code == TypeCode.Interface || type.definition.code == TypeCode.Function || type.definition.code == TypeCode.Coroutine)
                 {
                     convert = true;
+                    measure = 0;
                     return true;
                 }
             }
             else if (type == source)
             {
                 convert = false;
+                measure = 0;
                 return true;
             }
             else if (type == RelyKernel.REAL_TYPE)
@@ -109,6 +116,7 @@ namespace RainScript.Compiler.LogicGenerator
                 if (source == RelyKernel.INTEGER_TYPE)
                 {
                     convert = true;
+                    measure = 0xff;
                     return true;
                 }
             }
@@ -117,11 +125,13 @@ namespace RainScript.Compiler.LogicGenerator
                 if (source == RelyKernel.REAL3_TYPE)
                 {
                     convert = true;
+                    measure = 0xfff;
                     return true;
                 }
                 else if (source == RelyKernel.REAL4_TYPE)
                 {
                     convert = true;
+                    measure = 0xffff;
                     return true;
                 }
             }
@@ -130,11 +140,13 @@ namespace RainScript.Compiler.LogicGenerator
                 if (source == RelyKernel.REAL2_TYPE)
                 {
                     convert = true;
+                    measure = 0xfff;
                     return true;
                 }
                 else if (source == RelyKernel.REAL4_TYPE)
                 {
                     convert = true;
+                    measure = 0xfff;
                     return true;
                 }
             }
@@ -143,32 +155,37 @@ namespace RainScript.Compiler.LogicGenerator
                 if (source == RelyKernel.REAL2_TYPE)
                 {
                     convert = true;
+                    measure = 0xffff;
                     return true;
                 }
                 else if (source == RelyKernel.REAL3_TYPE)
                 {
                     convert = true;
+                    measure = 0xfff;
                     return true;
                 }
             }
-            else if (manager.TryGetInherit(type, source, out _))
+            else if (manager.TryGetInherit(type, source, out measure))
             {
                 convert = true;
                 return true;
             }
             convert = default;
+            measure = default;
             return false;
         }
-        public bool TryAssignmentConvert(Expression[] sources, CompilingType[] types, out Expression result)
+        public bool TryAssignmentConvert(Expression[] sources, CompilingType[] types, out Expression result, out uint measure)
         {
+            measure = 0;
             for (int index = 0, typeIndex = 0; index < sources.Length; index++)
             {
                 var expression = sources[index];
                 if (expression.returns.Length == 1)
                 {
-                    if (TryAssignmentConvert(expression, types[typeIndex], out expression))
+                    if (TryAssignmentConvert(expression, types[typeIndex], out expression, out var value))
                     {
                         sources[index] = expression;
+                        measure += value;
                         typeIndex++;
                     }
                     else
@@ -179,27 +196,40 @@ namespace RainScript.Compiler.LogicGenerator
                 }
                 else if (expression.returns.Length > 1)
                     for (int i = 0; i < expression.returns.Length; i++)
-                        if (!CanConvert(expression.returns[i], types[typeIndex++], out _))
+                        if (!CanConvert(expression.returns[i], types[typeIndex++], out _, out _))
                         {
                             result = default;
                             return false;
                         }
             }
-            return TryAssignmentConvert(TupleExpression.Combine(sources), types, out result);
+            {
+                if (TryAssignmentConvert(TupleExpression.Combine(sources), types, out result, out var value))
+                {
+                    measure += value;
+                    return true;
+                }
+                else return false;
+            }
         }
-        public unsafe bool TryAssignmentConvert(Expression source, CompilingType[] types, out Expression result)
+        public unsafe bool TryAssignmentConvert(Expression source, CompilingType[] types, out Expression result, out uint measure)
         {
             if (source.returns.Length == types.Length)
             {
+                measure = 0;
                 var count = 0;
                 var converts = stackalloc int[types.Length];
                 for (int i = 0; i < types.Length; i++)
-                    if (!CanConvert(source.returns[i], types[i], out var convert))
+                    if (CanConvert(source.returns[i], types[i], out var convert, out var value))
+                    {
+                        measure += value;
+                        if (convert) converts[count++] = i;
+                    }
+                    else
                     {
                         result = default;
+                        measure = default;
                         return false;
                     }
-                    else if (convert) converts[count++] = i;
                 if (count > 0)
                 {
                     var indices = new int[count];
@@ -210,9 +240,10 @@ namespace RainScript.Compiler.LogicGenerator
                 return true;
             }
             result = default;
+            measure = default;
             return false;
         }
-        public bool TryAssignmentConvert(Expression source, CompilingType type, out Expression result)
+        public bool TryAssignmentConvert(Expression source, CompilingType type, out Expression result, out uint measure)
         {
             if (source.returns.Length == 1)
             {
@@ -222,6 +253,7 @@ namespace RainScript.Compiler.LogicGenerator
                     if (st != RelyKernel.NULL_TYPE && st != RelyKernel.BLURRY_TYPE)
                     {
                         result = source;
+                        measure = 0;
                         return true;
                     }
                 }
@@ -238,6 +270,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     if (manager.TryGetFunction(globalMethod.declaration, parameters, returns, out var functionDeclaration))
                                     {
                                         result = new DelegateCreateGlobalFunctionExpression(source.anchor, functionDeclaration, type);
+                                        measure = 0;
                                         return true;
                                     }
                                 }
@@ -246,6 +279,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     if (manager.TryGetFunction(memberMethod.declaration, parameters, returns, out var functionDeclaration))
                                     {
                                         result = new DelegateCreateMemberFunctionExpression(source.anchor, functionDeclaration, memberMethod.target, type);
+                                        measure = 0;
                                         return true;
                                     }
                                 }
@@ -254,6 +288,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     if (manager.TryGetFunction(virtualMethod.declaration, parameters, returns, out var functionDeclaration))
                                     {
                                         result = new DelegateCreateVirtualMemberFunctionExpression(source.anchor, functionDeclaration, virtualMethod.target, type);
+                                        measure = 0;
                                         return true;
                                     }
                                 }
@@ -262,6 +297,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     if (manager.TryGetFunction(questionMethod.declaration, parameters, returns, out var functionDeclaration))
                                     {
                                         result = new DelegateCreateQuestionMemberFunctionExpression(source.anchor, functionDeclaration, questionMethod.target, type);
+                                        measure = 0;
                                         return true;
                                     }
                                 }
@@ -278,9 +314,10 @@ namespace RainScript.Compiler.LogicGenerator
                                             if (parser.TryParseTuple(lambda.body, out var expressions))
                                             {
                                                 BuildLambda(type, returns, parameters, lambda.parameters, out result, out var lambdaFunction);
-                                                if (parser.TryAssignmentConvert(expressions, returns, out var expression))
+                                                if (parser.TryAssignmentConvert(expressions, returns, out var expression, out _))
                                                 {
                                                     lambdaFunction.statements.Add(new ReturnStatement(expression.anchor, expression));
+                                                    measure = 0;
                                                     return true;
                                                 }
                                                 else if (returns.Length == 0)
@@ -290,10 +327,12 @@ namespace RainScript.Compiler.LogicGenerator
                                                         {
                                                             result = default;
                                                             exceptions.Add(item.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
+                                                            measure = 0;
                                                             return false;
                                                         }
                                                     foreach (var item in expressions)
                                                         lambdaFunction.statements.Add(new ExpressionStatement(item));
+                                                    measure = 0;
                                                     return true;
                                                 }
                                             }
@@ -307,6 +346,7 @@ namespace RainScript.Compiler.LogicGenerator
                             if (manager.TryGetReturns(type.definition.Declaration, out var coroutineReturns) && CompilingType.IsEquals(coroutineReturns, blurryCoroutine.invoker.returns))
                             {
                                 result = new CoroutineCreateExpression(source.anchor, blurryCoroutine.invoker, type);
+                                measure = 0;
                                 return true;
                             }
                         }
@@ -317,17 +357,20 @@ namespace RainScript.Compiler.LogicGenerator
                     if (type == RelyKernel.ENTITY_TYPE)
                     {
                         result = new ConstantEntityNullExpression(source.anchor);
+                        measure = 0;
                         return true;
                     }
                     else if (type.dimension > 0 || type.definition.code == TypeCode.Handle || type.definition.code == TypeCode.Interface || type.definition.code == TypeCode.Function || type.definition.code == TypeCode.Coroutine)
                     {
                         result = new ConstantHandleNullExpression(source.anchor, type);
+                        measure = 0;
                         return true;
                     }
                 }
                 else if (st == type)
                 {
                     result = source;
+                    measure = 0;
                     return true;
                 }
                 else if (type == RelyKernel.REAL_TYPE)
@@ -335,6 +378,7 @@ namespace RainScript.Compiler.LogicGenerator
                     if (st == RelyKernel.INTEGER_TYPE)
                     {
                         result = new IntegerToRealExpression(source.anchor, source);
+                        measure = 0xff;
                         return true;
                     }
                 }
@@ -343,11 +387,13 @@ namespace RainScript.Compiler.LogicGenerator
                     if (st == RelyKernel.REAL3_TYPE)
                     {
                         result = new Real3ToReal2Expression(source.anchor, source);
+                        measure = 0xfff;
                         return true;
                     }
                     else if (st == RelyKernel.REAL4_TYPE)
                     {
                         result = new Real4ToReal2Expression(source.anchor, source);
+                        measure = 0xffff;
                         return true;
                     }
                 }
@@ -356,11 +402,13 @@ namespace RainScript.Compiler.LogicGenerator
                     if (st == RelyKernel.REAL2_TYPE)
                     {
                         result = new Real2ToReal3Expression(source.anchor, source);
+                        measure = 0xfff;
                         return true;
                     }
                     else if (st == RelyKernel.REAL4_TYPE)
                     {
                         result = new Real4ToReal3Expression(source.anchor, source);
+                        measure = 0xfff;
                         return true;
                     }
                 }
@@ -369,21 +417,24 @@ namespace RainScript.Compiler.LogicGenerator
                     if (st == RelyKernel.REAL2_TYPE)
                     {
                         result = new Real2ToReal4Expression(source.anchor, source);
+                        measure = 0xffff;
                         return true;
                     }
                     else if (st == RelyKernel.REAL3_TYPE)
                     {
                         result = new Real3ToReal4Expression(source.anchor, source);
+                        measure = 0xfff;
                         return true;
                     }
                 }
-                else if (manager.TryGetInherit(type, st, out _))
+                else if (manager.TryGetInherit(type, st, out measure))
                 {
                     result = source;
                     return true;
                 }
             }
             result = default;
+            measure = default;
             return false;
         }
         private bool TrySub(ListSegment<Lexical> lexicals, SplitFlag flag, out int index)
@@ -589,7 +640,7 @@ namespace RainScript.Compiler.LogicGenerator
                         var assignment = lexicals[assignmentIndex];
                         if (left.returns.Length > 1 && left.returns.Length == right.returns.Length)
                         {
-                            if (assignment.type == LexicalType.Assignment && TryAssignmentConvert(right, left.returns, out right))
+                            if (assignment.type == LexicalType.Assignment && TryAssignmentConvert(right, left.returns, out right, out _))
                             {
                                 result = new TupleAssignmentExpression(assignment.anchor, new Expression[] { left, right }, left.returns);
                                 return true;
@@ -603,7 +654,7 @@ namespace RainScript.Compiler.LogicGenerator
                             switch (assignment.type)
                             {
                                 case LexicalType.Assignment:
-                                    if (TryAssignmentConvert(right, left.returns[0], out right))
+                                    if (TryAssignmentConvert(right, left.returns[0], out right, out _))
                                     {
                                         result = new VariableAssignmentExpression(assignment.anchor, left, right, left.returns[0]);
                                         return true;
@@ -1779,7 +1830,7 @@ namespace RainScript.Compiler.LogicGenerator
             {
                 var returns = new CompilingType[dimension];
                 for (int i = 0; i < returns.Length; i++) returns[i] = RelyKernel.REAL_TYPE;
-                if (TryAssignmentConvert(expressions, returns, out var expression))
+                if (TryAssignmentConvert(expressions, returns, out var expression, out _))
                 {
                     expression = new VectorCreateExpression(anchor, expression, type);
                     expressionStack.Push(expression);
@@ -1797,6 +1848,30 @@ namespace RainScript.Compiler.LogicGenerator
                 exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
                 return false;
             }
+        }
+        private bool TryGetFunction(IMethod method, Expression[] expressions, out IFunction function, out Expression parameter)
+        {
+            function = null;
+            parameter = null;
+            var measure = 0u;
+            while (method != null)
+            {
+                for (int i = 0; i < method.FunctionCount; i++)
+                {
+                    var index = method.GetFunction(i);
+                    if (context.IsVisible(manager, function.Declaration) && TryAssignmentConvert(expressions, index.Parameters, out var indexParameter, out var indexMeasure))
+                    {
+                        if (function == null || indexMeasure < measure)
+                        {
+                            function = index;
+                            parameter = indexParameter;
+                            measure = indexMeasure;
+                        }
+                    }
+                }
+                method = manager.GetOverrideMethod(method);
+            }
+            return function != null;
         }
         public bool TryParse(ListSegment<Lexical> lexicals, out Expression result)
         {
@@ -1825,87 +1900,53 @@ namespace RainScript.Compiler.LogicGenerator
                                         var methodExpression = expressionStack.Pop();
                                         if (methodExpression is MethodMemberExpression memberMethod)
                                         {
-                                            var method = manager.GetMethod(memberMethod.declaration);
-                                            while (method != null)
+                                            if (TryGetFunction(manager.GetMethod(memberMethod.declaration), expressions, out var function, out var parameter))
                                             {
-                                                for (int i = 0; i < method.FunctionCount; i++)
-                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                    {
-                                                        var function = method.GetFunction(i);
-                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                        var expression = new InvokerMemberExpression(methodExpression.anchor, function.Declaration, memberMethod.target, parameter, function.Returns);
-                                                        expressionStack.Push(expression);
-                                                        attribute = expression.Attribute;
-                                                        goto next_lexical;
-                                                    }
-                                                method = manager.GetOverrideMethod(method);
+                                                var expression = new InvokerMemberExpression(methodExpression.anchor, function.Declaration, memberMethod.target, parameter, function.Returns);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                goto next_lexical;
                                             }
                                         }
                                         else if (methodExpression is MethodVirtualExpression virtualMethod)
                                         {
-                                            var method = manager.GetMethod(virtualMethod.declaration);
-                                            while (method != null)
+                                            if (TryGetFunction(manager.GetMethod(virtualMethod.declaration), expressions, out var function, out var parameter))
                                             {
-                                                for (int i = 0; i < method.FunctionCount; i++)
-                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                    {
-                                                        var function = method.GetFunction(i);
-                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                        var expression = new InvokerVirtualMemberExpression(methodExpression.anchor, function.Declaration, virtualMethod.target, parameter, function.Returns);
-                                                        expressionStack.Push(expression);
-                                                        attribute = expression.Attribute;
-                                                        goto next_lexical;
-                                                    }
-                                                method = manager.GetOverrideMethod(method);
+                                                var expression = new InvokerVirtualMemberExpression(methodExpression.anchor, function.Declaration, virtualMethod.target, parameter, function.Returns);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                goto next_lexical;
                                             }
                                         }
                                         else if (methodExpression is MethodQuestionExpression questionMethod)
                                         {
-                                            var method = manager.GetMethod(questionMethod.declaration);
-                                            while (method != null)
+                                            if (TryGetFunction(manager.GetMethod(questionMethod.declaration), expressions, out var function, out var parameter))
                                             {
-                                                for (int i = 0; i < method.FunctionCount; i++)
-                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                    {
-                                                        var function = method.GetFunction(i);
-                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                        var expression = new InvokerQuestionMemberExpression(methodExpression.anchor, function.Declaration, questionMethod.target, parameter, function.Returns);
-                                                        expressionStack.Push(expression);
-                                                        attribute = expression.Attribute;
-                                                        goto next_lexical;
-                                                    }
-                                                method = manager.GetOverrideMethod(method);
+                                                var expression = new InvokerQuestionMemberExpression(methodExpression.anchor, function.Declaration, questionMethod.target, parameter, function.Returns);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                goto next_lexical;
                                             }
                                         }
                                         else if (methodExpression is MethodGlobalExpression globalMethod)
                                         {
-                                            var method = manager.GetMethod(globalMethod.declaration);
-                                            if (method != null)
-                                                for (int i = 0; i < method.FunctionCount; i++)
-                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                    {
-                                                        var function = method.GetFunction(i);
-                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                        var expression = new InvokerGlobalExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
-                                                        expressionStack.Push(expression);
-                                                        attribute = expression.Attribute;
-                                                        goto next_lexical;
-                                                    }
+                                            if (TryGetFunction(manager.GetMethod(globalMethod.declaration), expressions, out var function, out var parameter))
+                                            {
+                                                var expression = new InvokerGlobalExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                goto next_lexical;
+                                            }
                                         }
                                         else if (methodExpression is MethodNativeExpression nativeMethod)
                                         {
-                                            var method = manager.GetMethod(nativeMethod.declaration);
-                                            if (method != null)
-                                                for (int i = 0; i < method.FunctionCount; i++)
-                                                    if (TryAssignmentConvert(expressions, method.GetFunction(i).Parameters, out var parameter))
-                                                    {
-                                                        var function = method.GetFunction(i);
-                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(methodExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                        var expression = new InvokerNativeExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
-                                                        expressionStack.Push(expression);
-                                                        attribute = expression.Attribute;
-                                                        goto next_lexical;
-                                                    }
+                                            if (TryGetFunction(manager.GetMethod(nativeMethod.declaration), expressions, out var function, out var parameter))
+                                            {
+                                                var expression = new InvokerNativeExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                goto next_lexical;
+                                            }
                                         }
                                         exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
                                         goto parse_fail;
@@ -1916,7 +1957,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         if (delegateExpression.returns.Length != 1 || delegateExpression.returns[0].dimension > 0 || delegateExpression.returns[0].definition.code != TypeCode.Function) throw ExceptionGeneratorCompiler.InvalidCompilingType(delegateExpression.returns[0]);
                                         var delegateType = delegateExpression.returns[0];
                                         var declaration = new Declaration(delegateType.definition.library, delegateType.definition.visibility, DeclarationCode.Delegate, delegateType.definition.index, 0, 0);
-                                        if (manager.TryGetReturns(declaration, out var returns) && manager.TryGetParameters(declaration, out var parameters) && TryAssignmentConvert(expressions, parameters, out var parameter))
+                                        if (manager.TryGetReturns(declaration, out var returns) && manager.TryGetParameters(declaration, out var parameters) && TryAssignmentConvert(expressions, parameters, out var parameter, out _))
                                         {
                                             var expression = new InvokerDelegateExpression(delegateExpression.anchor, delegateExpression, parameter, returns);
                                             expressionStack.Push(expression);
@@ -1946,18 +1987,12 @@ namespace RainScript.Compiler.LogicGenerator
                                                 if (TryPushVetcorConstructorExpression(expressionStack, expressions, typeExpression.anchor, type, 4, ref attribute)) break;
                                                 else goto parse_fail;
                                             }
-                                            else if (manager.TryGetConstructor(type, out var constructor))
+                                            else if (manager.TryGetConstructor(type, out var constructor) && TryGetFunction(constructor, expressions, out var constructorFunction, out var constructorParameter))
                                             {
-                                                for (int i = 0; i < constructor.FunctionCount; i++)
-                                                    if (TryAssignmentConvert(expressions, constructor.GetFunction(i).Parameters, out var parameter))
-                                                    {
-                                                        var function = constructor.GetFunction(i);
-                                                        if (!context.IsVisible(manager, function.Declaration)) exceptions.Add(typeExpression.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE);
-                                                        var expression = new InvokerConstructorExpression(typeExpression.anchor, function.Declaration, parameter, type);
-                                                        expressionStack.Push(expression);
-                                                        attribute = expression.Attribute;
-                                                        goto next_lexical;
-                                                    }
+                                                var expression = new InvokerConstructorExpression(typeExpression.anchor, constructorFunction.Declaration, constructorParameter, type);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                goto next_lexical;
                                             }
                                             goto default;
                                         }
@@ -2398,7 +2433,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     if (delegateExpression.returns.Length != 1 || delegateExpression.returns[0].dimension > 0 || delegateExpression.returns[0].definition.code != TypeCode.Function) throw ExceptionGeneratorCompiler.InvalidCompilingType(delegateExpression.returns[0]);
                                     var delegateType = delegateExpression.returns[0];
                                     var declaration = new Declaration(delegateType.definition.library, delegateType.definition.visibility, DeclarationCode.Delegate, delegateType.definition.index, 0, 0);
-                                    if (manager.TryGetReturns(declaration, out var returns) && manager.TryGetParameters(declaration, out var parameters) && TryAssignmentConvert(expressions, parameters, out var parameter))
+                                    if (manager.TryGetReturns(declaration, out var returns) && manager.TryGetParameters(declaration, out var parameters) && TryAssignmentConvert(expressions, parameters, out var parameter, out _))
                                     {
                                         var expression = new InvokerQuestionDelegateExpression(delegateExpression.anchor, delegateExpression, parameter, returns);
                                         expressionStack.Push(expression);

@@ -240,8 +240,7 @@ namespace RainScript.Compiler
         {
             if (method.Declaration.code == DeclarationCode.MemberMethod)
             {
-                var declaration = method.Declaration;
-                declaration = new Declaration(declaration.library, Visibility.Public, DeclarationCode.Definition, declaration.definitionIndex, 0, 0);
+                var declaration = new Declaration(method.Declaration.library, Visibility.Public, DeclarationCode.Definition, method.Declaration.definitionIndex, 0, 0);
                 while (TryGetDefinition(new CompilingDefinition(declaration), out var parent))
                 {
                     for (int i = 0; i < parent.MethodCount; i++)
@@ -250,10 +249,9 @@ namespace RainScript.Compiler
                     declaration = parent.Declaration;
                 }
             }
-            else if (method.Declaration.code == DeclarationCode.MemberFunction)
+            else if (method.Declaration.code == DeclarationCode.InterfaceMethod)
             {
-                var declaration = method.Declaration;
-                declaration = new Declaration(declaration.library, Visibility.Public, DeclarationCode.Interface, declaration.definitionIndex, 0, 0);
+                var declaration = new Declaration(method.Declaration.library, Visibility.Public, DeclarationCode.Interface, method.Declaration.definitionIndex, 0, 0);
                 if (TryGetOverrideMethod(declaration, method.Name, out var result))
                     return result;
             }
