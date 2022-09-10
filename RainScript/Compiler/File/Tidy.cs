@@ -111,7 +111,10 @@ namespace RainScript.Compiler.File
                 for (int i = 0; i < memberMethodIndices.Length; i++) memberMethodIndices[i] = memberMethods[i].Declaration.index;
                 memberMethods.Dispose();
 
-                item.compiling = new Compiling.Definition(item.name, declaration, compiling, constructorMethod.Declaration.index, constructorInvokerExpressions, memberVariables, memberMethodIndices, new LogicBody(relyCompilings, relyReferences, item.destructor.body));
+                LogicBody destructor = null;
+                if (item.destructor != null) destructor = new LogicBody(relyCompilings, relyReferences, item.destructor.body);
+
+                item.compiling = new Compiling.Definition(item.name, declaration, compiling, constructorMethod.Declaration.index, constructorInvokerExpressions, memberVariables, memberMethodIndices, destructor);
                 manager.library.definitions.Add(item.compiling);
             }
 

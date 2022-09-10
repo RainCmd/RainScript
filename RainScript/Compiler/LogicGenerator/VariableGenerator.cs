@@ -80,7 +80,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         private bool ClearVariable(Generator generator, uint address, CompilingType type)
         {
-            if (type.dimension > 0 || type.definition.code == TypeCode.Handle || type.definition.code == TypeCode.Function || type.definition.code == TypeCode.Interface || type.definition.code == TypeCode.Coroutine)
+            if (type.IsHandle)
             {
                 generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_HandleNull);
                 generator.WriteCode(address);

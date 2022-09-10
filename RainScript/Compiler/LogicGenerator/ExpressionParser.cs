@@ -1,6 +1,4 @@
-﻿using RainScript.Compiler.File;
-using RainScript.Compiler.LogicGenerator.Expressions;
-using System.Data;
+﻿using RainScript.Compiler.LogicGenerator.Expressions;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -65,10 +63,11 @@ namespace RainScript.Compiler.LogicGenerator
         public void BuildLambda(CompilingType functionType, CompilingType[] returns, CompilingType[] parameters, Anchor[] parameterNames, out Expression expression, out LambdaFunction lambda)
         {
             var declaration = new Declaration(LIBRARY.SELF, Visibility.Space, DeclarationCode.Lambda, (uint)manager.library.lambdas.Count, 0, 0);
+            var function = new Compiling.Function(declaration, context.space, returns, parameters, parameterNames, pool);
             expression = new DelegateCreateLambdaFunctionExpression(default, declaration, functionType);
-            lambda = new LambdaFunction(declaration, context, parameters, pool.GetList<Statement>());
+            lambda = new LambdaFunction(function.entry, parameters, pool);
             manager.lambdas.Add(lambda);
-            manager.library.lambdas.Add(new Compiling.Function(declaration, context.space, returns, parameters, parameterNames, pool));
+            manager.library.lambdas.Add(function);
         }
         private bool IsDecidedTypes(CompilingType[] types)
         {
@@ -317,6 +316,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 if (parser.TryAssignmentConvert(expressions, returns, out var expression, out _))
                                                 {
                                                     lambdaFunction.statements.Add(new ReturnStatement(expression.anchor, expression));
+                                                    lambdaFunction.SetReturnCount((uint)returns.Length);
                                                     measure = 0;
                                                     return true;
                                                 }
@@ -326,15 +326,18 @@ namespace RainScript.Compiler.LogicGenerator
                                                         if (!IsDecidedTypes(item.returns))
                                                         {
                                                             result = default;
+                                                            lambdaFunction.Dispose();
                                                             exceptions.Add(item.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
                                                             measure = 0;
                                                             return false;
                                                         }
                                                     foreach (var item in expressions)
                                                         lambdaFunction.statements.Add(new ExpressionStatement(item));
+                                                    lambdaFunction.SetReturnCount(0);
                                                     measure = 0;
                                                     return true;
                                                 }
+                                                lambdaFunction.Dispose();
                                             }
                                         }
                                     }

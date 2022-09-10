@@ -97,10 +97,38 @@
             *(T*)temp = value;
             while (size-- > 0) data[point + size] = temp[size];
         }
+        public void WriteData(string value, uint point, CollectionPool pool)
+        {
+            if (!dataStrings.TryGetValue(value, out var address))
+            {
+                address = pool.GetList<uint>();
+                dataStrings.Add(value, address);
+            }
+            address.Add(point);
+        }
 
         public void GeneratorLibrary2(GeneratorParameter parameter)
         {
-
+            using (var libraryCtor = new FunctionGenerator(parameter, this)) libraryCtor.Generate(parameter, this);
+            for (int i = 0, count = parameter.manager.library.methods.Count; i < count; i++)
+            {
+                var method = parameter.manager.library.methods[i];
+                foreach (var function in method)
+                    using (var functionGenerator = new FunctionGenerator(parameter, function))
+                    {
+                        SetCodeAddress(function.entry);
+                        functionGenerator.Generate(parameter, this);
+                    }
+            }
+            foreach (var definition in parameter.manager.library.definitions)
+                if (definition.destructor != null)
+                    using (var destructorGenerator = new FunctionGenerator(parameter, definition.destructor))
+                    {
+                        definition.destructorEntry = Point;
+                        destructorGenerator.Generate(parameter, this);
+                    }
+                else definition.destructorEntry = LIBRARY.ENTRY_INVALID;
+            foreach (var lambda in parameter.manager.lambdas) lambda.Generate(parameter, this);
         }
         public Library GeneratorLibrary(GeneratorParameter parameter)
         {

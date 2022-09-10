@@ -177,6 +177,10 @@ namespace RainScript.Compiler
         /// 不是个类型
         /// </summary>
         GENERATOR_NOT_TYPE,
+        /// <summary>
+        /// 常量值计算失败
+        /// </summary>
+        GENERATOR_CONSTANT_EVALUATION_FAIL, 
         #endregion
     }
     /// <summary>
