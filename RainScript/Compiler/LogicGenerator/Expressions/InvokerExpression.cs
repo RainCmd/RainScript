@@ -148,6 +148,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
+            //todo 调用之前先自己创建个未初始化对象作为this参数
             throw new NotImplementedException();
         }
     }

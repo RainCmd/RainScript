@@ -44,14 +44,6 @@
         {
             return localDeclarations[-1][name] = new Local(anchor, index++, type);
         }
-        public Local GetLocal(uint index)
-        {
-            foreach (var locals in localDeclarations)
-                foreach (var item in locals)
-                    if (item.Value.index == index)
-                        return item.Value;
-            return default;
-        }
         public bool TryGetLocal(string name, out Local local)
         {
             var index = localDeclarations.Count;
