@@ -180,7 +180,11 @@ namespace RainScript.Compiler
         /// <summary>
         /// 常量值计算失败
         /// </summary>
-        GENERATOR_CONSTANT_EVALUATION_FAIL, 
+        GENERATOR_CONSTANT_EVALUATION_FAIL,
+        /// <summary>
+        /// 未实现的功能
+        /// </summary>
+        GENERATOR_NOT_IMPLEMENTED, 
         #endregion
     }
     /// <summary>

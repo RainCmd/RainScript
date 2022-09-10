@@ -66,7 +66,7 @@ namespace RainScript.Compiler.LogicGenerator
         public FunctionGenerator(GeneratorParameter parameter, Generator generator)
         {
             parameters = returns = new CompilingType[0];
-            statements = new BlockStatement(default, parameter.pool.GetList<Statement>());
+            statements = new BlockStatement(default, parameter.pool);
             foreach (var variable in parameter.manager.library.variables)
                 if (variable.constant)
                     using (var lexicals = parameter.pool.GetList<Lexical>())
@@ -151,7 +151,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public FunctionGenerator(GeneratorParameter parameter, Compiling.Function function)
         {
-            statements = new BlockStatement(default, parameter.pool.GetList<Statement>());
+            statements = new BlockStatement(default, parameter.pool);
             parameters = function.parameters;
             returns = function.returns;
             var localContext = new LocalContext(parameter.pool);
@@ -205,13 +205,17 @@ namespace RainScript.Compiler.LogicGenerator
             }
             else for (int i = 0; i < parameters.Length; i++) localContext.AddLocal(function.parameterNames[i], parameters[i]);
             Parse(parameter, function.space, function.body, localContext);
-            if (function.declaration.code == DeclarationCode.ConstructorFunction) CheckCtorReturnType(localContext.GetLocal(0));
+            if (function.declaration.code == DeclarationCode.ConstructorFunction)
+            {
+                returns = new CompilingType[] { new CompilingType(new CompilingDefinition(definition.declaration), 0) };
+                CheckCtorReturnType(localContext.GetLocal(0));
+            }
             else CheckReturnType();
             localContext.Dispose();
         }
         public FunctionGenerator(GeneratorParameter parameter, Definition definition)
         {
-            statements = new BlockStatement(default, parameter.pool.GetList<Statement>());
+            statements = new BlockStatement(default, parameter.pool);
             var localContext = new LocalContext(parameter.pool);
             localContext.PushBlock(parameter.pool);
             localContext.AddLocal(KeyWorld.THIS, definition.name, new CompilingType(new CompilingDefinition(definition.declaration), 0));
@@ -220,6 +224,20 @@ namespace RainScript.Compiler.LogicGenerator
             Parse(parameter, definition.space, definition.destructor, localContext);
             CheckReturnType();
             localContext.Dispose();
+        }
+        private void ParseBranchStatement(GeneratorParameter parameter, ScopeList<Statement> statements, ScopeList<Lexical> lexicals, Anchor anchor, Context context, LocalContext localContext)
+        {
+            if (lexicals.Count > 2)
+            {
+                var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
+                if (parser.TryParse(lexicals[1, -1], out var condition))
+                {
+                    if (condition.returns.Length == 1 && condition.returns[0] == RelyKernel.BOOL_TYPE)
+                        statements.Add(new BranchStatement(anchor, condition, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                    else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                }
+            }
+            else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
         }
         private void Parse(GeneratorParameter parameter, Compiling.Space space, LogicBody logicBody, LocalContext localContext)
         {
@@ -237,25 +255,35 @@ namespace RainScript.Compiler.LogicGenerator
                         if (blockIndent < line.indent)
                         {
                             localContext.PushBlock(parameter.pool);
-                            var statement = statementStack.Peek().statements[-1];
-                            if (statement is BranchStatement branchStatement)
+                            if (statementStack.Peek().statements.Count > 0)
                             {
-                                branchStatement.trueBranch.indent = line.indent;
-                                statementStack.Push(branchStatement.trueBranch);
-                            }
-                            else if (statement is LoopStatement loopStatement)
-                            {
-                                loopStatement.loopBlock.indent = line.indent;
-                                statementStack.Push(loopStatement.loopBlock);
-                            }
-                            else if (statement is ElseStatement elseStatement)
-                            {
-                                elseStatement.statements.indent = line.indent;
-                                statementStack.Push(elseStatement.statements);
+                                var statement = statementStack.Peek().statements[-1];
+                                if (statement is BranchStatement branchStatement)
+                                {
+                                    branchStatement.trueBranch.indent = line.indent;
+                                    statementStack.Push(branchStatement.trueBranch);
+                                }
+                                else if (statement is LoopStatement loopStatement)
+                                {
+                                    loopStatement.loopBlock.indent = line.indent;
+                                    statementStack.Push(loopStatement.loopBlock);
+                                }
+                                else if (statement is ElseStatement elseStatement)
+                                {
+                                    statementStack.Peek().statements.RemoveAt(-1);
+                                    elseStatement.statements.indent = line.indent;
+                                    statementStack.Push(elseStatement.statements);
+                                }
+                                else
+                                {
+                                    var block = new BlockStatement(default, parameter.pool);
+                                    block.indent = line.indent;
+                                    statementStack.Push(block);
+                                }
                             }
                             else
                             {
-                                var block = new BlockStatement(default, parameter.pool.GetList<Statement>());
+                                var block = new BlockStatement(default, parameter.pool);
                                 block.indent = line.indent;
                                 statementStack.Push(block);
                             }
@@ -273,19 +301,154 @@ namespace RainScript.Compiler.LogicGenerator
                                     parameter.exceptions.Add(new Anchor(logicBody.body.text, line.segment), CompilingExceptionCode.SYNTAX_INDENT);
                                     break;
                                 }
-                                else break;
+                                else
+                                {
+                                    statement = statementStack.Pop();
+                                    while (statementStack.Count > 0 && statementStack.Peek().indent == line.indent)
+                                        statement = statementStack.Pop();
+                                    statementStack.Push(statement);
+                                    break;
+                                }
                             }
                         using (var lexicals = parameter.pool.GetList<Lexical>())
                             if (Lexical.TryAnalysis(lexicals, logicBody.body.text, line.segment, parameter.exceptions) && lexicals.Count > 0)
                             {
-                                var lexical = lexicals[0];
-                                if (lexical.anchor.Segment == KeyWorld.IF)
+                                var anchor = lexicals[0].anchor;
+                                if (anchor.Segment == KeyWorld.IF) ParseBranchStatement(parameter, statementStack.Peek().statements, lexicals, anchor, context, localContext);
+                                else if (anchor.Segment == KeyWorld.ELIF)
                                 {
-
+                                    var statements = statementStack.Peek().statements;
+                                    if (statements.Count > 0)
+                                    {
+                                        if (statements[-1] is BranchStatement branchStatement)
+                                        {
+                                            branchStatement.falseBranch.indent = line.indent;
+                                            statementStack.Push(branchStatement.falseBranch);
+                                            ParseBranchStatement(parameter, branchStatement.falseBranch.statements, lexicals, anchor, context, localContext);
+                                        }
+                                        else if (statements[-1] is LoopStatement loopStatement)
+                                        {
+                                            loopStatement.elseBlock.indent = line.indent;
+                                            statementStack.Push(loopStatement.elseBlock);
+                                            ParseBranchStatement(parameter, loopStatement.elseBlock.statements, lexicals, anchor, context, localContext);
+                                        }
+                                        else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
+                                    }
+                                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.ELSE)
+                                else if (anchor.Segment == KeyWorld.ELSE)
                                 {
-
+                                    if (lexicals.Count > 2) parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                                    var statements = statementStack.Peek().statements;
+                                    if (statements.Count > 0)
+                                    {
+                                        if (statements[-1] is BranchStatement branchStatement)
+                                        {
+                                            branchStatement.falseBranch.indent = line.indent;
+                                            statementStack.Peek().statements.Add(new ElseStatement(anchor, branchStatement.falseBranch));
+                                        }
+                                        else if (statements[-1] is LoopStatement loopStatement)
+                                        {
+                                            loopStatement.elseBlock.indent = line.indent;
+                                            statementStack.Peek().statements.Add(new ElseStatement(anchor, loopStatement.elseBlock));
+                                        }
+                                        else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
+                                    }
+                                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
+                                }
+                                else if (anchor.Segment == KeyWorld.LOOP)
+                                {
+                                    if (lexicals.Count > 2)
+                                    {
+                                        var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
+                                        if (parser.TryParse(lexicals[1, -1], out var condition))
+                                        {
+                                            if (condition.returns.Length == 1 && condition.returns[0] == RelyKernel.BOOL_TYPE)
+                                                statementStack.Peek().statements.Add(new LoopStatement(anchor, condition, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                                            else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        }
+                                    }
+                                    else statementStack.Peek().statements.Add(new LoopStatement(anchor, null, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                                }
+                                else if (anchor.Segment == KeyWorld.FOREACH) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
+                                else if (anchor.Segment == KeyWorld.BREAK)
+                                {
+                                    if (lexicals.Count > 2)
+                                    {
+                                        var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
+                                        if (parser.TryParse(lexicals[1, -1], out var condition))
+                                        {
+                                            if (condition.returns.Length == 1 && condition.returns[0] == RelyKernel.BOOL_TYPE)
+                                                statementStack.Peek().statements.Add(new BreakStatement(anchor, condition));
+                                            else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        }
+                                    }
+                                    else statementStack.Peek().statements.Add(new BreakStatement(anchor, null));
+                                }
+                                else if (anchor.Segment == KeyWorld.CONTINUE)
+                                {
+                                    if (lexicals.Count > 2)
+                                    {
+                                        var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
+                                        if (parser.TryParse(lexicals[1, -1], out var condition))
+                                        {
+                                            if (condition.returns.Length == 1 && condition.returns[0] == RelyKernel.BOOL_TYPE)
+                                                statementStack.Peek().statements.Add(new ContinueStatement(anchor, condition));
+                                            else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        }
+                                    }
+                                    else statementStack.Peek().statements.Add(new ContinueStatement(anchor, null));
+                                }
+                                else if (anchor.Segment == KeyWorld.RETURN)
+                                {
+                                    if (lexicals.Count > 2)
+                                    {
+                                        var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
+                                        if (parser.TryParseTuple(lexicals[1, -1], out var results))
+                                        {
+                                            if (parser.TryAssignmentConvert(results, returns, out var result, out _))
+                                                statementStack.Peek().statements.Add(new ReturnStatement(anchor, result));
+                                            else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        }
+                                    }
+                                    else statementStack.Peek().statements.Add(new ReturnStatement(anchor, null));
+                                }
+                                else if (anchor.Segment == KeyWorld.WAIT)
+                                {
+                                    if (lexicals.Count > 2)
+                                    {
+                                        var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
+                                        if (parser.TryParse(lexicals[1, -1], out var condition))
+                                        {
+                                            if (condition.returns.Length == 1 && condition.returns[0] == RelyKernel.INTEGER_TYPE)
+                                                statementStack.Peek().statements.Add(new WaitStatement(anchor, condition));
+                                            else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        }
+                                    }
+                                    else statementStack.Peek().statements.Add(new WaitStatement(anchor, null));
+                                }
+                                else if (anchor.Segment == KeyWorld.EXIT)
+                                {
+                                    if (lexicals.Count > 2)
+                                    {
+                                        var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
+                                        if (parser.TryParse(lexicals[1, -1], out var condition))
+                                        {
+                                            if (condition.returns.Length == 1 && condition.returns[0] == RelyKernel.INTEGER_TYPE)
+                                                statementStack.Peek().statements.Add(new ExitStatement(anchor, condition));
+                                            else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        }
+                                    }
+                                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                }
+                                else if (anchor.Segment == KeyWorld.TRY) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
+                                else if (anchor.Segment == KeyWorld.THROW) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
+                                else if (anchor.Segment == KeyWorld.FINALLY) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
+                                else
+                                {
+                                    var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
+                                    if (parser.TryParse(lexicals[1, -1], out var result))
+                                        statementStack.Peek().statements.Add(new ExpressionStatement(result));
                                 }
                             }
                     }

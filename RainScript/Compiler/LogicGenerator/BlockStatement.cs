@@ -5,9 +5,9 @@
     {
         public int indent;
         public readonly ScopeList<Statement> statements;
-        public BlockStatement(Anchor anchor, ScopeList<Statement> statements) : base(anchor)
+        public BlockStatement(Anchor anchor, CollectionPool pool) : base(anchor)
         {
-            this.statements = statements;
+            statements = pool.GetList<Statement>();
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {

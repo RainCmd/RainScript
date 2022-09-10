@@ -3191,6 +3191,12 @@ namespace RainScript.Compiler.LogicGenerator
                     result = expressionStack.Pop();
                     return true;
                 }
+                else if (expressionStack.Count > 1)
+                {
+                    var expressions = new Expression[expressionStack.Count];
+                    while (expressionStack.Count > 0) expressions[expressionStack.Count - 1] = expressionStack.Pop();
+                    return TryCombineExpressions(out result, expressions);
+                }
                 exceptions.Add(lexicals, CompilingExceptionCode.SYNTAX_UNKNOW);
             }
         parse_fail:
