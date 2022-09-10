@@ -1672,6 +1672,93 @@ namespace RainScript.Compiler.LogicGenerator
                         else exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
                     }
                     break;
+                case TokenType.Casting:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (right.returns.Length == 1)
+                        {
+                            if (left is TypeExpression typeExpression)
+                            {
+                                if (typeExpression.type == right.returns[0])
+                                {
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                                else if (typeExpression.type == RelyKernel.INTEGER_TYPE)
+                                {
+                                    if (right.returns[0] == RelyKernel.REAL_TYPE)
+                                    {
+                                        right = new RealToIntegerExpression(right.anchor, right);
+                                        expressionStack.Push(right);
+                                        return right.Attribute;
+                                    }
+                                }
+                                else if (typeExpression.type == RelyKernel.REAL_TYPE)
+                                {
+                                    if (right.returns[0] == RelyKernel.INTEGER_TYPE)
+                                    {
+                                        right = new IntegerToRealExpression(right.anchor, right);
+                                        expressionStack.Push(right);
+                                        return right.Attribute;
+                                    }
+                                }
+                                else if (typeExpression.type == RelyKernel.REAL2_TYPE)
+                                {
+                                    if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                                    {
+                                        right = new Real2ToReal3Expression(right.anchor, right);
+                                        expressionStack.Push(right);
+                                        return right.Attribute;
+                                    }
+                                    else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                                    {
+                                        right = new Real2ToReal4Expression(right.anchor, right);
+                                        expressionStack.Push(right);
+                                        return right.Attribute;
+                                    }
+                                }
+                                else if (typeExpression.type == RelyKernel.REAL3_TYPE)
+                                {
+                                    if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                                    {
+                                        right = new Real3ToReal2Expression(right.anchor, right);
+                                        expressionStack.Push(right);
+                                        return right.Attribute;
+                                    }
+                                    else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                                    {
+                                        right = new Real3ToReal4Expression(right.anchor, right);
+                                        expressionStack.Push(right);
+                                        return right.Attribute;
+                                    }
+                                }
+                                else if (typeExpression.type == RelyKernel.REAL4_TYPE)
+                                {
+                                    if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                                    {
+                                        right = new Real4ToReal2Expression(right.anchor, right);
+                                        expressionStack.Push(right);
+                                        return right.Attribute;
+                                    }
+                                    else if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                                    {
+                                        right = new Real4ToReal3Expression(right.anchor, right);
+                                        expressionStack.Push(right);
+                                        return right.Attribute;
+                                    }
+                                }
+                                else if (typeExpression.type.IsHandle && right.returns[0].IsHandle)
+                                {
+                                    var castExpression = new CastHandleExpression(anchor, right, typeExpression.type);
+                                    expressionStack.Push(castExpression);
+                                    return castExpression.Attribute;
+                                }
+                            }
+                            else throw ExceptionGeneratorCompiler.Unknow();
+                        }
+                        goto default;
+                    }
+                    break;
                 default:
                     exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                     break;
@@ -1741,52 +1828,53 @@ namespace RainScript.Compiler.LogicGenerator
             declaration = default;
             return false;
         }
-        private bool TryPushDeclarationExpression(ListSegment<Lexical> lexicals, ref int index, ScopeStack<Expression> expressionStack, Anchor anchor, Declaration declaration, ref TokenAttribute attribute)
+        private bool TryPushDeclarationExpression(ListSegment<Lexical> lexicals, ref int index, ScopeStack<Expression> expressionStack, ScopeStack<Token> tokenStack, Lexical lexical, Declaration declaration, ref TokenAttribute attribute)
         {
             if (declaration.code == DeclarationCode.Definition || declaration.code == DeclarationCode.Delegate || declaration.code == DeclarationCode.Coroutine || declaration.code == DeclarationCode.Interface)
             {
                 if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                 {
                     var dimension = Lexical.ExtractDimension(lexicals, ref index);
-                    var expression = new TypeExpression(anchor, new CompilingType(new CompilingDefinition(declaration), dimension));
+                    var expression = new TypeExpression(lexical.anchor, new CompilingType(new CompilingDefinition(declaration), dimension));
                     expressionStack.Push(expression);
-                    attribute = TokenAttribute.Type;
+                    PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
+                    attribute = expression.Attribute;
                     return true;
                 }
-                else exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                else exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
             }
             else if (declaration.code == DeclarationCode.GlobalVariable)
             {
                 if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                 {
-                    var expression = new VariableGlobalExpression(anchor, declaration, IsConstant(declaration), GetVariableType(declaration));
+                    var expression = new VariableGlobalExpression(lexical.anchor, declaration, IsConstant(declaration), GetVariableType(declaration));
                     expressionStack.Push(expression);
                     attribute = expression.Attribute;
                     return true;
                 }
-                else exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                else exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
             }
             else if (declaration.code == DeclarationCode.GlobalMethod)
             {
                 if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                 {
-                    var expression = new MethodGlobalExpression(anchor, declaration);
+                    var expression = new MethodGlobalExpression(lexical.anchor, declaration);
                     expressionStack.Push(expression);
                     attribute = expression.Attribute;
                     return true;
                 }
-                else exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                else exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
             }
             else if (declaration.code == DeclarationCode.NativeMethod)
             {
                 if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                 {
-                    var expression = new MethodNativeExpression(anchor, declaration);
+                    var expression = new MethodNativeExpression(lexical.anchor, declaration);
                     expressionStack.Push(expression);
                     attribute = expression.Attribute;
                     return true;
                 }
-                else exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                else exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
             }
             return false;
         }
@@ -1852,7 +1940,7 @@ namespace RainScript.Compiler.LogicGenerator
                 return false;
             }
         }
-        private bool TryGetFunction(IMethod method, Expression[] expressions, out IFunction function, out Expression parameter)
+        public bool TryGetFunction(IMethod method, Expression[] expressions, out IFunction function, out Expression parameter)
         {
             function = null;
             parameter = null;
@@ -1972,8 +2060,9 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else if (attribute.ContainAny(TokenAttribute.Type))
                                     {
-                                        if (expressionStack.Pop() is TypeExpression typeExpression)
+                                        if (expressionStack.Pop() is TypeExpression typeExpression && tokenStack.Count > 0 && tokenStack.Peek().type == TokenType.Casting)
                                         {
+                                            tokenStack.Pop();
                                             var type = typeExpression.type;
                                             if (type == RelyKernel.REAL2_TYPE)
                                             {
@@ -2134,10 +2223,10 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else if (attribute.ContainAny(TokenAttribute.Type))
                                     {
-                                        if (expressionStack.Pop() is TypeExpression typeExpression && TryCombineExpressions(out var expression, expressions) && expression.returns.Length == 1)
+                                        if (expressionStack.Pop() is TypeExpression typeExpression && tokenStack.Count > 0 && tokenStack.Peek().type == TokenType.Casting)
                                         {
-                                            if (typeExpression.type.dimension > 0) goto default;
-                                            else
+                                            tokenStack.Pop();
+                                            if (typeExpression.type.dimension == 0 && TryCombineExpressions(out var expression, expressions) && expression.returns.Length == 1)
                                             {
                                                 var dimension = Lexical.ExtractDimension(lexicals, ref index);
                                                 expression = new ArrayCreateExpression(typeExpression.anchor, expression, new CompilingType(typeExpression.type.definition, dimension));
@@ -2146,6 +2235,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 break;
                                             }
                                         }
+                                        else throw ExceptionGeneratorCompiler.Unknow();
                                     }
                                 }
                             }
@@ -2583,12 +2673,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (lexical.anchor.Segment == KeyWorld.KERNEL)
                                 {
-                                    if (!TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out var declaration) || !TryPushDeclarationExpression(lexicals, ref index, expressionStack, lexicals[index].anchor, declaration, ref attribute))
+                                    if (!TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out var declaration) || !TryPushDeclarationExpression(lexicals, ref index, expressionStack, tokenStack, lexicals[index], declaration, ref attribute))
                                         goto parse_fail;
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.GLOBAL)
                                 {
-                                    if (TryFindDeclaration(lexicals, ref index, out var declaration) && TryPushDeclarationExpression(lexicals, ref index, expressionStack, lexicals[index].anchor, declaration, ref attribute)) break;
+                                    if (TryFindDeclaration(lexicals, ref index, out var declaration) && TryPushDeclarationExpression(lexicals, ref index, expressionStack, tokenStack, lexicals[index], declaration, ref attribute)) break;
                                     goto parse_fail;
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.BASE)
@@ -2657,7 +2747,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             {
                                                 var baseAnchor = lexical.anchor;
                                                 lexical = lexicals[index];
-                                                if (context.TryFindMemberDeclarartion(manager, lexical.anchor, new CompilingDefinition(context.definition.Declaration), out var declaration, pool))
+                                                if (context.TryFindMemberDeclarartion(manager, lexical.anchor, new CompilingDefinition(context.definition.declaration), out var declaration, pool))
                                                 {
                                                     if (declaration.code == DeclarationCode.MemberVariable)
                                                     {
@@ -2766,6 +2856,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.BOOL_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2777,6 +2868,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.INTEGER_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2788,6 +2880,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.REAL_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2799,6 +2892,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.REAL2_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2810,6 +2904,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.REAL3_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2821,6 +2916,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.REAL4_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2832,6 +2928,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.STRING_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2843,6 +2940,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.HANDLE_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2854,28 +2952,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.ENTITY_TYPE);
                                         expressionStack.Push(expression);
-                                        attribute = expression.Attribute;
-                                        break;
-                                    }
-                                    else goto default;
-                                }
-                                else if (lexical.anchor.Segment == KeyWorld.FUNCTION)
-                                {
-                                    if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
-                                    {
-                                        var expression = new TypeExpression(lexical.anchor, RelyKernel.FUNCTION_TYPE);
-                                        expressionStack.Push(expression);
-                                        attribute = expression.Attribute;
-                                        break;
-                                    }
-                                    else goto default;
-                                }
-                                else if (lexical.anchor.Segment == KeyWorld.COROUTINE)
-                                {
-                                    if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
-                                    {
-                                        var expression = new TypeExpression(lexical.anchor, RelyKernel.COROUTINE_TYPE);
-                                        expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2887,6 +2964,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.ARRAY_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2898,6 +2976,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.INTERFACE_TYPE);
                                         expressionStack.Push(expression);
+                                        PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                         attribute = expression.Attribute;
                                         break;
                                     }
@@ -2987,6 +3066,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             {
                                                 var expression = new TypeExpression(lexical.anchor, new CompilingType(new CompilingDefinition(declaration), Lexical.ExtractDimension(lexicals, ref index)));
                                                 expressionStack.Push(expression);
+                                                PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.Casting), attribute);
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
@@ -3067,7 +3147,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (context.TryFindSpace(manager, lexical.anchor, out var space, pool, exceptions))
                                 {
-                                    if (!TryFindDeclaration(lexicals, ref index, space, out declaration) || !TryPushDeclarationExpression(lexicals, ref index, expressionStack, lexicals[index].anchor, declaration, ref attribute))
+                                    if (!TryFindDeclaration(lexicals, ref index, space, out declaration) || !TryPushDeclarationExpression(lexicals, ref index, expressionStack, tokenStack, lexicals[index], declaration, ref attribute))
                                         goto parse_fail;
                                 }
                                 else
@@ -3084,10 +3164,17 @@ namespace RainScript.Compiler.LogicGenerator
                     }
                 next_lexical:;
                 }
-            parse_fail:
-                result = default;
-                return false;
+                while (tokenStack.Count > 0) PopToken(expressionStack, tokenStack.Pop());
+                if (expressionStack.Count == 1)
+                {
+                    result = expressionStack.Pop();
+                    return true;
+                }
+                exceptions.Add(lexicals, CompilingExceptionCode.SYNTAX_UNKNOW);
             }
+        parse_fail:
+            result = default;
+            return false;
         }
         public bool TryParseTuple(ListSegment<Lexical> lexicals, out Expression[] results)
         {

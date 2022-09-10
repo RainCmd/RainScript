@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace RainScript.Compiler
+﻿namespace RainScript.Compiler
 {
     internal enum LexicalType
     {
@@ -72,7 +70,7 @@ namespace RainScript.Compiler
             this.type = type;
             this.anchor = anchor;
         }
-        public static bool TryAnalysis(IList<Lexical> list, TextInfo text, StringSegment segment, ExceptionCollector exceptions)
+        public static bool TryAnalysis(ScopeList<Lexical> list, TextInfo text, StringSegment segment, ExceptionCollector exceptions)
         {
             var exceptionCount = exceptions.Count;
             for (int index = 0; TryAnalysisFirst(text, segment, index, out var lexical, exceptions); index = lexical.anchor.end - segment.start + 1)

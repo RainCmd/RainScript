@@ -77,9 +77,9 @@ namespace RainScript.Compiler.File
         public readonly ScopeList<Constructor> constructors;
         public readonly ScopeList<Function> functions;
         public readonly Function destructor;
-        public Definition(Anchor name, Visibility visibility, Space space, ScopeList<ScopeList<Lexical>> interfaces, ScopeList<Variable> variables, ScopeList<Constructor> constructors, ScopeList<Function> functions, Function destructor) : base(name, visibility, space)
+        public Definition(Anchor name, Visibility visibility, Space space, ScopeList<ScopeList<Lexical>> inherits, ScopeList<Variable> variables, ScopeList<Constructor> constructors, ScopeList<Function> functions, Function destructor) : base(name, visibility, space)
         {
-            this.inherits = interfaces;
+            this.inherits = inherits;
             this.variables = variables;
             this.constructors = constructors;
             this.functions = functions;
@@ -362,7 +362,7 @@ namespace RainScript.Compiler.File
                     {
                         if (TryParseVariable(lexicals, index + 1, out var name, out var type, out var expression, pool))
                         {
-                            if (expression) variables.Add(new Variable(name, visibility, this, type, true, expression));
+                            if ((bool)expression) variables.Add(new Variable(name, visibility, this, type, true, expression));
                             else exceptions.Add(text, line, CompilingExceptionCode.SYNTAX_CONSTANT_NOT_ASSIGNMENT);
                         }
                         else exceptions.Add(text, line, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);

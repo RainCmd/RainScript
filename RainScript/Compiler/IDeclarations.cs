@@ -56,6 +56,7 @@ namespace RainScript.Compiler
     internal interface IDefinition : IInterface
     {
         CompilingDefinition Parent { get; }
+        uint Constructor { get; }
         int MemberVaribaleCount { get; }
         IMemberVariable GetMemberVariable(int index);
     }

@@ -49,7 +49,7 @@
         {
             return !(anchor == value);
         }
-        public static implicit operator bool(Anchor anchor)
+        public static explicit operator bool(Anchor anchor)
         {
             return anchor.textInfo != null && anchor.start < anchor.end;
         }

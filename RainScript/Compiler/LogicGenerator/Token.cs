@@ -31,6 +31,8 @@
         Negative,               // - 负号
         IncrementLeft,          // ++ 左自增(++X)
         DecrementLeft,          // -- 左自减(--X)
+
+        Casting,                // 类型转换
     }
     internal enum TokenPriority : byte
     {
@@ -42,6 +44,7 @@
         IntermediateOperation,      // 中级运算
         AdvancedOperation,          // 高级运算
         SymbolicOperation,          // 符号运算
+        Casting,                    // 类型转换
     }
     [System.Flags]
     internal enum TokenAttribute : uint
@@ -101,6 +104,7 @@
                 case TokenType.Negative:
                 case TokenType.IncrementLeft:
                 case TokenType.DecrementLeft: return TokenPriority.SymbolicOperation;
+                case TokenType.Casting: return TokenPriority.Casting;
                 default: return TokenPriority.None;
             }
         }
@@ -131,7 +135,8 @@
                 case TokenType.Positive:
                 case TokenType.Negative:
                 case TokenType.IncrementLeft:
-                case TokenType.DecrementLeft: return TokenAttribute.None | TokenAttribute.Operator;
+                case TokenType.DecrementLeft:
+                case TokenType.Casting: return TokenAttribute.None | TokenAttribute.Operator;
                 default: return 0;
             }
         }

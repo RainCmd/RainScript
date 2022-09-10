@@ -76,6 +76,7 @@
     <Compile Include="Compiler\LogicGenerator\Expressions\CoroutineExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\DelegateCreateExpressions.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\Expression.cs" />
+    <Compile Include="Compiler\LogicGenerator\Expressions\HandleCreateExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\InvokerExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\LogicExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\VectorExpression.cs" />

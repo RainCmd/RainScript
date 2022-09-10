@@ -73,8 +73,7 @@ namespace RainScript.Compiler.File
                 {
                     var variable = item.variables[i];
                     var variableDeclaraction = new Compiler.Declaration(LIBRARY.SELF, variable.visibility, DeclarationCode.MemberVariable, (uint)i, 0, declaration.index);
-                    var expression = variable.expression ? new LogicExpression(relyCompilings, relyReferences, variable.expression) : null;
-                    variable.compiling = new Compiling.Definition.MemberVariableInfo(variable.name, variableDeclaraction, compiling, expression);
+                    variable.compiling = new Compiling.Definition.MemberVariableInfo(variable.name, variableDeclaraction, compiling, new LogicExpression(relyCompilings, relyReferences, variable.expression));
                     memberVariables[i] = variable.compiling;
                 }
 
@@ -111,10 +110,7 @@ namespace RainScript.Compiler.File
                 for (int i = 0; i < memberMethodIndices.Length; i++) memberMethodIndices[i] = memberMethods[i].Declaration.index;
                 memberMethods.Dispose();
 
-                LogicBody destructor = null;
-                if (item.destructor != null) destructor = new LogicBody(relyCompilings, relyReferences, item.destructor.body);
-
-                item.compiling = new Compiling.Definition(item.name, declaration, compiling, constructorMethod.Declaration.index, constructorInvokerExpressions, memberVariables, memberMethodIndices, destructor);
+                item.compiling = new Compiling.Definition(item.name, declaration, compiling, constructorMethod.Declaration.index, constructorInvokerExpressions, memberVariables, memberMethodIndices, new LogicBody(relyCompilings, relyReferences, item.destructor.body));
                 manager.library.definitions.Add(item.compiling);
             }
 
@@ -127,8 +123,7 @@ namespace RainScript.Compiler.File
                 }
                 declaration = new Compiler.Declaration(LIBRARY.SELF, item.visibility, DeclarationCode.GlobalVariable, (uint)manager.library.variables.Count, 0, 0);
                 compiling.declarations.Add(item.name.Segment, declaration);
-                var expression = item.expression ? new LogicExpression(relyCompilings, relyReferences, item.expression) : null;
-                item.compiling = new Compiling.Variable(item.name, declaration, compiling, item.constant, expression);
+                item.compiling = new Compiling.Variable(item.name, declaration, compiling, item.constant, new LogicExpression(relyCompilings, relyReferences, item.expression));
                 manager.library.variables.Add(item.compiling);
             }
 

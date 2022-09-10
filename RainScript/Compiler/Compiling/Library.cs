@@ -2,30 +2,28 @@
 
 namespace RainScript.Compiler.Compiling
 {
-    internal class Logic
+    internal struct LogicExpression
     {
+        public readonly Anchor exprssion;
         public readonly IList<Space> compilings;
         public readonly IList<RelySpace> references;
-        public Logic(IList<Space> compilings, IList<RelySpace> references)
+        public LogicExpression(IList<Space> compilings, IList<RelySpace> references, Anchor exprssion)
         {
+            this.exprssion = exprssion;
             this.compilings = compilings;
             this.references = references;
         }
     }
-    internal class LogicExpression : Logic
-    {
-        public readonly Anchor exprssion;
-        public LogicExpression(IList<Space> compilings, IList<RelySpace> references, Anchor exprssion) : base(compilings, references)
-        {
-            this.exprssion = exprssion;
-        }
-    }
-    internal class LogicBody : Logic
+    internal struct LogicBody
     {
         public readonly TextSegment body;
-        public LogicBody(IList<Space> compilings, IList<RelySpace> references, TextSegment body) : base(compilings, references)
+        public readonly IList<Space> compilings;
+        public readonly IList<RelySpace> references;
+        public LogicBody(IList<Space> compilings, IList<RelySpace> references, TextSegment body)
         {
             this.body = body;
+            this.compilings = compilings;
+            this.references = references;
         }
     }
     internal class Declaration
@@ -75,23 +73,25 @@ namespace RainScript.Compiler.Compiling
             this.destructor = destructor;
         }
 
-        public ISpace Space => space;
-        public Compiler.Declaration Declaration => declaration;
-        public string Name => name.Segment;
+        ISpace IDeclaramtion.Space => space;
+        Compiler.Declaration IDeclaramtion.Declaration => declaration;
+        string IDeclaramtion.Name => name.Segment;
         CompilingDefinition IDefinition.Parent { get { return parent; } }
         IList<CompilingDefinition> IInterface.Inherits { get { return inherits; } }
-        public int MethodCount => methods.Length;
-        public int MemberVaribaleCount => variables.Length;
-        public IMethod GetMethod(int index)
+        uint IDefinition.Constructor => constructors;
+        int IInterface.MethodCount => methods.Length;
+        int IDefinition.MemberVaribaleCount => variables.Length;
+
+        IMemberVariable IDefinition.GetMemberVariable(int index)
+        {
+            return variables[index];
+        }
+        IMethod IInterface.GetMethod(int index)
         {
             var space = this.space;
             while (space.parent != null) space = space.parent;
             var library = (Library)space;
             return library.methods[(int)methods[index]];
-        }
-        public IMemberVariable GetMemberVariable(int index)
-        {
-            return variables[index];
         }
     }
     internal class Variable : Declaration

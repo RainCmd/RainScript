@@ -18,11 +18,7 @@ namespace RainScript.Compiler
             this.start = start;
             this.end = end;
         }
-        public bool InRange(int line)
-        {
-            return line >= start && line <= end;
-        }
-        public static implicit operator bool(TextSegment segment)
+        public static explicit operator bool(TextSegment segment)
         {
             return segment.text != null && segment.start <= segment.end;
         }

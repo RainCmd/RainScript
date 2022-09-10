@@ -121,8 +121,8 @@
                     }
             }
             foreach (var definition in parameter.manager.library.definitions)
-                if (definition.destructor != null)
-                    using (var destructorGenerator = new FunctionGenerator(parameter, definition.destructor))
+                if ((bool)definition.destructor.body)
+                    using (var destructorGenerator = new FunctionGenerator(parameter, definition))
                     {
                         definition.destructorEntry = Point;
                         destructorGenerator.Generate(parameter, this);

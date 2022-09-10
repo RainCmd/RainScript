@@ -97,9 +97,9 @@
             throw new System.NotImplementedException();
         }
     }
-    internal class CastingExpression : CastExpression
+    internal class CastHandleExpression : CastExpression
     {
-        public CastingExpression(Anchor anchor, Expression expression, CompilingType type) : base(anchor, expression, type) { }
+        public CastHandleExpression(Anchor anchor, Expression expression, CompilingType type) : base(anchor, expression, type) { }
         public override void Generator(GeneratorParameter parameter)
         {
             throw new System.NotImplementedException();

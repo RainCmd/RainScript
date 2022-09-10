@@ -110,23 +110,25 @@ namespace RainScript.Compiler
             this.methods = methods;
         }
 
-        public ISpace Space => space;
-        public string Name => name;
-        public Declaration Declaration => declaration;
+        ISpace IDeclaramtion.Space => space;
+        string IDeclaramtion.Name => name;
+        Declaration IDeclaramtion.Declaration => declaration;
         CompilingDefinition IDefinition.Parent { get { return parent; } }
         IList<CompilingDefinition> IInterface.Inherits { get { return inherits; } }
-        public int MethodCount => methods.Length;
-        public int MemberVaribaleCount => variables.Length;
-        public IMethod GetMethod(int index)
+        uint IDefinition.Constructor => constructors;
+        int IInterface.MethodCount => methods.Length;
+        int IDefinition.MemberVaribaleCount => variables.Length;
+
+        IMemberVariable IDefinition.GetMemberVariable(int index)
+        {
+            return variables[index];
+        }
+        IMethod IInterface.GetMethod(int index)
         {
             var space = this.space;
             while (space.parent != null) space = space.parent;
             var library = (RelyLibrary)space;
             return library.methods[methods[index]];
-        }
-        public IMemberVariable GetMemberVariable(int index)
-        {
-            return variables[index];
         }
     }
     internal class RelyVariable : RelyDeclaration
