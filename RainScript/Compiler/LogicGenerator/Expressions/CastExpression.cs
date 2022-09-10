@@ -9,6 +9,7 @@
         {
             this.expression = expression;
             attribute = TokenAttribute.Value.AddTypeAttribute(type);
+            if (expression.Attribute.ContainAny(TokenAttribute.Constant)) attribute |= TokenAttribute.Constant;
         }
     }
     internal class IntegerToRealExpression : CastExpression

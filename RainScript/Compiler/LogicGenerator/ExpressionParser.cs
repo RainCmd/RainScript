@@ -1,4 +1,6 @@
 ﻿using RainScript.Compiler.LogicGenerator.Expressions;
+using RainScript.Vector;
+using System.Data;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -1352,49 +1354,200 @@ namespace RainScript.Compiler.LogicGenerator
                 case TokenType.Less:
                     if (TryPopExpression(expressionStack, anchor, out var left, out var right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Less, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Less, left, right, RelyKernel.BOOL_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue < rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Less, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue < rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Less, left, right, RelyKernel.BOOL_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.Greater:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Grater, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Grater, left, right, RelyKernel.BOOL_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue > rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Grater, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue > rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Grater, left, right, RelyKernel.BOOL_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.LessEquals:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_LessThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_LessThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue <= rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_LessThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue <= rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_LessThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.GreaterEquals:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_GraterThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_GraterThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue >= rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_GraterThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue >= rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_GraterThanOrEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.Equals:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Equals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Equals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Equals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Equals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Equals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Equals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_Equals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.ENTITY_TYPE && right.returns[0] == RelyKernel.ENTITY_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.ENTITY_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE)
+                        {
+                            if (left.TryEvaluation(out string leftValue) && right.TryEvaluation(out string rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.ENTITY_TYPE && right.returns[0] == RelyKernel.ENTITY_TYPE)
+                        {
+                            if (left.TryEvaluationNull() && right.TryEvaluationNull())
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, true);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.ENTITY_Equals, left, right, RelyKernel.BOOL_TYPE);
+                        }
                         else if (left.returns[0].IsHandle && right.returns[0].IsHandle)
                         {
-                            if (left.returns[0].dimension == 0 && left.returns[0].definition.code == TypeCode.Function && right.returns[0].dimension == 0 && right.returns[0].definition.code == TypeCode.Function) return PushOperationExpression(expressionStack, anchor, CommandMacro.DELEGATE_Equals, left, right, RelyKernel.BOOL_TYPE);
+                            if (left.TryEvaluationNull() && right.TryEvaluationNull())
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, true);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else if (left.returns[0].dimension == 0 && left.returns[0].definition.code == TypeCode.Function && right.returns[0].dimension == 0 && right.returns[0].definition.code == TypeCode.Function) return PushOperationExpression(expressionStack, anchor, CommandMacro.DELEGATE_Equals, left, right, RelyKernel.BOOL_TYPE);
                             else return PushOperationExpression(expressionStack, anchor, CommandMacro.HANDLE_Equals, left, right, RelyKernel.BOOL_TYPE);
                         }
                         else goto default;
@@ -1403,17 +1556,96 @@ namespace RainScript.Compiler.LogicGenerator
                 case TokenType.NotEquals:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_NotEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_NotEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_NotEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_NotEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_NotEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_NotEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_NotEquals, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.ENTITY_TYPE && right.returns[0] == RelyKernel.ENTITY_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.ENTITY_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE)
+                        {
+                            if (left.TryEvaluation(out string leftValue) && right.TryEvaluation(out string rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.ENTITY_TYPE && right.returns[0] == RelyKernel.ENTITY_TYPE)
+                        {
+                            if (left.TryEvaluationNull() && right.TryEvaluationNull())
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, false);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.ENTITY_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                        }
                         else if (left.returns[0].IsHandle && right.returns[0].IsHandle)
                         {
-                            if (left.returns[0].dimension == 0 && left.returns[0].definition.code == TypeCode.Function && right.returns[0].dimension == 0 && right.returns[0].definition.code == TypeCode.Function) return PushOperationExpression(expressionStack, anchor, CommandMacro.DELEGATE_NotEquals, left, right, RelyKernel.BOOL_TYPE);
+                            if (left.TryEvaluationNull() && right.TryEvaluationNull())
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, false);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else if (left.returns[0].dimension == 0 && left.returns[0].definition.code == TypeCode.Function && right.returns[0].dimension == 0 && right.returns[0].definition.code == TypeCode.Function) return PushOperationExpression(expressionStack, anchor, CommandMacro.DELEGATE_NotEquals, left, right, RelyKernel.BOOL_TYPE);
                             else return PushOperationExpression(expressionStack, anchor, CommandMacro.HANDLE_NotEquals, left, right, RelyKernel.BOOL_TYPE);
                         }
                         else goto default;
@@ -1424,9 +1656,26 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            var logicExpression = new LogicAndExpression(anchor, left, right);
-                            expressionStack.Push(logicExpression);
-                            return logicExpression.Attribute;
+                            if (left.TryEvaluation(out bool leftValue))
+                            {
+                                if (!leftValue)
+                                {
+                                    var constant = new ConstantBooleanExpression(anchor, false);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else
+                                {
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                            }
+                            else
+                            {
+                                var logicExpression = new LogicAndExpression(anchor, left, right);
+                                expressionStack.Push(logicExpression);
+                                return logicExpression.Attribute;
+                            }
                         }
                     }
                     break;
@@ -1435,9 +1684,26 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            var logicExpression = new LogicOrExpression(anchor, left, right);
-                            expressionStack.Push(logicExpression);
-                            return logicExpression.Attribute;
+                            if (left.TryEvaluation(out bool leftValue))
+                            {
+                                if (leftValue)
+                                {
+                                    var constant = new ConstantBooleanExpression(anchor, true);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else
+                                {
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                            }
+                            else
+                            {
+                                var logicExpression = new LogicOrExpression(anchor, left, right);
+                                expressionStack.Push(logicExpression);
+                                return logicExpression.Attribute;
+                            }
                         }
                         else goto default;
                     }
@@ -1445,89 +1711,359 @@ namespace RainScript.Compiler.LogicGenerator
                 case TokenType.BitAnd:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_And, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue & rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_And, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue & rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.BitOr:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Or, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue | rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Or, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue | rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.BitXor:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Xor, left, right, RelyKernel.BOOL_TYPE);
-                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, leftValue ^ rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Xor, left, right, RelyKernel.BOOL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue ^ rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.ShiftLeft:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue << (int)rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.ShiftRight:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue >> (int)rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.Plus:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.REAL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Plus, left, right, RelyKernel.REAL2_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Plus, left, right, RelyKernel.REAL3_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Plus, left, right, RelyKernel.REAL4_TYPE);
-                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue + rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            {
+                                var constant = new ConstantRealExpression(anchor, leftValue + rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.REAL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                            {
+                                var constant = new ConstantReal2Expression(anchor, leftValue + rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Plus, left, right, RelyKernel.REAL2_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            {
+                                var constant = new ConstantReal3Expression(anchor, leftValue + rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Plus, left, right, RelyKernel.REAL3_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                            {
+                                var constant = new ConstantReal4Expression(anchor, leftValue + rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Plus, left, right, RelyKernel.REAL4_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE)
+                        {
+                            if (left.TryEvaluation(out string leftValue) && right.TryEvaluation(out string rightValue))
+                            {
+                                var constant = new ConstantStringExpression(anchor, leftValue + rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.Minus:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.REAL_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Minus, left, right, RelyKernel.REAL2_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Minus, left, right, RelyKernel.REAL3_TYPE);
-                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Minus, left, right, RelyKernel.REAL4_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue - rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            {
+                                var constant = new ConstantRealExpression(anchor, leftValue - rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.REAL_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                            {
+                                var constant = new ConstantReal2Expression(anchor, leftValue - rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Minus, left, right, RelyKernel.REAL2_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            {
+                                var constant = new ConstantReal3Expression(anchor, leftValue - rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Minus, left, right, RelyKernel.REAL3_TYPE);
+                        }
+                        else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE)
+                        {
+                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            {
+                                var constant = new ConstantReal3Expression(anchor, leftValue - rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Minus, left, right, RelyKernel.REAL4_TYPE);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.Mul:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue * rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                        }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.REAL_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_rv, left, right, RelyKernel.REAL2_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_rv, left, right, RelyKernel.REAL3_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_rv, left, right, RelyKernel.REAL4_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantRealExpression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.REAL_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_rv, left, right, RelyKernel.REAL2_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_rv, left, right, RelyKernel.REAL3_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_rv, left, right, RelyKernel.REAL4_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL2_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_vv, left, right, RelyKernel.REAL2_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Multiply_vv, left, right, RelyKernel.REAL2_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL3_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL3_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_vv, left, right, RelyKernel.REAL3_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL3_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Multiply_vv, left, right, RelyKernel.REAL3_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL4_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL4_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_vv, left, right, RelyKernel.REAL4_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL4_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue * rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Multiply_vv, left, right, RelyKernel.REAL4_TYPE);
+                            }
                         }
                         goto default;
                     }
@@ -1535,28 +2071,127 @@ namespace RainScript.Compiler.LogicGenerator
                 case TokenType.Div:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue / rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                        }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.REAL_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_rv, left, right, RelyKernel.REAL2_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_rv, left, right, RelyKernel.REAL3_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_rv, left, right, RelyKernel.REAL4_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantRealExpression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.REAL_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_rv, left, right, RelyKernel.REAL2_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_rv, left, right, RelyKernel.REAL3_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_rv, left, right, RelyKernel.REAL4_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL2_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_vv, left, right, RelyKernel.REAL2_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Divide_vv, left, right, RelyKernel.REAL2_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL3_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL3_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_vv, left, right, RelyKernel.REAL3_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL3_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Divide_vv, left, right, RelyKernel.REAL3_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL4_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL4_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_vv, left, right, RelyKernel.REAL4_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL4_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue / rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Divide_vv, left, right, RelyKernel.REAL4_TYPE);
+                            }
                         }
                         goto default;
                     }
@@ -1564,28 +2199,127 @@ namespace RainScript.Compiler.LogicGenerator
                 case TokenType.Mod:
                     if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
-                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                        if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, leftValue % rightValue);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                        }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.REAL_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_rv, left, right, RelyKernel.REAL2_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_rv, left, right, RelyKernel.REAL3_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_rv, left, right, RelyKernel.REAL4_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantRealExpression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.REAL_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_rv, left, right, RelyKernel.REAL2_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_rv, left, right, RelyKernel.REAL3_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                            {
+                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_rv, left, right, RelyKernel.REAL4_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL2_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_vv, left, right, RelyKernel.REAL2_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                {
+                                    var constant = new ConstantReal2Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Mod_vv, left, right, RelyKernel.REAL2_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL3_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL3_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_vv, left, right, RelyKernel.REAL3_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL3_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                {
+                                    var constant = new ConstantReal3Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Mod_vv, left, right, RelyKernel.REAL3_TYPE);
+                            }
                         }
                         else if (left.returns[0] == RelyKernel.REAL4_TYPE)
                         {
-                            if (right.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL4_TYPE);
-                            else if (right.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_vv, left, right, RelyKernel.REAL4_TYPE);
+                            if (right.returns[0] == RelyKernel.REAL_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out real rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL4_TYPE);
+                            }
+                            else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                            {
+                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                {
+                                    var constant = new ConstantReal4Expression(anchor, leftValue % rightValue);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Mod_vv, left, right, RelyKernel.REAL4_TYPE);
+                            }
                         }
                         goto default;
                     }
@@ -1593,15 +2327,32 @@ namespace RainScript.Compiler.LogicGenerator
                 case TokenType.Not:
                     if (TryPopExpression(expressionStack, anchor, out var expression))
                     {
-                        if (expression.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Not, expression);
+                        if (expression.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            if (expression.TryEvaluation(out bool value))
+                            {
+                                var constant = new ConstantBooleanExpression(anchor, !value);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Not, expression);
+                        }
                         else goto default;
                     }
                     break;
                 case TokenType.Inverse:
                     if (TryPopExpression(expressionStack, anchor, out expression))
                     {
-                        if (expression.returns[0] == RelyKernel.BOOL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.BOOL_Not, expression);
-                        else if (expression.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Inverse, expression);
+                        if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (expression.TryEvaluation(out long value))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, ~value);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Inverse, expression);
+                        }
                         else goto default;
                     }
                     break;
@@ -1609,7 +2360,7 @@ namespace RainScript.Compiler.LogicGenerator
                     if (TryPopExpression(expressionStack, anchor, out expression))
                     {
                         var type = expression.returns[0];
-                        if (type == RelyKernel.BOOL_TYPE || type == RelyKernel.INTEGER_TYPE || type == RelyKernel.REAL_TYPE || type == RelyKernel.REAL2_TYPE || type == RelyKernel.REAL3_TYPE || type == RelyKernel.REAL4_TYPE)
+                        if (type == RelyKernel.INTEGER_TYPE || type == RelyKernel.REAL_TYPE || type == RelyKernel.REAL2_TYPE || type == RelyKernel.REAL3_TYPE || type == RelyKernel.REAL4_TYPE)
                         {
                             expressionStack.Push(expression);
                             return expression.Attribute;
@@ -1620,11 +2371,56 @@ namespace RainScript.Compiler.LogicGenerator
                 case TokenType.Negative:
                     if (TryPopExpression(expressionStack, anchor, out expression))
                     {
-                        if (expression.returns[0] == RelyKernel.INTEGER_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Negative, expression);
-                        else if (expression.returns[0] == RelyKernel.REAL_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Negative, expression);
-                        else if (expression.returns[0] == RelyKernel.REAL2_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Negative, expression);
-                        else if (expression.returns[0] == RelyKernel.REAL3_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Negative, expression);
-                        else if (expression.returns[0] == RelyKernel.REAL4_TYPE) return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Negative, expression);
+                        if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (expression.TryEvaluation(out long value))
+                            {
+                                var constant = new ConstantIntegerExpression(anchor, -value);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.INTEGER_Negative, expression);
+                        }
+                        else if (expression.returns[0] == RelyKernel.REAL_TYPE)
+                        {
+                            if (expression.TryEvaluation(out real value))
+                            {
+                                var constant = new ConstantRealExpression(anchor, -value);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL_Negative, expression);
+                        }
+                        else if (expression.returns[0] == RelyKernel.REAL2_TYPE)
+                        {
+                            if (expression.TryEvaluation(out Real2 value))
+                            {
+                                var constant = new ConstantReal2Expression(anchor, -value);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Negative, expression);
+                        }
+                        else if (expression.returns[0] == RelyKernel.REAL3_TYPE)
+                        {
+                            if (expression.TryEvaluation(out Real3 value))
+                            {
+                                var constant = new ConstantReal3Expression(anchor, -value);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL3_Negative, expression);
+                        }
+                        else if (expression.returns[0] == RelyKernel.REAL4_TYPE)
+                        {
+                            if (expression.TryEvaluation(out Real4 value))
+                            {
+                                var constant = new ConstantReal4Expression(anchor, -value);
+                                expressionStack.Push(constant);
+                                return constant.Attribute;
+                            }
+                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Negative, expression);
+                        }
                         else goto default;
                     }
                     break;
@@ -1688,7 +2484,8 @@ namespace RainScript.Compiler.LogicGenerator
                                 {
                                     if (right.returns[0] == RelyKernel.REAL_TYPE)
                                     {
-                                        right = new RealToIntegerExpression(right.anchor, right);
+                                        if (right.TryEvaluation(out real value)) right = new ConstantIntegerExpression(right.anchor, (long)value);
+                                        else right = new RealToIntegerExpression(right.anchor, right);
                                         expressionStack.Push(right);
                                         return right.Attribute;
                                     }
@@ -1697,7 +2494,8 @@ namespace RainScript.Compiler.LogicGenerator
                                 {
                                     if (right.returns[0] == RelyKernel.INTEGER_TYPE)
                                     {
-                                        right = new IntegerToRealExpression(right.anchor, right);
+                                        if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, (real)value);
+                                        else right = new IntegerToRealExpression(right.anchor, right);
                                         expressionStack.Push(right);
                                         return right.Attribute;
                                     }
@@ -1706,13 +2504,15 @@ namespace RainScript.Compiler.LogicGenerator
                                 {
                                     if (right.returns[0] == RelyKernel.REAL3_TYPE)
                                     {
-                                        right = new Real2ToReal3Expression(right.anchor, right);
+                                        if (right.TryEvaluation(out Real3 value)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
+                                        else right = new Real2ToReal3Expression(right.anchor, right);
                                         expressionStack.Push(right);
                                         return right.Attribute;
                                     }
                                     else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                                     {
-                                        right = new Real2ToReal4Expression(right.anchor, right);
+                                        if (right.TryEvaluation(out Real4 value)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
+                                        else right = new Real2ToReal4Expression(right.anchor, right);
                                         expressionStack.Push(right);
                                         return right.Attribute;
                                     }
@@ -1721,13 +2521,15 @@ namespace RainScript.Compiler.LogicGenerator
                                 {
                                     if (right.returns[0] == RelyKernel.REAL2_TYPE)
                                     {
-                                        right = new Real3ToReal2Expression(right.anchor, right);
+                                        if (right.TryEvaluation(out Real2 value)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
+                                        else right = new Real3ToReal2Expression(right.anchor, right);
                                         expressionStack.Push(right);
                                         return right.Attribute;
                                     }
                                     else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                                     {
-                                        right = new Real3ToReal4Expression(right.anchor, right);
+                                        if (right.TryEvaluation(out Real4 value)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
+                                        else right = new Real3ToReal4Expression(right.anchor, right);
                                         expressionStack.Push(right);
                                         return right.Attribute;
                                     }
@@ -1736,13 +2538,15 @@ namespace RainScript.Compiler.LogicGenerator
                                 {
                                     if (right.returns[0] == RelyKernel.REAL2_TYPE)
                                     {
-                                        right = new Real4ToReal2Expression(right.anchor, right);
+                                        if (right.TryEvaluation(out Real2 value)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
+                                        else right = new Real4ToReal2Expression(right.anchor, right);
                                         expressionStack.Push(right);
                                         return right.Attribute;
                                     }
                                     else if (right.returns[0] == RelyKernel.REAL3_TYPE)
                                     {
-                                        right = new Real4ToReal3Expression(right.anchor, right);
+                                        if (right.TryEvaluation(out Real3 value)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
+                                        else right = new Real4ToReal3Expression(right.anchor, right);
                                         expressionStack.Push(right);
                                         return right.Attribute;
                                     }
@@ -2245,7 +3049,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             if (typeExpression.type.dimension == 0 && TryCombineExpressions(out var expression, expressions) && expression.returns.Length == 1)
                                             {
                                                 var dimension = Lexical.ExtractDimension(lexicals, ref index);
-                                                expression = new ArrayCreateExpression(typeExpression.anchor, expression, new CompilingType(typeExpression.type.definition, dimension));
+                                                expression = new ArrayCreateExpression(typeExpression.anchor, expression, new CompilingType(typeExpression.type.definition, dimension + 1));
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
                                                 break;
