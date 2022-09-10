@@ -306,7 +306,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         using (var localContext = new LocalContext(pool))
                                         {
-                                            localContext.PushBlock();
+                                            localContext.PushBlock(pool);
                                             for (int i = 0; i < parameters.Length; i++)
                                                 localContext.AddLocal(lambda.parameters[i], parameters[i]);
                                             var parser = new ExpressionParser(manager, context, localContext, pool, exceptions);
@@ -1964,6 +1964,22 @@ namespace RainScript.Compiler.LogicGenerator
             }
             return function != null;
         }
+        private bool TryAddLocal(ScopeStack<Expression> expressionStack, ScopeStack<Token> tokenStack, Lexical lexical, ref TokenAttribute attribute)
+        {
+            if (attribute.ContainAny(TokenAttribute.Type))
+            {
+                if (expressionStack.Pop() is TypeExpression typeExpression && tokenStack.Pop().type == TokenType.Casting)
+                {
+                    var local = localContext.AddLocal(lexical.anchor, typeExpression.type);
+                    var expression = new VariableLocalExpression(lexical.anchor, local.Declaration, TokenAttribute.Assignable, typeExpression.type);
+                    expressionStack.Push(expression);
+                    attribute = expression.Attribute;
+                    return true;
+                }
+                else throw ExceptionGeneratorCompiler.Unknow();
+            }
+            return false;
+        }
         public bool TryParse(ListSegment<Lexical> lexicals, out Expression result)
         {
             if (TrySub(lexicals, SplitFlag.Lambda, out var lambdaIndex)) return TryParseLambda(lexicals, lambdaIndex, out result);
@@ -3147,9 +3163,14 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (context.TryFindSpace(manager, lexical.anchor, out var space, pool, exceptions))
                                 {
-                                    if (!TryFindDeclaration(lexicals, ref index, space, out declaration) || !TryPushDeclarationExpression(lexicals, ref index, expressionStack, tokenStack, lexicals[index], declaration, ref attribute))
-                                        goto parse_fail;
+                                    if (TryFindDeclaration(lexicals, ref index, space, out declaration))
+                                    {
+                                        if (!TryPushDeclarationExpression(lexicals, ref index, expressionStack, tokenStack, lexicals[index], declaration, ref attribute))
+                                            goto parse_fail;
+                                    }
+                                    else if (!TryAddLocal(expressionStack, tokenStack, lexical, ref attribute)) goto parse_fail;
                                 }
+                                else if (TryAddLocal(expressionStack, tokenStack, lexical, ref attribute)) break;
                                 else
                                 {
                                     exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);

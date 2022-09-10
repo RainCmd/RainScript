@@ -6,7 +6,7 @@ namespace RainScript.Compiler
     {
         public readonly TextInfo text;
         /// <summary>
-        /// 行号[,]
+        /// 行索引[,]
         /// </summary>
         public readonly int start, end;
         /// <summary>

@@ -3,6 +3,7 @@
     using Expressions;
     internal class BlockStatement : Statement
     {
+        public int indent;
         public readonly ScopeList<Statement> statements;
         public BlockStatement(Anchor anchor, ScopeList<Statement> statements) : base(anchor)
         {
@@ -117,6 +118,15 @@
             loopBlock.Dispose();
             elseBlock.Dispose();
         }
+    }
+    internal class ElseStatement : Statement
+    {
+        public readonly BlockStatement statements;
+        public ElseStatement(Anchor anchor, BlockStatement statements) : base(anchor)
+        {
+            this.statements = statements;
+        }
+        public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint) { }
     }
     internal class BreakStatement : JumpStatement
     {

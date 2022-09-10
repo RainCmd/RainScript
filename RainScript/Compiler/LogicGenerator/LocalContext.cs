@@ -21,15 +21,13 @@
     }
     internal class LocalContext : System.IDisposable
     {
-        private readonly CollectionPool pool;
         private readonly ScopeList<ScopeDictionary<string, Local>> localDeclarations;
         private uint index = 0;
         public LocalContext(CollectionPool pool)
         {
-            this.pool = pool;
             localDeclarations = pool.GetList<ScopeDictionary<string, Local>>();
         }
-        public void PushBlock()
+        public void PushBlock(CollectionPool pool)
         {
             localDeclarations.Add(pool.GetDictionary<string, Local>());
         }

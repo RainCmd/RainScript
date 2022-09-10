@@ -62,11 +62,11 @@ namespace RainScript.Compiler.LogicGenerator
         public readonly Definition definition;
         public readonly CompilingType[] parameters;
         public readonly CompilingType[] returns;
-        public readonly ScopeList<Statement> statements;
+        public readonly BlockStatement statements;
         public FunctionGenerator(GeneratorParameter parameter, Generator generator)
         {
             parameters = returns = new CompilingType[0];
-            statements = parameter.pool.GetList<Statement>();
+            statements = new BlockStatement(default, parameter.pool.GetList<Statement>());
             foreach (var variable in parameter.manager.library.variables)
                 if (variable.constant)
                     using (var lexicals = parameter.pool.GetList<Lexical>())
@@ -143,7 +143,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 if (parser.TryParseTuple(lexicals, out var expressions))
                                 {
                                     if (parser.TryAssignmentConvert(expressions, new CompilingType[] { variable.type }, out var result, out _))
-                                        statements.Add(new ExpressionStatement(new VariableAssignmentExpression(variable.name, new VariableGlobalExpression(variable.name, variable.declaration, variable.constant, variable.type), result, variable.type)));
+                                        statements.statements.Add(new ExpressionStatement(new VariableAssignmentExpression(variable.name, new VariableGlobalExpression(variable.name, variable.declaration, variable.constant, variable.type), result, variable.type)));
                                     else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
                                 }
                             }
@@ -151,11 +151,11 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public FunctionGenerator(GeneratorParameter parameter, Compiling.Function function)
         {
-            statements = parameter.pool.GetList<Statement>();
+            statements = new BlockStatement(default, parameter.pool.GetList<Statement>());
             parameters = function.parameters;
             returns = function.returns;
             var localContext = new LocalContext(parameter.pool);
-            localContext.PushBlock();
+            localContext.PushBlock(parameter.pool);
             if (function.declaration.code == DeclarationCode.MemberFunction)
             {
                 definition = parameter.manager.library.definitions[(int)function.declaration.definitionIndex];
@@ -168,7 +168,7 @@ namespace RainScript.Compiler.LogicGenerator
                 var type = new CompilingType(new CompilingDefinition(definition.declaration), 0);
                 var thisValue = localContext.AddLocal(KeyWorld.THIS, definition.name, type);
                 var thisExpression = new VariableLocalExpression(definition.name, thisValue.Declaration, TokenAttribute.Value | TokenAttribute.Assignable, type);
-                statements.Add(new ExpressionStatement(new VariableAssignmentExpression(function.name, thisExpression, new HandleCreateExpression(function.name, type), type)));
+                statements.statements.Add(new ExpressionStatement(new VariableAssignmentExpression(function.name, thisExpression, new HandleCreateExpression(function.name, type), type)));
                 for (int i = 0; i < parameters.Length; i++) localContext.AddLocal(function.parameterNames[i], parameters[i]);
                 var logic = definition.constructorInvaokerExpressions[function.declaration.overrideIndex];
                 if ((bool)logic.exprssion)
@@ -199,7 +199,7 @@ namespace RainScript.Compiler.LogicGenerator
                             var context = new Context(function.space, definition, function.body.compilings, function.body.references);
                             var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
                             if (parser.TryParseTuple(lexicals, out var expressions))
-                                if (parser.TryGetFunction(parser.manager.GetMethod(ctorMethod), expressions, out var ctor, out var ctorParameter)) statements.Add(new ExpressionStatement(new InvokerMemberExpression(lexical.anchor, ctor.Declaration, thisExpression, ctorParameter, new CompilingType[] { type })));
+                                if (parser.TryGetFunction(parser.manager.GetMethod(ctorMethod), expressions, out var ctor, out var ctorParameter)) statements.statements.Add(new ExpressionStatement(new InvokerMemberExpression(lexical.anchor, ctor.Declaration, thisExpression, ctorParameter, new CompilingType[] { type })));
                                 else parameter.exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
                         }
             }
@@ -211,9 +211,9 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public FunctionGenerator(GeneratorParameter parameter, Definition definition)
         {
-            statements = parameter.pool.GetList<Statement>();
+            statements = new BlockStatement(default, parameter.pool.GetList<Statement>());
             var localContext = new LocalContext(parameter.pool);
-            localContext.PushBlock();
+            localContext.PushBlock(parameter.pool);
             localContext.AddLocal(KeyWorld.THIS, definition.name, new CompilingType(new CompilingDefinition(definition.declaration), 0));
             this.definition = definition;
             parameters = returns = new CompilingType[0];
@@ -223,9 +223,73 @@ namespace RainScript.Compiler.LogicGenerator
         }
         private void Parse(GeneratorParameter parameter, Compiling.Space space, LogicBody logicBody, LocalContext localContext)
         {
-            for (int lineIndex = logicBody.body.start; lineIndex <= logicBody.body.end; lineIndex++)
+            if ((bool)definition.destructor.body)
             {
+                var context = new Context(space, definition, logicBody.compilings, logicBody.references);
+                statements.indent = logicBody.body.text[logicBody.body.start].indent;
+                using (var statementStack = parameter.pool.GetStack<BlockStatement>())
+                {
+                    statementStack.Push(statements);
+                    for (int lineIndex = logicBody.body.start; lineIndex <= logicBody.body.end; lineIndex++)
+                    {
+                        var line = logicBody.body.text[lineIndex];
+                        var blockIndent = statementStack.Peek().indent;
+                        if (blockIndent < line.indent)
+                        {
+                            localContext.PushBlock(parameter.pool);
+                            var statement = statementStack.Peek().statements[-1];
+                            if (statement is BranchStatement branchStatement)
+                            {
+                                branchStatement.trueBranch.indent = line.indent;
+                                statementStack.Push(branchStatement.trueBranch);
+                            }
+                            else if (statement is LoopStatement loopStatement)
+                            {
+                                loopStatement.loopBlock.indent = line.indent;
+                                statementStack.Push(loopStatement.loopBlock);
+                            }
+                            else if (statement is ElseStatement elseStatement)
+                            {
+                                elseStatement.statements.indent = line.indent;
+                                statementStack.Push(elseStatement.statements);
+                            }
+                            else
+                            {
+                                var block = new BlockStatement(default, parameter.pool.GetList<Statement>());
+                                block.indent = line.indent;
+                                statementStack.Push(block);
+                            }
+                        }
+                        else while (statementStack.Count > 0)
+                            {
+                                var statement = statementStack.Peek();
+                                if (statement.indent > line.indent)
+                                {
+                                    statementStack.Pop();
+                                    localContext.PopBlock();
+                                }
+                                else if (statement.indent < line.indent)
+                                {
+                                    parameter.exceptions.Add(new Anchor(logicBody.body.text, line.segment), CompilingExceptionCode.SYNTAX_INDENT);
+                                    break;
+                                }
+                                else break;
+                            }
+                        using (var lexicals = parameter.pool.GetList<Lexical>())
+                            if (Lexical.TryAnalysis(lexicals, logicBody.body.text, line.segment, parameter.exceptions) && lexicals.Count > 0)
+                            {
+                                var lexical = lexicals[0];
+                                if (lexical.anchor.Segment == KeyWorld.IF)
+                                {
 
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.ELSE)
+                                {
+
+                                }
+                            }
+                    }
+                }
             }
         }
         private void CheckCtorReturnType(Local thisValue)
@@ -262,7 +326,7 @@ namespace RainScript.Compiler.LogicGenerator
                 generator.WriteCode(topValue);
                 using (var finallyPoint = new Referencable<CodeAddress>(parameter.pool))
                 {
-                    foreach (var statement in statements) statement.Generator(new StatementGeneratorParameter(parameter, generator, variable), finallyPoint);
+                    statements.Generator(new StatementGeneratorParameter(parameter, generator, variable), finallyPoint);
                     generator.SetCodeAddress(finallyPoint);
                 }
                 topValue.SetValue(generator, variable.Generator(generator));
@@ -272,7 +336,6 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public void Dispose()
         {
-            foreach (var statement in statements) statement.Dispose();
             statements.Dispose();
         }
     }
