@@ -419,6 +419,11 @@ namespace RainScript
         {
             public readonly string name;
             public readonly Type type;
+            public Variable(string name, Type type)
+            {
+                this.name = name;
+                this.type = type;
+            }
         }
         internal readonly Variable[] variables;
         internal readonly ImportMethodInfo[] methods;//方法名为类型名时表示这是个构造函数
@@ -449,10 +454,10 @@ namespace RainScript
         }
     }
     [Serializable]
-    internal class InportCoroutineInfo : ImportInfo
+    internal class ImportCoroutineInfo : ImportInfo
     {
         internal readonly Type[] returns;
-        public InportCoroutineInfo(ImportSpaceInfo space, string name, Type[] returns) : base(space, name)
+        public ImportCoroutineInfo(ImportSpaceInfo space, string name, Type[] returns) : base(space, name)
         {
             this.returns = returns;
         }
@@ -492,12 +497,12 @@ namespace RainScript
         internal readonly ImportDefinitionInfo[] definitions;
         internal readonly ImportVariableInfo[] variables;
         internal readonly ImportDelegateInfo[] delegates;
-        internal readonly InportCoroutineInfo[] coroutines;
+        internal readonly ImportCoroutineInfo[] coroutines;
         internal readonly ImportMethodInfo[] methods;
         internal readonly ImportInterfaceInfo[] interfaces;
         internal readonly ImportMethodInfo[] natives;
 
-        internal ImportLibraryInfo(string name, ImportDefinitionInfo[] definitions, ImportVariableInfo[] variables, ImportDelegateInfo[] delegates, InportCoroutineInfo[] coroutines, ImportMethodInfo[] methods, ImportInterfaceInfo[] interfaces, ImportMethodInfo[] natives) : base(null, name)
+        internal ImportLibraryInfo(string name, ImportDefinitionInfo[] definitions, ImportVariableInfo[] variables, ImportDelegateInfo[] delegates, ImportCoroutineInfo[] coroutines, ImportMethodInfo[] methods, ImportInterfaceInfo[] interfaces, ImportMethodInfo[] natives) : base(null, name)
         {
             this.definitions = definitions;
             this.variables = variables;

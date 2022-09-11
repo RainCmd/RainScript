@@ -92,7 +92,7 @@ namespace RainScript.Compiler
                 this.type = type;
             }
 
-            public string Name => name;
+            string IMemberVariable.Name => name;
             CompilingType IMemberVariable.Type => type;
             Declaration IMemberVariable.Declaration => declaration;
         }

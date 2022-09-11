@@ -473,9 +473,9 @@ namespace RainScript.Compiler.Compiling
                                 exceptions.Add(definition.name, CompilingExceptionCode.COMPILING_INTERFACE_NOT_IMPLEMENTS, manager.GetDeclarationFullName(method.GetFunction(functionIndex).Declaration));
                     }
                 }
-                else throw ExceptionGeneratorCompiler.Unknow();
+                else throw ExceptionGeneratorCompiler.Unknown();
             }
-            else throw ExceptionGeneratorCompiler.Unknow();
+            else throw ExceptionGeneratorCompiler.Unknown();
         }
         private bool InterfaceImplementsCheck(DeclarationManager manager, IDefinition definition, Visibility visibility, IFunction function, ExceptionCollector exceptions)
         {

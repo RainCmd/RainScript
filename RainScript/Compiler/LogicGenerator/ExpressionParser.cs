@@ -2558,7 +2558,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     return castExpression.Attribute;
                                 }
                             }
-                            else throw ExceptionGeneratorCompiler.Unknow();
+                            else throw ExceptionGeneratorCompiler.Unknown();
                         }
                         goto default;
                     }
@@ -2780,7 +2780,7 @@ namespace RainScript.Compiler.LogicGenerator
                     attribute = expression.Attribute;
                     return true;
                 }
-                else throw ExceptionGeneratorCompiler.Unknow();
+                else throw ExceptionGeneratorCompiler.Unknown();
             }
             return false;
         }
@@ -2908,7 +2908,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             goto default;
                                         }
-                                        else throw ExceptionGeneratorCompiler.Unknow();
+                                        else throw ExceptionGeneratorCompiler.Unknown();
                                     }
                                     else if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -3055,7 +3055,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 break;
                                             }
                                         }
-                                        else throw ExceptionGeneratorCompiler.Unknow();
+                                        else throw ExceptionGeneratorCompiler.Unknown();
                                     }
                                 }
                             }
@@ -3962,7 +3962,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 break;
                                             }
                                             else goto default;
-                                        default: throw ExceptionGeneratorCompiler.Unknow();
+                                        default: throw ExceptionGeneratorCompiler.Unknown();
                                     }
                                 }
                                 else if (context.TryFindSpace(manager, lexical.anchor, out var space, pool, exceptions))

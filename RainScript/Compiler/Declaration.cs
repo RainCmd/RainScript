@@ -95,7 +95,14 @@
                     case TypeCode.Interface: return new Declaration(library, visibility, DeclarationCode.Interface, index, 0, 0);
                     case TypeCode.Coroutine: return new Declaration(library, visibility, DeclarationCode.Coroutine, index, 0, 0);
                 }
-                return Declaration.INVALID;
+                throw ExceptionGeneratorCompiler.Unknown();
+            }
+        }
+        public TypeDefinition RuntimeDefinition
+        {
+            get
+            {
+                return new TypeDefinition(library, code, index);
             }
         }
         public CompilingDefinition(Declaration declaration)
@@ -173,6 +180,13 @@
             get
             {
                 return dimension > 0 || definition.code == TypeCode.Handle || definition.code == TypeCode.Interface || definition.code == TypeCode.Function || definition.code == TypeCode.Coroutine;
+            }
+        }
+        public Type RuntimeType
+        {
+            get
+            {
+                return new Type(definition.library, definition.code, definition.index, dimension);
             }
         }
         public CompilingType(Type type, Visibility visibility) : this(new CompilingDefinition(type.definition, visibility), type.dimension) { }

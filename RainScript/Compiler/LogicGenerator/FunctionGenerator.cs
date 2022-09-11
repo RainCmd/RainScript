@@ -186,7 +186,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     else ParseCtorInvoker(parameter, function, lexicals, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
                                     InitMemberVariable(parameter, thisExpression);
                                 }
-                                else throw ExceptionGeneratorCompiler.Unknow();
+                                else throw ExceptionGeneratorCompiler.Unknown();
                             }
                             else
                             {

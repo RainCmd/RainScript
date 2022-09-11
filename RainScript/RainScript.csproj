@@ -82,7 +82,7 @@
     <Compile Include="Compiler\LogicGenerator\LocalContext.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\OperationExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\QuestionExpression.cs" />
-    <Compile Include="Compiler\LogicGenerator\RelyGenerator.cs" />
+    <Compile Include="Compiler\LogicGenerator\ReliedGenerator.cs" />
     <Compile Include="Compiler\LogicGenerator\SplitFlag.cs" />
     <Compile Include="Compiler\LogicGenerator\Token.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\TupleExpression.cs" />

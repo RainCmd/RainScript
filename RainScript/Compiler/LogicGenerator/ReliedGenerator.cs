@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace RainScript.Compiler.LogicGenerator
 {
@@ -14,33 +13,103 @@ namespace RainScript.Compiler.LogicGenerator
             this.name = name;
         }
     }
-    internal class ReliedMethod : ReliedDeclaration, IDisposable
-    {
-        public readonly ScopeList<Declaration> functions;
-        public ReliedMethod(ReliedSpace space, string name, CollectionPool pool) : base(space, name)
-        {
-            functions = pool.GetList<Declaration>();
-        }
-
-        public void Dispose()
-        {
-            functions.Dispose();
-        }
-    }
     internal class ReliedDefinitioin : ReliedDeclaration, IDisposable
     {
-        public readonly ScopeList<Declaration> variables;
+        public readonly ScopeList<ReliedVariable> variables;
         public readonly ScopeList<ReliedMethod> methods;
         public ReliedDefinitioin(ReliedSpace space, string name, CollectionPool pool) : base(space, name)
         {
-            variables = pool.GetList<Declaration>();
+            variables = pool.GetList<ReliedVariable>();
             methods = pool.GetList<ReliedMethod>();
+        }
+        public ImportDefinitionInfo Generator()
+        {
+            var variables = new ImportDefinitionInfo.Variable[this.variables.Count];
+            for (int i = 0; i < variables.Length; i++) variables[i] = this.variables[i].GeneratorMemberVariable();
+            var methods = new ImportMethodInfo[this.methods.Count];
+            for (int i = 0; i < methods.Length; i++) methods[i] = this.methods[i].Generator();
+            return new ImportDefinitionInfo(space.space, name, variables, methods);
         }
         public void Dispose()
         {
             variables.Dispose();
             foreach (var method in methods) method.Dispose();
             methods.Dispose();
+        }
+    }
+    internal class ReliedVariable : ReliedDeclaration
+    {
+        public readonly CompilingType type;
+        public ReliedVariable(ReliedSpace space, string name, CompilingType type) : base(space, name)
+        {
+            this.type = type;
+        }
+        public ImportDefinitionInfo.Variable GeneratorMemberVariable()
+        {
+            return new ImportDefinitionInfo.Variable(name, type.RuntimeType);
+        }
+        public ImportVariableInfo GeneratorGlobalVariable()
+        {
+            return new ImportVariableInfo(space.space, name, type.RuntimeType);
+        }
+    }
+    internal class ReliedFunction : ReliedDeclaration
+    {
+        public readonly CompilingType[] parameters;
+        public readonly CompilingType[] returns;
+        public ReliedFunction(ReliedSpace space, string name, CompilingType[] parameters, CompilingType[] returns) : base(space, name)
+        {
+            this.parameters = parameters;
+            this.returns = returns;
+        }
+        private void Generator(out Type[] parameters, out Type[] returns)
+        {
+            parameters = new Type[this.parameters.Length];
+            for (int i = 0; i < parameters.Length; i++) parameters[i] = this.parameters[i].RuntimeType;
+            returns = new Type[this.returns.Length];
+            for (int i = 0; i < returns.Length; i++) returns[i] = this.returns[i].RuntimeType;
+        }
+        public FunctionInfo GeneratorFunction()
+        {
+            Generator(out var parameters, out var returns);
+            return new FunctionInfo(parameters, returns);
+        }
+        public ImportDelegateInfo GeneratorDelegate()
+        {
+            Generator(out var parameters, out var returns);
+            return new ImportDelegateInfo(space.space, name, parameters, returns);
+        }
+    }
+    internal class ReliedCoroutine : ReliedDeclaration
+    {
+        public readonly CompilingType[] returns;
+        public ReliedCoroutine(ReliedSpace space, string name, CompilingType[] returns) : base(space, name)
+        {
+            this.returns = returns;
+        }
+        public ImportCoroutineInfo Generator()
+        {
+            var returns = new Type[this.returns.Length];
+            for (int i = 0; i < returns.Length; i++) returns[i] = this.returns[i].RuntimeType;
+            return new ImportCoroutineInfo(space.space, name, returns);
+        }
+    }
+    internal class ReliedMethod : ReliedDeclaration, IDisposable
+    {
+        public readonly ScopeList<ReliedFunction> functions;
+        public ReliedMethod(ReliedSpace space, string name, CollectionPool pool) : base(space, name)
+        {
+            functions = pool.GetList<ReliedFunction>();
+        }
+        public ImportMethodInfo Generator()
+        {
+            var functions = new FunctionInfo[this.functions.Count];
+            for (int i = 0; i < functions.Length; i++) functions[i] = this.functions[i].GeneratorFunction();
+            return new ImportMethodInfo(space.space, name, functions);
+        }
+        public void Dispose()
+        {
+            functions.Dispose();
         }
     }
     internal class ReliedInterface : ReliedDeclaration, IDisposable
@@ -50,6 +119,12 @@ namespace RainScript.Compiler.LogicGenerator
         {
             methods = pool.GetList<ReliedMethod>();
         }
+        public ImportInterfaceInfo Generator()
+        {
+            var methods = new ImportMethodInfo[this.methods.Count];
+            for (int i = 0; i < methods.Length; i++) methods[i] = this.methods[i].Generator();
+            return new ImportInterfaceInfo(space.space, name, methods);
+        }
         public void Dispose()
         {
             methods.Dispose();
@@ -57,19 +132,28 @@ namespace RainScript.Compiler.LogicGenerator
     }
     internal class ReliedSpace : IDisposable
     {
-        public readonly ImportSpaceInfo space;
+        public readonly string name;
+        public ImportSpaceInfo space;
+        public readonly ReliedSpace parent;
         public readonly ScopeList<ReliedSpace> children;
-        public ReliedSpace(ImportSpaceInfo space, CollectionPool pool)
+        public ReliedSpace(string name, ReliedSpace parent, CollectionPool pool)
         {
-            this.space = space;
+            this.name = name;
+            this.parent = parent;
             children = pool.GetList<ReliedSpace>();
         }
         public ReliedSpace GetChild(string name, CollectionPool pool)
         {
-            foreach (var child in children) if (child.space.name == name) return child;
-            var result = new ReliedSpace(new ImportSpaceInfo(space, name), pool);
+            foreach (var child in children) if (child.name == name) return child;
+            var result = new ReliedSpace(name, this, pool);
             children.Add(result);
             return result;
+        }
+        protected void CreateImportSpace(ImportSpaceInfo space)
+        {
+            this.space = space;
+            foreach (var child in children)
+                child.CreateImportSpace(new ImportSpaceInfo(space, child.name));
         }
         public virtual void Dispose()
         {
@@ -80,21 +164,20 @@ namespace RainScript.Compiler.LogicGenerator
     internal class ReliedLibrary : ReliedSpace
     {
         public readonly uint library;
-        //todo 引用里用到的类型需要明确下，运行时验证用
         public readonly ScopeList<ReliedDefinitioin> definitioins;
-        public readonly ScopeList<ReliedDeclaration> variables;
-        public readonly ScopeList<ReliedDeclaration> delegates;
-        public readonly ScopeList<ReliedDeclaration> coroutines;
+        public readonly ScopeList<ReliedVariable> variables;
+        public readonly ScopeList<ReliedFunction> delegates;
+        public readonly ScopeList<ReliedCoroutine> coroutines;
         public readonly ScopeList<ReliedMethod> methods;
         public readonly ScopeList<ReliedInterface> interfaces;
         public readonly ScopeList<ReliedMethod> natives;
-        public ReliedLibrary(uint library, string name, CollectionPool pool) : base(new ImportSpaceInfo(null, name), pool)
+        public ReliedLibrary(uint library, string name, CollectionPool pool) : base(name, null, pool)
         {
             this.library = library;
             definitioins = pool.GetList<ReliedDefinitioin>();
-            variables = pool.GetList<ReliedDeclaration>();
-            delegates = pool.GetList<ReliedDeclaration>();
-            coroutines = pool.GetList<ReliedDeclaration>();
+            variables = pool.GetList<ReliedVariable>();
+            delegates = pool.GetList<ReliedFunction>();
+            coroutines = pool.GetList<ReliedCoroutine>();
             methods = pool.GetList<ReliedMethod>();
             interfaces = pool.GetList<ReliedInterface>();
             natives = pool.GetList<ReliedMethod>();
@@ -103,6 +186,19 @@ namespace RainScript.Compiler.LogicGenerator
         {
             if (space.parent == null) return this;
             else return GetSpace(space.parent, pool).GetChild(space.name, pool);
+        }
+        public ImportLibraryInfo Generator()
+        {
+            var result = new ImportLibraryInfo(name, new ImportDefinitionInfo[definitioins.Count], new ImportVariableInfo[variables.Count], new ImportDelegateInfo[delegates.Count], new ImportCoroutineInfo[coroutines.Count], new ImportMethodInfo[methods.Count], new ImportInterfaceInfo[interfaces.Count], new ImportMethodInfo[natives.Count]);
+            CreateImportSpace(result);
+            for (int i = 0; i < definitioins.Count; i++) result.definitions[i] = definitioins[i].Generator();
+            for (int i = 0; i < variables.Count; i++) result.variables[i] = variables[i].GeneratorGlobalVariable();
+            for (int i = 0; i < delegates.Count; i++) result.delegates[i] = delegates[i].GeneratorDelegate();
+            for (int i = 0; i < coroutines.Count; i++) result.coroutines[i] = coroutines[i].Generator();
+            for (int i = 0; i < methods.Count; i++) result.methods[i] = methods[i].Generator();
+            for (int i = 0; i < interfaces.Count; i++) result.interfaces[i] = interfaces[i].Generator();
+            for (int i = 0; i < natives.Count; i++) result.natives[i] = natives[i].Generator();
+            return result;
         }
         public override void Dispose()
         {
@@ -132,6 +228,14 @@ namespace RainScript.Compiler.LogicGenerator
             declarationMap = pool.GetDictionary<Declaration, Declaration>();
             libraries = pool.GetList<ReliedLibrary>();
         }
+        public CompilingType Convert(CompilingType type)
+        {
+            return new CompilingType(Convert(type.definition), type.dimension);
+        }
+        public CompilingDefinition Convert(CompilingDefinition definition)
+        {
+            return new CompilingDefinition(Convert(definition.Declaration));
+        }
         public Declaration Convert(Declaration declaration)
         {
             if (declaration.code == DeclarationCode.LocalVariable) return declaration;
@@ -159,10 +263,11 @@ namespace RainScript.Compiler.LogicGenerator
                     case DeclarationCode.MemberVariable:
                         {
                             var sourceDefinition = rely.definitions[declaration.definitionIndex];
+                            var source = sourceDefinition.variables[declaration.index];
                             var definitionDeclaration = Convert(sourceDefinition.declaration);
                             var definition = libraries[(int)definitionDeclaration.library].definitioins[(int)definitionDeclaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, (uint)definition.variables.Count, 0, definitionDeclaration.index);
-                            definition.variables.Add(declaration);
+                            definition.variables.Add(new ReliedVariable(relied.GetSpace(sourceDefinition.space, pool), source.name, Convert(source.type)));
                         }
                         break;
                     case DeclarationCode.MemberMethod:
@@ -177,10 +282,14 @@ namespace RainScript.Compiler.LogicGenerator
                     case DeclarationCode.MemberFunction:
                         {
                             var sourceMethod = rely.methods[rely.definitions[declaration.definitionIndex].methods[declaration.index]];
+                            var source = sourceMethod.functions[declaration.overrideIndex];
                             var methodDeclaration = Convert(sourceMethod.declaration);
                             var method = libraries[(int)methodDeclaration.library].definitioins[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
-                            method.functions.Add(declaration);
+                            var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
+                            for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
+                            for (int i = 0; i < source.returns.Length; i++) function.returns[i] = Convert(source.returns[i]);
+                            method.functions.Add(function);
                         }
                         break;
                     case DeclarationCode.Constructor:
@@ -194,24 +303,33 @@ namespace RainScript.Compiler.LogicGenerator
                         break;
                     case DeclarationCode.ConstructorFunction:
                         {
+                            var source = rely.methods[declaration.index].functions[declaration.overrideIndex];
                             var methodDeclaration = Convert(rely.methods[declaration.index].declaration);
                             var method = libraries[(int)methodDeclaration.library].definitioins[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
-                            method.functions.Add(declaration);
+                            var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
+                            for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
+                            for (int i = 0; i < source.returns.Length; i++) function.returns[i] = Convert(source.returns[i]);
+                            method.functions.Add(function);
                         }
                         break;
                     case DeclarationCode.Delegate:
                         {
                             var source = rely.delegates[declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, (uint)relied.delegates.Count, 0, 0);
-                            relied.delegates.Add(new ReliedDeclaration(relied.GetSpace(source.space, pool), source.name));
+                            var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
+                            for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
+                            for (int i = 0; i < source.returns.Length; i++) function.returns[i] = Convert(source.returns[i]);
+                            relied.delegates.Add(function);
                         }
                         break;
                     case DeclarationCode.Coroutine:
                         {
                             var source = rely.coroutines[declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, (uint)relied.coroutines.Count, 0, 0);
-                            relied.coroutines.Add(new ReliedDeclaration(relied.GetSpace(source.space, pool), source.name));
+                            var coroutine = new ReliedCoroutine(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.returns.Length]);
+                            for (int i = 0; i < coroutine.returns.Length; i++) coroutine.returns[i] = Convert(source.returns[i]);
+                            relied.coroutines.Add(coroutine);
                         }
                         break;
                     case DeclarationCode.Interface:
@@ -233,17 +351,21 @@ namespace RainScript.Compiler.LogicGenerator
                     case DeclarationCode.InterfaceFunction:
                         {
                             var sourceMethod = rely.interfaces[declaration.definitionIndex].methods[declaration.index];
+                            var source = sourceMethod.functions[declaration.overrideIndex];
                             var methodDeclaration = Convert(sourceMethod.declaration);
                             var method = libraries[(int)methodDeclaration.library].interfaces[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
-                            method.functions.Add(declaration);
+                            var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
+                            for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
+                            for (int i = 0; i < source.returns.Length; i++) function.returns[i] = Convert(source.returns[i]);
+                            method.functions.Add(function);
                         }
                         break;
                     case DeclarationCode.GlobalVariable:
                         {
                             var source = rely.variables[declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, (uint)relied.variables.Count, 0, 0);
-                            relied.variables.Add(new ReliedDeclaration(relied.GetSpace(source.space, pool), source.name));
+                            relied.variables.Add(new ReliedVariable(relied.GetSpace(source.space, pool), source.name, Convert(source.type)));
                         }
                         break;
                     case DeclarationCode.GlobalMethod:
@@ -255,10 +377,14 @@ namespace RainScript.Compiler.LogicGenerator
                         break;
                     case DeclarationCode.GlobalFunction:
                         {
+                            var source = rely.methods[declaration.index].functions[declaration.overrideIndex];
                             var methodDeclaration = Convert(rely.methods[declaration.index].declaration);
                             var method = libraries[(int)methodDeclaration.library].methods[(int)methodDeclaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, 0);
-                            method.functions.Add(declaration);
+                            var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
+                            for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
+                            for (int i = 0; i < source.returns.Length; i++) function.returns[i] = Convert(source.returns[i]);
+                            method.functions.Add(function);
                         }
                         break;
                     case DeclarationCode.NativeMethod:
@@ -270,18 +396,28 @@ namespace RainScript.Compiler.LogicGenerator
                         break;
                     case DeclarationCode.NativeFunction:
                         {
+                            var source = rely.natives[declaration.index].functions[declaration.overrideIndex];
                             var methodDeclaration = Convert(rely.natives[declaration.index].declaration);
                             var native = libraries[(int)methodDeclaration.library].natives[(int)methodDeclaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)native.functions.Count, 0);
-                            native.functions.Add(declaration);
+                            var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
+                            for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
+                            for (int i = 0; i < source.returns.Length; i++) function.returns[i] = Convert(source.returns[i]);
+                            native.functions.Add(function);
                         }
                         break;
                     case DeclarationCode.Lambda:
                     case DeclarationCode.LocalVariable:
-                    default: throw ExceptionGeneratorCompiler.Unknow();
+                    default: throw ExceptionGeneratorCompiler.Unknown();
                 }
                 declarationMap.Add(declaration, result);
             }
+            return result;
+        }
+        public ImportLibraryInfo[] Generator()
+        {
+            var result = new ImportLibraryInfo[libraries.Count];
+            for (int i = 0; i < result.Length; i++) result[i] = libraries[i].Generator();
             return result;
         }
         public void Dispose()

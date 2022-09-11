@@ -37,7 +37,7 @@ namespace RainScript.Compiler
         {
             return new Exception("无效的词汇类型：" + type);
         }
-        public static Exception Unknow()
+        public static Exception Unknown()
         {
             return new Exception("未知的编译错误");
         }
