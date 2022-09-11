@@ -12,7 +12,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new NotImplementedException();
+
         }
     }
     internal class ArrayEvaluationExpression : VariableExpression

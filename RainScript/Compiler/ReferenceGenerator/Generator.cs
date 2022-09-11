@@ -1,6 +1,4 @@
-﻿using static RainScript.Compiler.File.Definition;
-
-namespace RainScript.Compiler.ReferenceGenerator
+﻿namespace RainScript.Compiler.ReferenceGenerator
 {
     internal class Definition : System.IDisposable
     {

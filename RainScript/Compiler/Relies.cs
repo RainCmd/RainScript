@@ -161,11 +161,12 @@ namespace RainScript.Compiler
             this.returns = returns;
             this.parameters = parameters;
         }
-        public string Name => name;
-        public ISpace Space => space;
-        public Declaration Declaration => declaration;
-        public CompilingType[] Returns => returns;
-        public CompilingType[] Parameters => parameters;
+
+        CompilingType[] IFunction.Parameters => parameters;
+        CompilingType[] IFunction.Returns => returns;
+        Declaration IDeclaramtion.Declaration => declaration;
+        ISpace IDeclaramtion.Space => space;
+        string IDeclaramtion.Name => name;
     }
     internal class RelyMethod : RelyDeclaration, IMethod
     {
@@ -175,10 +176,10 @@ namespace RainScript.Compiler
             this.functions = functions;
         }
 
-        public Declaration Declaration { get { return declaration; } }
-        public string Name { get { return name; } }
-        public int FunctionCount => functions.Length;
-        public IFunction GetFunction(int index)
+        Declaration IMethod.Declaration => declaration;
+        int IMethod.FunctionCount => functions.Length;
+        string IMethod.Name => name;
+        IFunction IMethod.GetFunction(int index)
         {
             return functions[index];
         }
@@ -193,12 +194,12 @@ namespace RainScript.Compiler
             this.methods = methods;
         }
 
-        public ISpace Space => space;
-        public string Name => name;
-        public Declaration Declaration => declaration;
-        IList<CompilingDefinition> IInterface.Inherits { get { return inherits; } }
-        public int MethodCount => methods.Length;
-        public IMethod GetMethod(int index)
+        IList<CompilingDefinition> IInterface.Inherits => inherits;
+        int IInterface.MethodCount => methods.Length;
+        Declaration IDeclaramtion.Declaration => declaration;
+        ISpace IDeclaramtion.Space => space;
+        string IDeclaramtion.Name => name;
+        IMethod IInterface.GetMethod(int index)
         {
             return methods[index];
         }
@@ -331,15 +332,20 @@ namespace RainScript.Compiler
             }
         }
 
-        public string Name { get { return name; } }
-        public ISpace Parent { get { return parent; } }
-        public bool Contain(ISpace space)
+        string ISpace.Name => name;
+        ISpace ISpace.Parent => parent;
+        bool ISpace.TryFindSpace(StringSegment name, out ISpace space)
         {
-            for (var index = space; index != null; index = index.Parent)
-                if (index == this) return true;
+            for (space = this; space != null; space = space.Parent)
+                if (space.Name == name) return true;
+                else if (space.TryFindChild(name, out var result))
+                {
+                    space = result;
+                    return true;
+                }
             return false;
         }
-        public bool TryFindChild(StringSegment name, out ISpace child)
+        bool ISpace.TryFindChild(StringSegment name, out ISpace child)
         {
             if (children.TryGetValue(name, out var result))
             {
@@ -352,19 +358,14 @@ namespace RainScript.Compiler
                 return false;
             }
         }
-        public bool TryFindDeclaration(StringSegment name, out Declaration declaration)
+        bool ISpace.TryFindDeclaration(StringSegment name, out Declaration declaration)
         {
             return declarations.TryGetValue(name, out declaration);
         }
-        public bool TryFindSpace(StringSegment name, out ISpace space)
+        bool ISpace.Contain(ISpace space)
         {
-            for (space = this; space != null; space = space.Parent)
-                if (space.Name == name) return true;
-                else if (space.TryFindChild(name, out var result))
-                {
-                    space = result;
-                    return true;
-                }
+            for (var index = space; index != null; index = index.Parent)
+                if (index == this) return true;
             return false;
         }
     }
