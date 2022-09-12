@@ -423,6 +423,7 @@ namespace RainScript.Compiler.LogicGenerator
         public void Dispose()
         {
             declarationMap.Dispose();
+            foreach (var library in libraries) library.Dispose();
             libraries.Dispose();
         }
     }

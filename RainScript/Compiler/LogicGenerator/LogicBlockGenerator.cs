@@ -13,7 +13,7 @@ namespace RainScript.Compiler.LogicGenerator
         public LogicBlockGenerator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
             ignoreExit = parameter.command.ignoreExit;
-            library = parameter.library;
+            library = parameter.generator;
             variable = parameter.variable;
             this.exitPoint = exitPoint;
             endPoint = new Referencable<CodeAddress>(parameter.pool);

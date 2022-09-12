@@ -441,6 +441,11 @@ namespace RainScript.VirtualMachine
                             flag = (long)kernel.heapAgency.TryGetPoint(handle, out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             var invoker = kernel.coroutineAgency.GetInternalInvoker(*(ulong*)address);
+                            if (invoker.state != InvokerState.Completed)
+                            {
+                                flag = (long)ExitCode.CoroutineNotCompleted;
+                                goto case CommandMacro.BASE_Exit;
+                            }
                             var resultCount = *(int*)(stack + bottom + *(uint*)(library.code + point + 5));
                             point += 9;
                             for (var i = 0; i < resultCount; i++, point += 9)
@@ -523,7 +528,7 @@ namespace RainScript.VirtualMachine
                         *(Frame*)(stack + top) = new Frame(library.index, bottom, *(uint*)(library.code + point + 5));
                         point += 9;
                         break;
-                    case CommandMacro.FUNCTION_CustomCallPretreater:
+                    case CommandMacro.FUNCTION_CustomCallPretreater:// [1,4]第一个参数的偏移值 [5,8]委托地址
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 5));
                             flag = (long)kernel.heapAgency.TryGetPoint(handle, out var delegatePoint);
@@ -536,6 +541,7 @@ namespace RainScript.VirtualMachine
                                 top += 4;
                             }
                         }
+                        point += 9;
                         break;
                     case CommandMacro.FUNCTION_PushReturnPoint:// [1,4]计算好之后的偏移量，包括Frame.size和4字节返回值编号 [5,8]局部变量地址
                         *(uint*)(stack + top + *(uint*)(library.code + point + 1)) = bottom + *(uint*)(library.code + point + 5);
@@ -825,6 +831,14 @@ namespace RainScript.VirtualMachine
                         }
                         point += 5;
                         break;
+                    case CommandMacro.ASSIGNMENT_Const2Local_Vector:
+                        {
+                            var result = (real*)(stack + bottom + *(uint*)(library.code + point + 1));
+                            var index = *(uint*)(library.code + point + 5);
+                            result[index] = *(real*)(library.code + point + 9);
+                            point += 17;
+                        }
+                        break;
                     #endregion C2L
                     #region L2L
                     case CommandMacro.ASSIGNMENT_Local2Local_1:
@@ -881,8 +895,18 @@ namespace RainScript.VirtualMachine
                         }
                         point += 9;
                         break;
+                    case CommandMacro.ASSIGNMENT_Local2Local_Vector:
+                        {
+                            var result = (real*)(stack + bottom + *(uint*)(library.code + point + 1));
+                            var index = *(uint*)(library.code + point + 9);
+                            var source = (real*)(stack + bottom + *(uint*)(library.code + point + 5));
+                            var sourceIndex = *(uint*)(library.code + point + 13);
+                            result[index] = source[sourceIndex];
+                        }
+                        point += 17;
+                        break;
                     #endregion L2L
-                    #region L2G [1,4]library    [5,8]全局变量编号     [9,12]局部变量地址
+                    #region L2G [1,4]library      [5,8]全局变量编号 [9,12]局部变量地址
                     case CommandMacro.ASSIGNMENT_Local2Global_1:
                         {
                             library.LocalToGlobal(*(uint*)(library.code + point + 1), *(uint*)(library.code + point + 5), out var globalLibrary, out var globalVariable);
@@ -968,7 +992,7 @@ namespace RainScript.VirtualMachine
                         point += 13;
                         break;
                     #endregion L2G
-                    #region L2H [1,4]对象变量地址 [5,8]library    [9,16]MemberVariable [17,20]局部变量地址
+                    #region L2H [1,4]对象变量地址 [5,8]library      [9,16]MemberVariable [17,20]局部变量地址
                     case CommandMacro.ASSIGNMENT_Local2Handle_1:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
@@ -1084,7 +1108,7 @@ namespace RainScript.VirtualMachine
                         point += 21;
                         break;
                     #endregion L2H
-                    #region L2A [1,4]数组变量地址 [5,12]数组索引   [13,16]局部变量地址
+                    #region L2A [1,4]数组变量地址 [5,12]数组索引    [13,16]局部变量地址
                     case CommandMacro.ASSIGNMENT_Local2Array_1:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
@@ -1173,7 +1197,7 @@ namespace RainScript.VirtualMachine
                         point += 17;
                         break;
                     #endregion L2A
-                    #region G2L [1,4]局部变量地址 [5,8]library    [9,12]全局变量编号
+                    #region G2L [1,4]局部变量地址 [5,8]library      [9,12]全局变量编号
                     case CommandMacro.ASSIGNMENT_Global2Local_1:
                         {
                             var result = (stack + bottom + *(uint*)(library.code + point + 1));
@@ -1271,7 +1295,7 @@ namespace RainScript.VirtualMachine
                         point += 13;
                         break;
                     #endregion G2L
-                    #region H2L [1,4]局部变量地址 [5,8]对象变量地址 [9,12]library [13,20]MemberVariable
+                    #region H2L [1,4]局部变量地址 [5,8]对象变量地址 [9,12]library        [13,20]MemberVariable
                     case CommandMacro.ASSIGNMENT_Handle2Local_1:
                         {
                             var result = (stack + bottom + *(uint*)(library.code + point + 1));
@@ -2360,11 +2384,7 @@ namespace RainScript.VirtualMachine
                         point += 17;
                         break;
                     case CommandMacro.HANDLE_CheckNull:
-                        if (!kernel.heapAgency.IsVaild(*(uint*)(stack + bottom + *(uint*)(library.code + point + 1))))
-                        {
-                            flag = (long)ExitCode.NullReference;
-                            goto case CommandMacro.BASE_Exit;
-                        }
+                        flag = kernel.heapAgency.IsVaild(*(uint*)(stack + bottom + *(uint*)(library.code + point + 1))) ? 0 : 1;
                         point += 5;
                         break;
                     case CommandMacro.HANDLE_Equals:
@@ -2446,13 +2466,13 @@ namespace RainScript.VirtualMachine
                         break;
                     #endregion Delegate
                     #region Casting
-                    case CommandMacro.CASTING://[1,4]result [5,17]Type [18,21]对象所在地址
+                    case CommandMacro.CASTING://[1,4]result [5,8]对象所在地址 [9,21]Type
                         {
                             var result = (uint*)(stack + bottom + *(uint*)(library.code + point + 1));
-                            var type = *(Type*)(stack + bottom + *(uint*)(library.code + point + 5));
-                            var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 18));
+                            var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 5));
                             flag = (long)kernel.heapAgency.TryGetType(handle, out var handleType);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
+                            var type = *(Type*)(stack + bottom + *(uint*)(library.code + point + 9));
                             if (kernel.libraryAgency.TryGetInheritDepth(type, handleType, out _))
                             {
                                 flag = (long)ExitCode.InvalidCast;

@@ -4,12 +4,14 @@
     {
         public readonly CompilerCommand command;
         public readonly DeclarationManager manager;
+        public readonly ReliedGenerator relied;
         public readonly CollectionPool pool;
         public readonly ExceptionCollector exceptions;
-        public GeneratorParameter(CompilerCommand command, DeclarationManager manager, CollectionPool pool, ExceptionCollector exceptions)
+        public GeneratorParameter(CompilerCommand command, DeclarationManager manager, ReliedGenerator relied, CollectionPool pool, ExceptionCollector exceptions)
         {
             this.command = command;
             this.manager = manager;
+            this.relied = relied;
             this.pool = pool;
             this.exceptions = exceptions;
         }
@@ -70,6 +72,16 @@
             if (variable.referencable == null) WriteCode(variable.address);
             else WriteCode(variable.referencable);
         }
+        public void WriteCode(string value)
+        {
+            var index = codeStrings.IndexOf(value);
+            if (index < 0)
+            {
+                index = codeStrings.Count;
+                codeStrings.Add(value);
+            }
+            WriteCode((uint)index);
+        }
         public uint AllocationCode(uint size)
         {
             EnsureCodeCapacity(size);
@@ -113,12 +125,13 @@
             for (int i = 0, count = parameter.manager.library.methods.Count; i < count; i++)
             {
                 var method = parameter.manager.library.methods[i];
-                foreach (var function in method)
-                    using (var functionGenerator = new FunctionGenerator(parameter, function))
-                    {
-                        SetCodeAddress(function.entry);
-                        functionGenerator.Generate(parameter, this);
-                    }
+                if (method.Declaration.code != DeclarationCode.Lambda)
+                    foreach (var function in method)
+                        using (var functionGenerator = new FunctionGenerator(parameter, function))
+                        {
+                            SetCodeAddress(function.entry);
+                            functionGenerator.Generate(parameter, this);
+                        }
             }
             foreach (var definition in parameter.manager.library.definitions)
                 if ((bool)definition.destructor.body)

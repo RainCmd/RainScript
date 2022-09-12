@@ -20,7 +20,7 @@
         GlobalFunction,       //库        方法列表索引        重载索引                    -
         NativeMethod,         //库        内部方法索引        -                           -       
         NativeFunction,       //库        内部方法索引        重载索引                    -       
-        Lambda,               //-         匿名函数索引        -                           -
+        Lambda,               //-         方法列表索引        -                           匿名函数索引
         LocalVariable,        //-         局部变量id          -                           -
     }
     internal struct Declaration

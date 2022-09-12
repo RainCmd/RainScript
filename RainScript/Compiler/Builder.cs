@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RainScript.Compiler.LogicGenerator;
+using System;
 using System.Collections.Generic;
 
 namespace RainScript.Compiler
@@ -140,9 +141,10 @@ namespace RainScript.Compiler
 
                     manager.library.CalculatedVariableAddress();
 
-                    using (var libraryGenerator = new LogicGenerator.Generator(manager.library.DataSize, pool))
+                    using (var relied = new ReliedGenerator(manager, pool))
+                    using (var libraryGenerator = new Generator(manager.library.DataSize, pool))
                     {
-                        var library = libraryGenerator.GeneratorLibrary(new LogicGenerator.GeneratorParameter(command, manager, pool, exceptions));
+                        var library = libraryGenerator.GeneratorLibrary(new GeneratorParameter(command, manager, relied, pool, exceptions));
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.DeclaractionLibraryGeneratorFail();
                         Library = library;
                     }

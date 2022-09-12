@@ -64,12 +64,14 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public void BuildLambda(CompilingType functionType, CompilingType[] returns, CompilingType[] parameters, Anchor[] parameterNames, out Expression expression, out LambdaFunction lambda)
         {
-            var declaration = new Declaration(LIBRARY.SELF, Visibility.Space, DeclarationCode.Lambda, (uint)manager.library.lambdas.Count, 0, 0);
+            var declaration = new Declaration(LIBRARY.SELF, Visibility.Space, DeclarationCode.Lambda, (uint)manager.library.methods.Count, 0, (uint)manager.lambdas.Count);
             var function = new Compiling.Function(declaration, context.space, returns, parameters, parameterNames, pool);
             expression = new DelegateCreateLambdaFunctionExpression(default, declaration, functionType);
             lambda = new LambdaFunction(function.entry, parameters, pool);
             manager.lambdas.Add(lambda);
-            manager.library.lambdas.Add(function);
+            var method = new Compiling.Method((uint)manager.library.methods.Count, DeclarationCode.Lambda, "", context.space);
+            method.AddFunction(function);
+            manager.library.methods.Add(method);
         }
         private bool IsDecidedTypes(CompilingType[] types)
         {
@@ -275,6 +277,15 @@ namespace RainScript.Compiler.LogicGenerator
                                         return true;
                                     }
                                 }
+                                else if (source is MethodNativeExpression nativeMethod)
+                                {
+                                    if (manager.TryGetFunction(nativeMethod.declaration, parameters, returns, out var functionDeclaration))
+                                    {
+                                        result = new DelegateCreateNativeFunctionExpression(source.anchor, functionDeclaration, type);
+                                        measure = 0;
+                                        return true;
+                                    }
+                                }
                                 else if (source is MethodMemberExpression memberMethod)
                                 {
                                     if (manager.TryGetFunction(memberMethod.declaration, parameters, returns, out var functionDeclaration))
@@ -350,7 +361,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (manager.TryGetReturns(type.definition.Declaration, out var coroutineReturns) && CompilingType.IsEquals(coroutineReturns, blurryCoroutine.invoker.returns))
                             {
-                                result = new CoroutineCreateExpression(source.anchor, blurryCoroutine.invoker, type);
+                                result = new CoroutineCreateExpression(source.anchor, blurryCoroutine, type);
                                 measure = 0;
                                 return true;
                             }
@@ -3807,7 +3818,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     if (attribute.ContainAny(TokenAttribute.Value))
                                     {
                                         var expression = expressionStack.Pop();
-                                        if (expression.returns.Length == 1)
+                                        if (expression.returns.Length == 1 && expression.returns[0].IsHandle)
                                         {
                                             var startIndex = index + 1;
                                             if (TryFindDeclaration(lexicals, ref startIndex, out var declaration))
@@ -3837,6 +3848,11 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             else if (startIndex < lexicals.Count) exceptions.Add(lexicals[index + 1, startIndex - 1], CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
                                             else exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                            goto parse_fail;
+                                        }
+                                        else
+                                        {
+                                            exceptions.Add(expression.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                             goto parse_fail;
                                         }
                                     }
@@ -3870,6 +3886,33 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             else if (startIndex < lexicals.Count) exceptions.Add(lexicals[index + 1, startIndex - 1], CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
                                             else exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                            goto parse_fail;
+                                        }
+                                    }
+                                    goto default;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.START)
+                                {
+                                    if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
+                                    {
+                                        if (index + 1 < lexicals.Count)
+                                        {
+                                            if (TrySub(lexicals[index + 1, -1], SplitFlag.Bracket0, out var coroutineEnd))
+                                            {
+                                                if (TryParse(lexicals[index + 1, coroutineEnd], out var invoker))
+                                                {
+                                                    var expression = new BlurryCoroutineExpression(lexical.anchor, invoker);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    index = coroutineEnd;
+                                                    goto next_lexical;
+                                                }
+                                                else goto parse_fail;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LINE_END);
                                             goto parse_fail;
                                         }
                                     }

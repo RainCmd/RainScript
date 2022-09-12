@@ -184,7 +184,11 @@ namespace RainScript.Compiler
         /// <summary>
         /// 未实现的功能
         /// </summary>
-        GENERATOR_NOT_IMPLEMENTED, 
+        GENERATOR_NOT_IMPLEMENTED,
+        /// <summary>
+        /// 内部函数不能用携程调用
+        /// </summary>
+        GENERATOR_NATIVE_COROUTINE,
         #endregion
     }
     /// <summary>

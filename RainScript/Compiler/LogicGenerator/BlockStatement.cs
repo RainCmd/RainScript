@@ -36,18 +36,18 @@
             {
                 var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                 condition.Generator(conditionParameter);
-                conditionParameter.CheckResult(condition.anchor, new CompilingType(RelyKernel.BOOL, 0));
-                parameter.library.WriteCode(CommandMacro.BASE_Flag_1);
-                parameter.library.WriteCode(conditionParameter.results[0]);
+                conditionParameter.CheckResult(condition.anchor, RelyKernel.BOOL_TYPE);
+                parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+                parameter.generator.WriteCode(conditionParameter.results[0]);
             }
-            parameter.library.WriteCode(CommandMacro.BASE_ConditionJump);
-            parameter.library.WriteCode(truePoint);
+            parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+            parameter.generator.WriteCode(truePoint);
             falseBranch.Generator(parameter, exitPoint);
-            parameter.library.WriteCode(CommandMacro.BASE_Jump);
-            parameter.library.WriteCode(endPoint);
-            parameter.library.SetCodeAddress(truePoint);
+            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+            parameter.generator.WriteCode(endPoint);
+            parameter.generator.SetCodeAddress(truePoint);
             trueBranch.Generator(parameter, exitPoint);
-            parameter.library.SetCodeAddress(endPoint);
+            parameter.generator.SetCodeAddress(endPoint);
             endPoint.Dispose();
             truePoint.Dispose();
         }
@@ -73,28 +73,28 @@
             var loopBlockPoint = new Referencable<CodeAddress>(parameter.pool);
             var breakPoint = new Referencable<CodeAddress>(parameter.pool);
             InitJumpTarget(loopBlock, breakPoint, loopPoint);
-            parameter.library.SetCodeAddress(loopPoint);
+            parameter.generator.SetCodeAddress(loopPoint);
             if (condition != null)
             {
                 using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);
-                    conditionParameter.CheckResult(condition.anchor, new CompilingType(RelyKernel.BOOL, 0));
-                    parameter.library.WriteCode(CommandMacro.BASE_Flag_1);
-                    parameter.library.WriteCode(conditionParameter.results[0]);
+                    conditionParameter.CheckResult(condition.anchor, RelyKernel.BOOL_TYPE);
+                    parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+                    parameter.generator.WriteCode(conditionParameter.results[0]);
                 }
-                parameter.library.WriteCode(CommandMacro.BASE_ConditionJump);
-                parameter.library.WriteCode(loopBlockPoint);
+                parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+                parameter.generator.WriteCode(loopBlockPoint);
                 elseBlock.Generator(parameter, exitPoint);
-                parameter.library.WriteCode(CommandMacro.BASE_Jump);
-                parameter.library.WriteCode(breakPoint);
+                parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+                parameter.generator.WriteCode(breakPoint);
             }
-            parameter.library.SetCodeAddress(loopBlockPoint);
+            parameter.generator.SetCodeAddress(loopBlockPoint);
             loopBlock.Generator(parameter, exitPoint);
-            parameter.library.WriteCode(CommandMacro.BASE_Jump);
-            parameter.library.WriteCode(loopPoint);
-            parameter.library.SetCodeAddress(breakPoint);
+            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+            parameter.generator.WriteCode(loopPoint);
+            parameter.generator.SetCodeAddress(breakPoint);
             loopPoint.Dispose();
             loopBlockPoint.Dispose();
             breakPoint.Dispose();

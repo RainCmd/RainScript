@@ -23,7 +23,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.BOOL_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_1);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(value);
         }
     }
     internal class ConstantIntegerExpression : Expression
@@ -41,7 +44,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.INTEGER_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_8);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(value);
         }
     }
     internal class ConstantRealExpression : Expression
@@ -59,7 +65,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_8);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(value);
         }
     }
     internal class ConstantReal2Expression : Expression
@@ -77,7 +86,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL2_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_16);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(value);
         }
     }
     internal class ConstantReal3Expression : Expression
@@ -95,7 +107,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL3_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_24);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(value);
         }
     }
     internal class ConstantReal4Expression : Expression
@@ -113,7 +128,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL4_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_32);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(value);
         }
     }
     internal class ConstantStringExpression : Expression
@@ -131,7 +149,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.STRING_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_String);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(value);
         }
     }
     internal class ConstantNullExpression : Expression
@@ -144,7 +165,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.exceptions.Add(anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
         }
     }
     internal class ConstantHandleNullExpression : Expression
@@ -153,7 +174,9 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public ConstantHandleNullExpression(Anchor anchor, CompilingType type) : base(anchor, type) { }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_HandleNull);
+            parameter.generator.WriteCode(parameter.results[0]);
         }
     }
     internal class ConstantEntityNullExpression : Expression
@@ -162,7 +185,9 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public ConstantEntityNullExpression(Anchor anchor) : base(anchor, RelyKernel.ENTITY_TYPE) { }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_EntityNull);
+            parameter.generator.WriteCode(parameter.results[0]);
         }
     }
 }

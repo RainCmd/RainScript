@@ -33,5 +33,9 @@
         /// 无效的携程
         /// </summary>
         InvalidCoroutine,
+        /// <summary>
+        /// 携程未完成
+        /// </summary>
+        CoroutineNotCompleted,
     }
 }

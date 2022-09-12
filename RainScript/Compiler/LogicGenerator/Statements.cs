@@ -5,15 +5,17 @@
     {
         public readonly CompilerCommand command;
         public readonly DeclarationManager manager;
-        public readonly Generator library;
+        public readonly ReliedGenerator relied;
+        public readonly Generator generator;
         public readonly VariableGenerator variable;
         public readonly ExceptionCollector exceptions;
         public readonly CollectionPool pool;
-        public StatementGeneratorParameter(GeneratorParameter parameter, Generator library, VariableGenerator variable)
+        public StatementGeneratorParameter(GeneratorParameter parameter, Generator generator, VariableGenerator variable)
         {
             command = parameter.command;
             manager = parameter.manager;
-            this.library = library;
+            relied = parameter.relied;
+            this.generator = generator;
             this.variable = variable;
             exceptions = parameter.exceptions;
             pool = parameter.pool;
@@ -63,22 +65,22 @@
                     uint returnPoint = Frame.SIZE;
                     foreach (var item in returnParameter.results)
                     {
-                        if (item.type.dimension > 0) parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_Handle);
-                        else if (item.type.definition == RelyKernel.BOOL) parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_1);
-                        else if (item.type.definition == RelyKernel.INTEGER || item.type.definition == RelyKernel.REAL) parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_8);
-                        else if (item.type.definition == RelyKernel.REAL2) parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_16);
-                        else if (item.type.definition == RelyKernel.REAL3) parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_24);
-                        else if (item.type.definition == RelyKernel.REAL4) parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_32);
-                        else if (item.type.definition == RelyKernel.STRING) parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_String);
-                        else if (item.type.definition == RelyKernel.ENTITY) parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_Entity);
-                        else parameter.library.WriteCode(CommandMacro.FUNCTION_ReturnPoint_Handle);
-                        parameter.library.WriteCode(returnPoint);
-                        parameter.library.WriteCode(item);
+                        if (item.type.dimension > 0) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_Handle);
+                        else if (item.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_1);
+                        else if (item.type == RelyKernel.INTEGER_TYPE || item.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_8);
+                        else if (item.type == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_16);
+                        else if (item.type == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_24);
+                        else if (item.type == RelyKernel.REAL4_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_32);
+                        else if (item.type == RelyKernel.STRING_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_String);
+                        else if (item.type == RelyKernel.ENTITY_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_Entity);
+                        else parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_Handle);
+                        parameter.generator.WriteCode(returnPoint);
+                        parameter.generator.WriteCode(item);
                         returnPoint += 4;
                     }
                 }
-            parameter.library.WriteCode(CommandMacro.BASE_Jump);
-            parameter.library.WriteCode(exitPoint);
+            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+            parameter.generator.WriteCode(exitPoint);
         }
     }
     internal class JumpStatement : Statement
@@ -97,8 +99,8 @@
         {
             if (condition == null)
             {
-                parameter.library.WriteCode(CommandMacro.BASE_Jump);
-                parameter.library.WriteCode(target);
+                parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+                parameter.generator.WriteCode(target);
             }
             else
             {
@@ -106,12 +108,12 @@
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);
-                    conditionParameter.CheckResult(condition.anchor, new CompilingType(RelyKernel.BOOL, 0));
-                    parameter.library.WriteCode(CommandMacro.BASE_Flag_1);
-                    parameter.library.WriteCode(conditionParameter.results[0]);
+                    conditionParameter.CheckResult(condition.anchor, RelyKernel.BOOL_TYPE);
+                    parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+                    parameter.generator.WriteCode(conditionParameter.results[0]);
                 }
-                parameter.library.WriteCode(CommandMacro.BASE_ConditionJump);
-                parameter.library.WriteCode(target);
+                parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+                parameter.generator.WriteCode(target);
             }
         }
     }
@@ -124,14 +126,14 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
-            if (expression == null) parameter.library.WriteCode(CommandMacro.BASE_Wait);
+            if (expression == null) parameter.generator.WriteCode(CommandMacro.BASE_Wait);
             else using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var waitParameter = new Expressions.GeneratorParameter(parameter, 1);
                     expression.Generator(waitParameter);
-                    waitParameter.CheckResult(expression.anchor, new CompilingType(RelyKernel.INTEGER, 0));
-                    parameter.library.WriteCode(CommandMacro.BASE_WaitFrame);
-                    parameter.library.WriteCode(waitParameter.results[0]);
+                    waitParameter.CheckResult(expression.anchor, RelyKernel.INTEGER_TYPE);
+                    parameter.generator.WriteCode(CommandMacro.BASE_WaitFrame);
+                    parameter.generator.WriteCode(waitParameter.results[0]);
                 }
         }
     }
@@ -148,11 +150,11 @@
             {
                 var exitParameter = new Expressions.GeneratorParameter(parameter, 1);
                 expression.Generator(exitParameter);
-                exitParameter.CheckResult(expression.anchor, new CompilingType(RelyKernel.INTEGER, 0));
-                parameter.library.WriteCode(CommandMacro.BASE_Flag_8);
-                parameter.library.WriteCode(exitParameter.results[0]);
+                exitParameter.CheckResult(expression.anchor, RelyKernel.INTEGER_TYPE);
+                parameter.generator.WriteCode(CommandMacro.BASE_Flag_8);
+                parameter.generator.WriteCode(exitParameter.results[0]);
             }
-            parameter.library.WriteCode(CommandMacro.BASE_Exit);
+            parameter.generator.WriteCode(CommandMacro.BASE_Exit);
         }
     }
 }

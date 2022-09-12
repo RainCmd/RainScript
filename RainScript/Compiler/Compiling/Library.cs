@@ -338,7 +338,6 @@ namespace RainScript.Compiler.Compiling
         public readonly List<Method> methods = new List<Method>();
         public readonly List<Interface> interfaces = new List<Interface>();
         public readonly List<Native> natives = new List<Native>();
-        public readonly List<Function> lambdas = new List<Function>();
         public uint DataSize { get; private set; }
         public Library(string name) : base(null, name) { }
         public void CalculatedVariableAddress()

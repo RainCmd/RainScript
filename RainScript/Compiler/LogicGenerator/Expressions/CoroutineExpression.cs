@@ -1,18 +1,16 @@
-﻿using System;
-
-namespace RainScript.Compiler.LogicGenerator.Expressions
+﻿namespace RainScript.Compiler.LogicGenerator.Expressions
 {
     internal class CoroutineCreateExpression : Expression
     {
-        private readonly Expression invoker;
+        private readonly BlurryCoroutineExpression source;
         public override TokenAttribute Attribute => TokenAttribute.Coroutine | TokenAttribute.Value;
-        public CoroutineCreateExpression(Anchor anchor, Expression invoker, CompilingType type) : base(anchor, type)
+        public CoroutineCreateExpression(Anchor anchor, BlurryCoroutineExpression source, CompilingType type) : base(anchor, type)
         {
-            this.invoker = invoker;
+            this.source = source;
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new NotImplementedException();
+            source.Generator(parameter);
         }
     }
     internal class CoroutineEvaluationExpression : Expression
@@ -30,7 +28,19 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new NotImplementedException();
+            var sourceParameter = new GeneratorParameter(parameter, 1);
+            source.Generator(sourceParameter);
+            for (int i = 0; i < parameter.results.Length; i++) parameter.results[i] = parameter.variable.DecareTemporary(parameter.pool, returns[i]);
+            parameter.generator.WriteCode(CommandMacro.BASE_GetCoroutineResult);
+            parameter.generator.WriteCode(sourceParameter.results[0]);
+            parameter.generator.WriteCode(indices.Length);
+            for (int i = 0; i < indices.Length; i++)
+            {
+                if (returns[i].IsHandle) parameter.generator.WriteCode((byte)TypeCode.Handle);
+                else parameter.generator.WriteCode(returns[i].definition.code);
+                parameter.generator.WriteCode(parameter.results[i]);
+                parameter.generator.WriteCode(indices[i]);
+            }
         }
     }
 }

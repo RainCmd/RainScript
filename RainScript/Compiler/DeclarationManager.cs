@@ -355,7 +355,7 @@ namespace RainScript.Compiler
                 }
                 else if (declaration.code == DeclarationCode.Lambda)
                 {
-                    types = library.lambdas[(int)declaration.index].parameters;
+                    types = library.methods[(int)declaration.index][0].parameters;
                     return true;
                 }
             }
@@ -455,7 +455,7 @@ namespace RainScript.Compiler
                 }
                 else if (declaration.code == DeclarationCode.Lambda)
                 {
-                    types = library.lambdas[(int)declaration.index].returns;
+                    types = library.methods[(int)declaration.index][0].returns;
                     return true;
                 }
             }

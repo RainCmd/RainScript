@@ -10,7 +10,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     internal struct GeneratorParameter
     {
         public readonly DeclarationManager manager;
-        public readonly Generator library;
+        public readonly ReliedGenerator relied;
+        public readonly Generator generator;
         public readonly VariableGenerator variable;
         public readonly ExceptionCollector exceptions;
         public readonly CollectionPool pool;
@@ -18,7 +19,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public GeneratorParameter(StatementGeneratorParameter parameter, int resultCount)
         {
             manager = parameter.manager;
-            library = parameter.library;
+            relied = parameter.relied;
+            generator = parameter.generator;
             variable = parameter.variable;
             exceptions = parameter.exceptions;
             pool = parameter.pool;
@@ -28,7 +30,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public GeneratorParameter(GeneratorParameter parameter, int resultCount)
         {
             manager = parameter.manager;
-            library = parameter.library;
+            relied = parameter.relied;
+            generator = parameter.generator;
             variable = parameter.variable;
             exceptions = parameter.exceptions;
             pool = parameter.pool;
@@ -48,7 +51,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public readonly Anchor anchor;
         public readonly CompilingType[] returns;
         public abstract TokenAttribute Attribute { get; }
-        public Expression(Anchor anchor,params CompilingType[] returns)
+        public Expression(Anchor anchor, params CompilingType[] returns)
         {
             this.anchor = anchor;
             this.returns = returns;
