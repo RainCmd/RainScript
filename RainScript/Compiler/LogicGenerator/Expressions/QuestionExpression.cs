@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RainScript.Compiler.LogicGenerator.Expressions
+﻿namespace RainScript.Compiler.LogicGenerator.Expressions
 {
     internal class QuestionExpression : Expression
     {
@@ -19,7 +17,22 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new NotImplementedException();
+            var address = new Referencable<CodeAddress>(parameter.pool);
+            var thenAddress = new Referencable<CodeAddress>(parameter.pool);
+            var conditionParameter = new GeneratorParameter(parameter, 1);
+            condition.Generator(conditionParameter);
+            parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+            parameter.generator.WriteCode(conditionParameter.results[0]);
+            parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+            parameter.generator.WriteCode(thenAddress);
+            right.Generator(parameter);
+            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+            parameter.generator.WriteCode(address);
+            parameter.generator.SetCodeAddress(thenAddress);
+            thenAddress.Dispose();
+            left.Generator(parameter);
+            parameter.generator.SetCodeAddress(address);
+            address.Dispose();
         }
     }
 }

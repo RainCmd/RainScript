@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 
 namespace RainScript.Compiler.LogicGenerator.Expressions
 {
@@ -16,7 +17,36 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-
+            var index = 0;
+            foreach (var expression in expressions)
+            {
+                var expressionParameter = new GeneratorParameter(parameter, expression.returns.Length);
+                expression.Generator(expressionParameter);
+                Array.Copy(expressionParameter.results, 0, parameter.results, index, expressionParameter.results.Length);
+                index += expression.returns.Length;
+            }
+        }
+        public void GeneratorAssignment(GeneratorParameter parameter)
+        {
+            var index = 0;
+            foreach (var item in expressions)
+            {
+                if (item is VariableExpression variable)
+                {
+                    var itemParameter = new GeneratorParameter(parameter, 1);
+                    itemParameter.results[0] = parameter.results[index];
+                    variable.GeneratorAssignment(itemParameter);
+                    index++;
+                }
+                else if (item is TupleExpression tuple)
+                {
+                    var itemParameter = new GeneratorParameter(parameter, tuple.returns.Length);
+                    Array.Copy(parameter.results, index, itemParameter.results, 0, itemParameter.results.Length);
+                    tuple.GeneratorAssignment(itemParameter);
+                    index += tuple.returns.Length;
+                }
+                else parameter.exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
+            }
         }
         public static TupleExpression Combine(Expression left, Expression right)
         {
@@ -52,6 +82,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
+            //todo 类型转换
             throw new NotImplementedException();
         }
     }
@@ -70,20 +101,30 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new NotImplementedException();
+            var sourceParameter = new GeneratorParameter(parameter, source.returns.Length);
+            source.Generator(sourceParameter);
+            for (int i = 0; i < parameter.results.Length; i++)
+                parameter.results[i] = sourceParameter.results[elementIndices[i]];
         }
     }
     internal class TupleAssignmentExpression : Expression
     {
-        private readonly Expression[] expressions;
+        private readonly Expression left;
+        private readonly Expression right;
         public override TokenAttribute Attribute => TokenAttribute.Tuple;
-        public TupleAssignmentExpression(Anchor anchor, Expression[] expressions, CompilingType[] returns) : base(anchor, returns)
+        public TupleAssignmentExpression(Anchor anchor, Expression left, Expression right, CompilingType[] returns) : base(anchor, returns)
         {
-            this.expressions = expressions;
+            this.left = left;
+            this.right = right;
         }
         public override void Generator(GeneratorParameter parameter)
         {
-
+            if (left is TupleExpression tuple)
+            {
+                right.Generator(parameter);
+                tuple.GeneratorAssignment(parameter);
+            }
+            else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
         }
     }
 }

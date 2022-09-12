@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RainScript.Compiler.LogicGenerator.Expressions
+﻿namespace RainScript.Compiler.LogicGenerator.Expressions
 {
     internal class LogicAndExpression : Expression
     {
@@ -14,7 +12,20 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new NotImplementedException();
+            var rightAddress = new Referencable<CodeAddress>(parameter.pool);
+            var address = new Referencable<CodeAddress>(parameter.pool);
+            left.Generator(parameter);
+            parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+            parameter.generator.WriteCode(rightAddress);
+            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+            parameter.generator.WriteCode(address);
+            parameter.generator.SetCodeAddress(rightAddress);
+            rightAddress.Dispose();
+            right.Generator(parameter);
+            parameter.generator.SetCodeAddress(address);
+            address.Dispose();
         }
     }
     internal class LogicOrExpression : Expression
@@ -29,7 +40,15 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new NotImplementedException();
+            var address = new Referencable<CodeAddress>(parameter.pool);
+            left.Generator(parameter);
+            parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+            parameter.generator.WriteCode(address);
+            right.Generator(parameter);
+            parameter.generator.SetCodeAddress(address);
+            address.Dispose();
         }
     }
 }

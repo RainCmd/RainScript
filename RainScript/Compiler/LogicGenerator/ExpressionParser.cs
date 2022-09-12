@@ -658,7 +658,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (assignment.type == LexicalType.Assignment && TryAssignmentConvert(right, left.returns, out right, out _))
                             {
-                                result = new TupleAssignmentExpression(assignment.anchor, new Expression[] { left, right }, left.returns);
+                                result = new TupleAssignmentExpression(assignment.anchor, left, right, left.returns);
                                 return true;
                             }
                             else exceptions.Add(lexicals[0, assignmentIndex - 1], CompilingExceptionCode.GENERATOR_INVALID_OPERATION);

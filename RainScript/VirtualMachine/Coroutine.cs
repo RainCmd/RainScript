@@ -898,8 +898,8 @@ namespace RainScript.VirtualMachine
                     case CommandMacro.ASSIGNMENT_Local2Local_Vector:
                         {
                             var result = (real*)(stack + bottom + *(uint*)(library.code + point + 1));
-                            var index = *(uint*)(library.code + point + 9);
-                            var source = (real*)(stack + bottom + *(uint*)(library.code + point + 5));
+                            var index = *(uint*)(library.code + point + 5);
+                            var source = (real*)(stack + bottom + *(uint*)(library.code + point + 9));
                             var sourceIndex = *(uint*)(library.code + point + 13);
                             result[index] = source[sourceIndex];
                         }

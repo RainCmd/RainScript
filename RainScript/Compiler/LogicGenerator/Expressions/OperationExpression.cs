@@ -2,7 +2,7 @@
 {
     internal abstract class OperationExpression : Expression
     {
-        private readonly CommandMacro command;
+        protected readonly CommandMacro command;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
         protected OperationExpression(Anchor anchor, CommandMacro command, CompilingType type) : base(anchor, type)
@@ -20,7 +20,12 @@
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            var expressionParameter = new GeneratorParameter(parameter, 1);
+            expression.Generator(expressionParameter);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+            parameter.generator.WriteCode(command);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(expressionParameter.results[0]);
         }
     }
     internal class BinaryOperationExpression : OperationExpression
@@ -34,7 +39,15 @@
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            var leftParameter = new GeneratorParameter(parameter, 1);
+            left.Generator(leftParameter);
+            var rightParameter = new GeneratorParameter(parameter, 1);
+            right.Generator(rightParameter);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+            parameter.generator.WriteCode(command);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(leftParameter.results[0]);
+            parameter.generator.WriteCode(rightParameter.results[0]);
         }
     }
     internal class OperationPostIncrementExpression : OperationExpression//x++ x--
@@ -46,7 +59,14 @@
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            var variableParameter = new GeneratorParameter(parameter, 1);
+            variable.Generator(variableParameter);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_8);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(variableParameter.results[0]);
+            parameter.generator.WriteCode(command);
+            parameter.generator.WriteCode(variableParameter.results[0]);
         }
     }
     internal class OperationPrevIncrementExpression : OperationExpression//++x --x
@@ -58,7 +78,9 @@
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            variable.Generator(parameter);
+            parameter.generator.WriteCode(command);
+            parameter.generator.WriteCode(parameter.results[0]);
         }
     }
 }

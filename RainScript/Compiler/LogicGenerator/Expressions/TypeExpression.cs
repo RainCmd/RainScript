@@ -10,7 +10,7 @@
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            throw new System.NotImplementedException();
+            parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
         }
     }
 }
