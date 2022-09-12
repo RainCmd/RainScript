@@ -46,6 +46,7 @@ namespace RainScript.Compiler
         IList<CompilingDefinition> Inherits { get; }
         int MethodCount { get; }
         IMethod GetMethod(int index);
+        IMethod GetMethod(string name);
     }
     internal interface IMemberVariable
     {

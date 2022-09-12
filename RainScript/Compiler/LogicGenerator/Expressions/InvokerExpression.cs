@@ -171,7 +171,7 @@
             parameter.generator.WriteCode(CommandMacro.FUNCTION_NativeCall);
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
-            parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }
@@ -226,7 +226,7 @@
             parameter.generator.WriteCode(CommandMacro.FUNCTION_Call);
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
-            parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }
@@ -275,7 +275,7 @@
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
-            parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }
@@ -339,7 +339,7 @@
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
-            parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }
@@ -404,7 +404,7 @@
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
-            parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }
@@ -457,7 +457,7 @@
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
-            parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }

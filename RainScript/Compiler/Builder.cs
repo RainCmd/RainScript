@@ -1,6 +1,6 @@
-﻿using RainScript.Compiler.LogicGenerator;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using RainScript.Compiler.LogicGenerator;
 
 namespace RainScript.Compiler
 {
@@ -155,7 +155,7 @@ namespace RainScript.Compiler
                     {
                         libraryGenerator.GeneratorLibrary(new GeneratorParameter(command, manager, relied, pool, exceptions), out var code, out var codeStrings, out var dataStrings);
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LogicGeneratorFail();
-                        var library = GeneratorLibrary(manager.library, pool, relied, code, codeStrings, dataStrings);
+                        var library = GeneratorLibrary(manager, manager.library, relied, code, codeStrings, dataStrings);
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LibraryGeneratorFail();
                         Library = library;
                     }
@@ -235,7 +235,7 @@ namespace RainScript.Compiler
                 exceptions.Add(CompilingExceptionCode.COMPILING_CIRCULAR_RELY, nameList);
             }
         }
-        private Library GeneratorLibrary(Compiling.Library library, CollectionPool pool, ReliedGenerator relied, byte[] code, string[] codeStrings, Dictionary<string, uint[]> dataStrings)
+        private Library GeneratorLibrary(DeclarationManager manager, Compiling.Library library, ReliedGenerator relied, byte[] code, string[] codeStrings, Dictionary<string, uint[]> dataStrings)
         {
             var definitions = new DefinitionInfo[library.definitions.Count];
             for (int i = 0; i < definitions.Length; i++)
@@ -250,7 +250,17 @@ namespace RainScript.Compiler
                 Array.Copy(definition.methods, memberMethods, definition.methods.Length);
                 memberMethods[definition.methods.Length] = definition.constructors;
                 var relocations = pool.GetList<Relocation>();
-                //todo 重定位表
+                foreach (var method in definition.methods)
+                    foreach (var function in library.methods[(int)method])
+                        if (manager.TryGetDefinition(definition.parent, out var parentDefinition) && TryFindOverride(manager, function, parentDefinition, out var overrideFunction))
+                        {
+                            overrideFunction = relied.Convert(overrideFunction);
+                            relocations.Add(new Relocation(new DefinitionFunction(new TypeDefinition(overrideFunction.library, TypeCode.Handle, overrideFunction.definitionIndex), new Function(overrideFunction.index, overrideFunction.overloadIndex)), new DefinitionFunction(new CompilingDefinition(definition.declaration).RuntimeDefinition, new Function(function.declaration.index, function.declaration.overloadIndex))));
+                        }
+                foreach (var inherit in definition.inherits)
+                    if (manager.TryGetInterface(inherit, out var result))
+                        FindOverride(manager, relied, relocations, result, definition);
+                    else throw ExceptionGeneratorCompiler.Unknown();
                 definitions[i] = new DefinitionInfo(parent, inherits, memberVariables, memberMethods, relocations.ToArray(), definition.destructorEntry);
                 relocations.Dispose();
             }
@@ -300,7 +310,14 @@ namespace RainScript.Compiler
                         functions[functionIndex] = new FunctionInfo(relied.Convert(method.functions[functionIndex].parameters), relied.Convert(method.functions[functionIndex].returns));
                     interfaceMethods[index] = new InterfaceMethodInfo(functions);
                 }
-                //todo 重定位表
+                foreach (var method in definition.methods)
+                    foreach (var function in method.functions)
+                        foreach (var inhert in definition.inherits)
+                            if (manager.TryGetInterface(inhert, out var result) && TryFindOverride(manager, function, result, out var overrideFunction))
+                            {
+                                overrideFunction = relied.Convert(overrideFunction);
+                                relocations.Add(new Relocation(new DefinitionFunction(new TypeDefinition(overrideFunction.library, TypeCode.Handle, overrideFunction.definitionIndex), new Function(overrideFunction.index, overrideFunction.overloadIndex)), new DefinitionFunction(new CompilingDefinition(definition.declaration).RuntimeDefinition, new Function(function.declaration.index, function.declaration.overloadIndex))));
+                            }
                 interfaces[i] = new InterfaceInfo(relied.Convert(definition.inherits), relocations.ToArray(), interfaceMethods);
                 relocations.Dispose();
             }
@@ -313,17 +330,17 @@ namespace RainScript.Compiler
                     functions[index] = new FunctionInfo(relied.Convert(native[index].parameters), relied.Convert(native[index].returns));
                 natives[i] = new NativeMethodInfo(native.name, functions);
             }
-            GeneratorSpace(library, library, pool, out var children, out var exportDefinitions, out var exportVariables, out var exportDelegates, out var exportCoroutines, out var exportMethods, out var exportInterfaces, out var exportNatives);
+            GeneratorSpace(library, library, out var children, out var exportDefinitions, out var exportVariables, out var exportDelegates, out var exportCoroutines, out var exportMethods, out var exportInterfaces, out var exportNatives);
             return new Library(library.name, code, library.ConstantData, library.DataSize, definitions, variables, delegates, coroutines, methods, interfaces, natives, relied.Generator(), codeStrings, dataStrings,
                 children, exportDefinitions, exportVariables, exportDelegates, exportCoroutines, exportMethods, exportInterfaces, exportNatives);
         }
-        private void GeneratorSpace(Compiling.Library library, Compiling.Space space, CollectionPool pool, out Space[] children, out ExportDefinition[] exportDefinitions, out ExportIndex[] exportVariables, out ExportIndex[] exportDelegates, out ExportIndex[] exportCoroutines, out ExportMethod[] exportMethods, out ExportInterface[] exportInterfaces, out ExportMethod[] exportNatives)
+        private void GeneratorSpace(Compiling.Library library, Compiling.Space space, out Space[] children, out ExportDefinition[] exportDefinitions, out ExportIndex[] exportVariables, out ExportIndex[] exportDelegates, out ExportIndex[] exportCoroutines, out ExportMethod[] exportMethods, out ExportInterface[] exportInterfaces, out ExportMethod[] exportNatives)
         {
             children = new Space[space.children.Count];
             var index = 0u;
             foreach (var child in space.children)
             {
-                GeneratorSpace(library, child.Value, pool, out var childChildren, out var definitions, out var variables, out var delegates, out var coroutines, out var methods, out var interfaces, out var natives);
+                GeneratorSpace(library, child.Value, out var childChildren, out var definitions, out var variables, out var delegates, out var coroutines, out var methods, out var interfaces, out var natives);
                 children[index++] = new Space(child.Key, childChildren, definitions, variables, delegates, coroutines, methods, interfaces, natives);
             }
             var definitionList = pool.GetList<ExportDefinition>();
@@ -355,7 +372,7 @@ namespace RainScript.Compiler
                                         var method = library.methods[(int)methodIndex];
                                         foreach (var function in method)
                                             if (function.declaration.visibility.ContainAny(Visibility.Public) || function.declaration.visibility == Visibility.Protected)
-                                                functions.Add(function.declaration.overrideIndex);
+                                                functions.Add(function.declaration.overloadIndex);
                                         if (functions.Count > 0) methods.Add(new ExportMethod(method.name, methodIndex, functions.ToArray()));
                                     }
                                 using (var functions = pool.GetList<uint>())
@@ -363,7 +380,7 @@ namespace RainScript.Compiler
                                     var method = library.methods[(int)definition.constructors];
                                     foreach (var function in method)
                                         if (function.declaration.visibility.ContainAny(Visibility.Public) || function.declaration.visibility == Visibility.Protected)
-                                            functions.Add(function.declaration.overrideIndex);
+                                            functions.Add(function.declaration.overloadIndex);
                                     if (functions.Count > 0) methods.Add(new ExportMethod(definition.name.Segment, (uint)definition.methods.Length, functions.ToArray()));
                                 }
                                 definitionList.Add(new ExportDefinition(pair.Key, declaratioin.index, variables.ToArray(), methods.ToArray()));
@@ -408,7 +425,7 @@ namespace RainScript.Compiler
                                 {
                                     foreach (var function in method)
                                         if (function.declaration.visibility.ContainAny(Visibility.Public))
-                                            functions.Add(function.declaration.overrideIndex);
+                                            functions.Add(function.declaration.overloadIndex);
                                     if (functions.Count > 0)
                                         methodList.Add(new ExportMethod(name, declaratioin.index, functions.ToArray()));
                                 }
@@ -422,7 +439,7 @@ namespace RainScript.Compiler
                                 {
                                     foreach (var function in method)
                                         if (function.declaration.visibility.ContainAny(Visibility.Public))
-                                            functions.Add(function.declaration.overrideIndex);
+                                            functions.Add(function.declaration.overloadIndex);
                                     if (functions.Count > 0)
                                         nativeList.Add(new ExportMethod(name, declaratioin.index, functions.ToArray()));
                                 }
@@ -448,6 +465,61 @@ namespace RainScript.Compiler
             methodList.Dispose();
             interfaceList.Dispose();
             nativeList.Dispose();
+        }
+        private void FindOverride(DeclarationManager manager, ReliedGenerator relied, ScopeList<Relocation> relocations, IInterface inherit, IDefinition definition)
+        {
+            for (int methodIndex = 0; methodIndex < inherit.MethodCount; methodIndex++)
+            {
+                var method = inherit.GetMethod(methodIndex);
+                for (int functionIndex = 0; functionIndex < method.FunctionCount; functionIndex++)
+                {
+                    var function = method.GetFunction(functionIndex);
+                    if (TryFindOverride(manager, function, definition, out var overrideFunction))
+                    {
+                        overrideFunction = relied.Convert(overrideFunction);
+                        relocations.Add(new Relocation(new DefinitionFunction(new CompilingDefinition(inherit.Declaration).RuntimeDefinition, new Function(function.Declaration.index, function.Declaration.overloadIndex)), new DefinitionFunction(new TypeDefinition(overrideFunction.library, TypeCode.Handle, overrideFunction.definitionIndex), new Function(overrideFunction.index, overrideFunction.overloadIndex))));
+                    }
+                }
+            }
+            for (int i = 0; i < inherit.Inherits.Count; i++)
+                if (manager.TryGetInterface(inherit.Inherits[i], out var result))
+                    FindOverride(manager, relied, relocations, result, definition);
+        }
+        private bool TryFindOverride(DeclarationManager manager, IFunction function, IDefinition definition, out Declaration overrideFunction)
+        {
+            if (TryFindDefinitionOverride(manager, function, definition, out overrideFunction)) return true;
+            if (manager.TryGetDefinition(definition.Parent, out definition)) return TryFindOverride(manager, function, definition, out overrideFunction);
+            overrideFunction = default;
+            return false;
+        }
+        private bool TryFindOverride(DeclarationManager manager, IFunction function, IInterface definition, out Declaration overrideFunction)
+        {
+            if (TryFindDefinitionOverride(manager, function, definition, out overrideFunction)) return true;
+            for (int i = 0; i < definition.Inherits.Count; i++)
+                if (manager.TryGetInterface(definition.Inherits[i], out var result) && TryFindOverride(manager, function, result, out overrideFunction))
+                    return true;
+            overrideFunction = default;
+            return false;
+        }
+        private bool TryFindDefinitionOverride(DeclarationManager manager, IFunction function, IInterface definition, out Declaration overrideFunction)
+        {
+            var method = definition.GetMethod(function.Name);
+            for (int i = 0; i < method.FunctionCount; i++)
+            {
+                var index = method.GetFunction(i);
+                if (CompilingType.IsEquals(index.Parameters, function.Parameters))
+                {
+                    if (!CompilingType.IsEquals(index.Returns, function.Returns))
+                    {
+                        exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(index.Declaration));
+                        exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(function.Declaration));
+                    }
+                    overrideFunction = index.Declaration;
+                    return true;
+                }
+            }
+            overrideFunction = default;
+            return false;
         }
     }
 }

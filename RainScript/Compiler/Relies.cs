@@ -130,6 +130,17 @@ namespace RainScript.Compiler
             var library = (RelyLibrary)space;
             return library.methods[methods[index]];
         }
+
+        IMethod IInterface.GetMethod(string name)
+        {
+            var space = this.space;
+            while (space.parent != null) space = space.parent;
+            var library = (RelyLibrary)space;
+            foreach (var method in methods)
+                if (library.methods[method].name == name)
+                    return library.methods[method];
+            return null;
+        }
     }
     internal class RelyVariable : RelyDeclaration
     {
@@ -202,6 +213,13 @@ namespace RainScript.Compiler
         IMethod IInterface.GetMethod(int index)
         {
             return methods[index];
+        }
+        IMethod IInterface.GetMethod(string name)
+        {
+            foreach (var method in methods)
+                if (method.name == name)
+                    return method;
+            return null;
         }
     }
     internal class RelySpace : ISpace

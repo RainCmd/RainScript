@@ -169,7 +169,7 @@ namespace RainScript.Compiler.LogicGenerator
                 var thisValue = localContext.AddLocal(KeyWorld.THIS, definition.name, type);
                 var thisExpression = new VariableLocalExpression(definition.name, thisValue.Declaration, TokenAttribute.Value, type);
                 for (int i = 0; i < parameters.Length; i++) localContext.AddLocal(function.parameterNames[i], parameters[i]);
-                var logic = definition.constructorInvaokerExpressions[function.declaration.overrideIndex];
+                var logic = definition.constructorInvaokerExpressions[function.declaration.overloadIndex];
                 if ((bool)logic.exprssion)
                 {
                     using (var lexicals = parameter.pool.GetList<Lexical>())

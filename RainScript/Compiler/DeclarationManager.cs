@@ -307,17 +307,17 @@ namespace RainScript.Compiler
             {
                 if (declaration.code == DeclarationCode.MemberFunction)
                 {
-                    types = RelyKernel.methods[RelyKernel.definitions[declaration.definitionIndex].methods[declaration.index]].functions[declaration.overrideIndex].parameters;
+                    types = RelyKernel.methods[RelyKernel.definitions[declaration.definitionIndex].methods[declaration.index]].functions[declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.ConstructorFunction)
                 {
-                    types = RelyKernel.methods[declaration.index].functions[declaration.overrideIndex].parameters;
+                    types = RelyKernel.methods[declaration.index].functions[declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.GlobalFunction)
                 {
-                    types = RelyKernel.methods[declaration.index].functions[declaration.overrideIndex].parameters;
+                    types = RelyKernel.methods[declaration.index].functions[declaration.overloadIndex].parameters;
                     return true;
                 }
             }
@@ -325,12 +325,12 @@ namespace RainScript.Compiler
             {
                 if (declaration.code == DeclarationCode.MemberFunction)
                 {
-                    types = library.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]][(int)declaration.overrideIndex].parameters;
+                    types = library.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]][(int)declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.ConstructorFunction)
                 {
-                    types = library.methods[(int)declaration.index][(int)declaration.overrideIndex].parameters;
+                    types = library.methods[(int)declaration.index][(int)declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.Delegate)
@@ -340,17 +340,17 @@ namespace RainScript.Compiler
                 }
                 else if (declaration.code == DeclarationCode.InterfaceFunction)
                 {
-                    types = library.interfaces[(int)declaration.definitionIndex].methods[declaration.index].functions[declaration.overrideIndex].parameters;
+                    types = library.interfaces[(int)declaration.definitionIndex].methods[declaration.index].functions[declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.GlobalFunction)
                 {
-                    types = library.methods[(int)declaration.index][(int)declaration.overrideIndex].parameters;
+                    types = library.methods[(int)declaration.index][(int)declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.NativeFunction)
                 {
-                    types = library.natives[(int)declaration.index][(int)declaration.overrideIndex].parameters;
+                    types = library.natives[(int)declaration.index][(int)declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.Lambda)
@@ -364,12 +364,12 @@ namespace RainScript.Compiler
                 var rely = relies[declaration.library];
                 if (declaration.code == DeclarationCode.MemberFunction)
                 {
-                    types = rely.methods[rely.definitions[declaration.definitionIndex].methods[declaration.index]].functions[(int)declaration.overrideIndex].parameters;
+                    types = rely.methods[rely.definitions[declaration.definitionIndex].methods[declaration.index]].functions[(int)declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.ConstructorFunction)
                 {
-                    types = rely.methods[declaration.index].functions[declaration.overrideIndex].parameters;
+                    types = rely.methods[declaration.index].functions[declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.Delegate)
@@ -379,17 +379,17 @@ namespace RainScript.Compiler
                 }
                 else if (declaration.code == DeclarationCode.InterfaceFunction)
                 {
-                    types = rely.interfaces[declaration.definitionIndex].methods[declaration.index].functions[declaration.overrideIndex].parameters;
+                    types = rely.interfaces[declaration.definitionIndex].methods[declaration.index].functions[declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.GlobalFunction)
                 {
-                    types = rely.methods[declaration.index].functions[declaration.overrideIndex].parameters;
+                    types = rely.methods[declaration.index].functions[declaration.overloadIndex].parameters;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.NativeFunction)
                 {
-                    types = rely.natives[declaration.index].functions[declaration.overrideIndex].parameters;
+                    types = rely.natives[declaration.index].functions[declaration.overloadIndex].parameters;
                     return true;
                 }
             }
@@ -402,7 +402,7 @@ namespace RainScript.Compiler
             {
                 if (declaration.code == DeclarationCode.MemberFunction)
                 {
-                    types = RelyKernel.methods[RelyKernel.definitions[declaration.definitionIndex].methods[declaration.index]].functions[declaration.overrideIndex].returns;
+                    types = RelyKernel.methods[RelyKernel.definitions[declaration.definitionIndex].methods[declaration.index]].functions[declaration.overloadIndex].returns;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.ConstructorFunction)
@@ -412,7 +412,7 @@ namespace RainScript.Compiler
                 }
                 else if (declaration.code == DeclarationCode.GlobalFunction)
                 {
-                    types = RelyKernel.methods[declaration.index].functions[declaration.overrideIndex].returns;
+                    types = RelyKernel.methods[declaration.index].functions[declaration.overloadIndex].returns;
                     return true;
                 }
             }
@@ -420,7 +420,7 @@ namespace RainScript.Compiler
             {
                 if (declaration.code == DeclarationCode.MemberFunction)
                 {
-                    types = library.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]][(int)declaration.overrideIndex].returns;
+                    types = library.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]][(int)declaration.overloadIndex].returns;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.ConstructorFunction)
@@ -440,17 +440,17 @@ namespace RainScript.Compiler
                 }
                 else if (declaration.code == DeclarationCode.InterfaceFunction)
                 {
-                    types = library.interfaces[(int)declaration.definitionIndex].methods[declaration.index].functions[declaration.overrideIndex].returns;
+                    types = library.interfaces[(int)declaration.definitionIndex].methods[declaration.index].functions[declaration.overloadIndex].returns;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.GlobalFunction)
                 {
-                    types = library.methods[(int)declaration.index][(int)declaration.overrideIndex].returns;
+                    types = library.methods[(int)declaration.index][(int)declaration.overloadIndex].returns;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.NativeFunction)
                 {
-                    types = library.natives[(int)declaration.index][(int)declaration.overrideIndex].returns;
+                    types = library.natives[(int)declaration.index][(int)declaration.overloadIndex].returns;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.Lambda)
@@ -464,7 +464,7 @@ namespace RainScript.Compiler
                 var rely = relies[declaration.library];
                 if (declaration.code == DeclarationCode.MemberFunction)
                 {
-                    types = rely.methods[rely.definitions[declaration.definitionIndex].methods[declaration.index]].functions[(int)declaration.overrideIndex].returns;
+                    types = rely.methods[rely.definitions[declaration.definitionIndex].methods[declaration.index]].functions[(int)declaration.overloadIndex].returns;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.ConstructorFunction)
@@ -484,17 +484,17 @@ namespace RainScript.Compiler
                 }
                 else if (declaration.code == DeclarationCode.InterfaceFunction)
                 {
-                    types = rely.interfaces[declaration.definitionIndex].methods[declaration.index].functions[declaration.overrideIndex].returns;
+                    types = rely.interfaces[declaration.definitionIndex].methods[declaration.index].functions[declaration.overloadIndex].returns;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.GlobalFunction)
                 {
-                    types = rely.methods[declaration.index].functions[declaration.overrideIndex].returns;
+                    types = rely.methods[declaration.index].functions[declaration.overloadIndex].returns;
                     return true;
                 }
                 else if (declaration.code == DeclarationCode.NativeFunction)
                 {
-                    types = rely.natives[declaration.index].functions[declaration.overrideIndex].returns;
+                    types = rely.natives[declaration.index].functions[declaration.overloadIndex].returns;
                     return true;
                 }
             }

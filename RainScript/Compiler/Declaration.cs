@@ -2,7 +2,7 @@
 {
     internal enum DeclarationCode
     {
-        //                    library     index               overrideIndex               definitionIndex   
+        //                    library     index               overloadIndex               definitionIndex   
         Invalid,              //-         -                   -                           -
         Definition,           //库        定义索引            -                           -
         MemberVariable,       //库        成员变量索引        -                           所属定义索引
@@ -29,7 +29,7 @@
         public readonly Visibility visibility;
         public readonly DeclarationCode code;
         public readonly uint index;
-        public readonly uint overrideIndex;
+        public readonly uint overloadIndex;
         public readonly uint definitionIndex;
 
         public Declaration(uint library, Visibility visibility, DeclarationCode code, uint index, uint overrideIndex, uint definitionIndex)
@@ -38,7 +38,7 @@
             this.visibility = visibility;
             this.code = code;
             this.index = index;
-            this.overrideIndex = overrideIndex;
+            this.overloadIndex = overrideIndex;
             this.definitionIndex = definitionIndex;
         }
 
@@ -49,7 +49,7 @@
                    visibility == declaration.visibility &&
                    code == declaration.code &&
                    index == declaration.index &&
-                   overrideIndex == declaration.overrideIndex &&
+                   overloadIndex == declaration.overloadIndex &&
                    definitionIndex == declaration.definitionIndex;
         }
         public override int GetHashCode()
@@ -59,13 +59,13 @@
             hashCode = hashCode * -1521134295 + visibility.GetHashCode();
             hashCode = hashCode * -1521134295 + code.GetHashCode();
             hashCode = hashCode * -1521134295 + index.GetHashCode();
-            hashCode = hashCode * -1521134295 + overrideIndex.GetHashCode();
+            hashCode = hashCode * -1521134295 + overloadIndex.GetHashCode();
             hashCode = hashCode * -1521134295 + definitionIndex.GetHashCode();
             return hashCode;
         }
         public static bool operator ==(Declaration a, Declaration b)
         {
-            return a.library == b.library && a.visibility == b.visibility && a.code == b.code && a.index == b.index && a.overrideIndex == b.overrideIndex && a.definitionIndex == b.definitionIndex;
+            return a.library == b.library && a.visibility == b.visibility && a.code == b.code && a.index == b.index && a.overloadIndex == b.overloadIndex && a.definitionIndex == b.definitionIndex;
         }
         public static bool operator !=(Declaration a, Declaration b)
         {

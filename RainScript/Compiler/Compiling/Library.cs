@@ -93,6 +93,16 @@ namespace RainScript.Compiler.Compiling
             var library = (Library)space;
             return library.methods[(int)methods[index]];
         }
+        IMethod IInterface.GetMethod(string name)
+        {
+            var space = this.space;
+            while (space.parent != null) space = space.parent;
+            var library = (Library)space;
+            foreach (var method in methods)
+                if (library.methods[(int)method].name == name)
+                    return library.methods[(int)method];
+            return null;
+        }
     }
     internal class Variable : Declaration
     {
@@ -236,6 +246,13 @@ namespace RainScript.Compiler.Compiling
         IMethod IInterface.GetMethod(int index)
         {
             return methods[index];
+        }
+        IMethod IInterface.GetMethod(string name)
+        {
+            foreach (var method in methods)
+                if (method.name == name)
+                    return method;
+            return null;
         }
     }
     internal class Native : IMethod

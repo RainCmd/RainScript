@@ -133,7 +133,7 @@
                 parameter.generator.WriteCode(FunctionType.Global);
                 var function = parameter.relied.Convert(invokerGlobal.declaration);
                 parameter.generator.WriteCode(function.library);
-                parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+                parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
                 Generator(parameter.results[0], parameterParameter);
             }
             else if (invoker is InvokerMemberExpression invokerMember)
@@ -147,7 +147,7 @@
                 parameter.generator.WriteCode(FunctionType.Member);
                 var function = parameter.relied.Convert(invokerMember.declaration);
                 parameter.generator.WriteCode(function.library);
-                parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+                parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
                 parameter.generator.WriteCode(targetParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
             }
@@ -165,7 +165,7 @@
                 if (invokerVirtual.declaration.code == DeclarationCode.MemberFunction) parameter.generator.WriteCode(function.definitionIndex);
                 else if (invokerVirtual.declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(function.definitionIndex);
                 else throw ExceptionGeneratorCompiler.Unknown();
-                parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+                parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
                 parameter.generator.WriteCode(targetParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
             }
@@ -187,7 +187,7 @@
                 if (invokerQuestionMember.declaration.code == DeclarationCode.MemberFunction) parameter.generator.WriteCode(function.definitionIndex);
                 else if (invokerQuestionMember.declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(function.definitionIndex);
                 else throw ExceptionGeneratorCompiler.Unknown();
-                parameter.generator.WriteCode(new Function(function.index, function.overrideIndex));
+                parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
                 parameter.generator.WriteCode(targetParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
                 parameter.generator.SetCodeAddress(address);

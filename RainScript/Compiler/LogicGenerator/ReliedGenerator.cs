@@ -268,7 +268,7 @@ namespace RainScript.Compiler.LogicGenerator
                     if (!declarationMap.TryGetValue(declaration, out var function))
                     {
                         var definition = manager.library.definitions[(int)declaration.definitionIndex];
-                        function = new Declaration(declaration.library, declaration.visibility, declaration.code, (uint)definition.methods.Length, declaration.overrideIndex, declaration.definitionIndex);
+                        function = new Declaration(declaration.library, declaration.visibility, declaration.code, (uint)definition.methods.Length, declaration.overloadIndex, declaration.definitionIndex);
                         declarationMap.Add(declaration, function);
                     }
                     return function;
@@ -317,7 +317,7 @@ namespace RainScript.Compiler.LogicGenerator
                     case DeclarationCode.MemberFunction:
                         {
                             var sourceMethod = rely.methods[rely.definitions[declaration.definitionIndex].methods[declaration.index]];
-                            var source = sourceMethod.functions[declaration.overrideIndex];
+                            var source = sourceMethod.functions[declaration.overloadIndex];
                             var methodDeclaration = Convert(sourceMethod.declaration);
                             var method = libraries[(int)methodDeclaration.library].definitioins[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
@@ -338,7 +338,7 @@ namespace RainScript.Compiler.LogicGenerator
                         break;
                     case DeclarationCode.ConstructorFunction:
                         {
-                            var source = rely.methods[declaration.index].functions[declaration.overrideIndex];
+                            var source = rely.methods[declaration.index].functions[declaration.overloadIndex];
                             var methodDeclaration = Convert(rely.methods[declaration.index].declaration);
                             var method = libraries[(int)methodDeclaration.library].definitioins[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
@@ -386,7 +386,7 @@ namespace RainScript.Compiler.LogicGenerator
                     case DeclarationCode.InterfaceFunction:
                         {
                             var sourceMethod = rely.interfaces[declaration.definitionIndex].methods[declaration.index];
-                            var source = sourceMethod.functions[declaration.overrideIndex];
+                            var source = sourceMethod.functions[declaration.overloadIndex];
                             var methodDeclaration = Convert(sourceMethod.declaration);
                             var method = libraries[(int)methodDeclaration.library].interfaces[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
@@ -412,7 +412,7 @@ namespace RainScript.Compiler.LogicGenerator
                         break;
                     case DeclarationCode.GlobalFunction:
                         {
-                            var source = rely.methods[declaration.index].functions[declaration.overrideIndex];
+                            var source = rely.methods[declaration.index].functions[declaration.overloadIndex];
                             var methodDeclaration = Convert(rely.methods[declaration.index].declaration);
                             var method = libraries[(int)methodDeclaration.library].methods[(int)methodDeclaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, 0);
@@ -431,7 +431,7 @@ namespace RainScript.Compiler.LogicGenerator
                         break;
                     case DeclarationCode.NativeFunction:
                         {
-                            var source = rely.natives[declaration.index].functions[declaration.overrideIndex];
+                            var source = rely.natives[declaration.index].functions[declaration.overloadIndex];
                             var methodDeclaration = Convert(rely.natives[declaration.index].declaration);
                             var native = libraries[(int)methodDeclaration.library].natives[(int)methodDeclaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)native.functions.Count, 0);
