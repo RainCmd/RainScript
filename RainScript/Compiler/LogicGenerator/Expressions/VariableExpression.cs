@@ -13,11 +13,12 @@
         public VariableLocalExpression(Anchor anchor, Declaration declaration, TokenAttribute attribute, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
-            this.attribute = attribute.AddTypeAttribute(type) | TokenAttribute.Value;
+            this.attribute = attribute.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            parameter.variable.TryGetLocal(declaration.index, out parameter.results[0]);
+            if (!parameter.variable.TryGetLocal(declaration.index, out parameter.results[0]))
+                parameter.results[0] = parameter.variable.DecareLocal(declaration.index, returns[0]);
         }
         public override void GeneratorAssignment(GeneratorParameter parameter)
         {

@@ -81,7 +81,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         private bool CanConvert(CompilingType source, CompilingType type, out bool convert, out uint measure)
         {
-            if (source == RelyKernel.BLURRY_TYPE)
+            if (source == RelyKernel.BLURRY_TYPE || source == RelyKernel.NULL_TYPE)
             {
                 convert = default;
                 measure = default;
@@ -89,24 +89,9 @@ namespace RainScript.Compiler.LogicGenerator
             }
             else if (type == RelyKernel.BLURRY_TYPE)
             {
-                convert = true;
+                convert = false;
                 measure = 0;
                 return source != RelyKernel.BLURRY_TYPE && source != RelyKernel.NULL_TYPE;
-            }
-            else if (source == RelyKernel.NULL_TYPE)
-            {
-                if (type == RelyKernel.ENTITY_TYPE)
-                {
-                    convert = true;
-                    measure = 0;
-                    return true;
-                }
-                else if (type.dimension > 0 || type.definition.code == TypeCode.Handle || type.definition.code == TypeCode.Interface || type.definition.code == TypeCode.Function || type.definition.code == TypeCode.Coroutine)
-                {
-                    convert = true;
-                    measure = 0;
-                    return true;
-                }
             }
             else if (type == source)
             {
@@ -170,7 +155,7 @@ namespace RainScript.Compiler.LogicGenerator
             }
             else if (manager.TryGetInherit(type, source, out measure))
             {
-                convert = true;
+                convert = false;
                 return true;
             }
             convert = default;
@@ -3999,7 +3984,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         case DeclarationCode.LocalVariable:
                                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                             {
-                                                var expression = new VariableLocalExpression(lexical.anchor, declaration, TokenAttribute.Assignable, GetVariableType(declaration));
+                                                var expression = new VariableLocalExpression(lexical.anchor, declaration, TokenAttribute.Assignable | TokenAttribute.Value, GetVariableType(declaration));
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
                                                 break;

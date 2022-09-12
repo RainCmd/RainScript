@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 
 namespace RainScript.Compiler.LogicGenerator.Expressions
 {
@@ -82,8 +81,85 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            //todo 类型转换
-            throw new NotImplementedException();
+            var sourceParameter = new GeneratorParameter(parameter, returns.Length);
+            source.Generator(sourceParameter);
+            foreach (var index in convers)
+            {
+                if (returns[index] == RelyKernel.REAL_TYPE)
+                {
+                    if (source.returns[index] == RelyKernel.INTEGER_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.CASTING_I2R);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
+                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, index.ToString());
+                }
+                else if (returns[index] == RelyKernel.REAL2_TYPE)
+                {
+                    if (source.returns[index] == RelyKernel.REAL3_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL2_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
+                    else if (source.returns[index] == RelyKernel.REAL4_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL2_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
+                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, index.ToString());
+                }
+                else if (returns[index] == RelyKernel.REAL3_TYPE)
+                {
+                    if (source.returns[index] == RelyKernel.REAL2_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL3_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
+                    else if (source.returns[index] == RelyKernel.REAL4_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL3_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_24);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
+                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, index.ToString());
+                }
+                else if (returns[index] == RelyKernel.REAL4_TYPE)
+                {
+                    if (source.returns[index] == RelyKernel.REAL2_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL4_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
+                    else if (source.returns[index] == RelyKernel.REAL3_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL4_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_24);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
+                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, index.ToString());
+                }
+                else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, index.ToString());
+            }
+            Array.Copy(sourceParameter.results, parameter.results, returns.Length);
         }
     }
     internal class TupleEvaluationExpression : Expression
