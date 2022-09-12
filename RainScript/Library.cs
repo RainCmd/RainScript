@@ -299,6 +299,11 @@ namespace RainScript
     {
         public DefinitionFunction overrideFunction;
         public DefinitionFunction realizeFunction;
+        public Relocation(DefinitionFunction overrideFunction, DefinitionFunction realizeFunction)
+        {
+            this.overrideFunction = overrideFunction;
+            this.realizeFunction = realizeFunction;
+        }
     }
     #region Infos
     [Serializable]
@@ -367,6 +372,10 @@ namespace RainScript
     internal class InterfaceMethodInfo
     {
         internal readonly FunctionInfo[] functions;
+        public InterfaceMethodInfo(FunctionInfo[] functions)
+        {
+            this.functions = functions;
+        }
     }
     [Serializable]
     internal class InterfaceInfo
@@ -374,6 +383,12 @@ namespace RainScript
         internal readonly TypeDefinition[] inherits;
         internal readonly Relocation[] relocations;
         internal readonly InterfaceMethodInfo[] methods;
+        public InterfaceInfo(TypeDefinition[] inherits, Relocation[] relocations, InterfaceMethodInfo[] methods)
+        {
+            this.inherits = inherits;
+            this.relocations = relocations;
+            this.methods = methods;
+        }
     }
     [Serializable]
     internal class NativeMethodInfo
@@ -560,6 +575,12 @@ namespace RainScript
         internal readonly string name;
         internal readonly uint index;
         internal readonly ExportMethod[] methods;
+        public ExportInterface(string name, uint index, ExportMethod[] methods)
+        {
+            this.name = name;
+            this.index = index;
+            this.methods = methods;
+        }
     }
     /// <summary>
     /// 命名空间
@@ -599,7 +620,8 @@ namespace RainScript
     [Serializable]
     public partial class Library : Space
     {
-        internal readonly byte[] code, data;
+        internal readonly byte[] code, constantData;
+        internal readonly uint dataSize;
         internal readonly DefinitionInfo[] definitions;
         internal readonly VariableInfo[] variables;
         internal readonly FunctionInfo[] delegates;
@@ -610,11 +632,12 @@ namespace RainScript
         internal readonly ImportLibraryInfo[] imports;
         internal readonly string[] strings;
         internal readonly IDictionary<string, uint[]> dataStrings;
-        internal Library(string name, byte[] code, byte[] data, DefinitionInfo[] definitions, VariableInfo[] variables, FunctionInfo[] delegates, CoroutineInfo[] coroutines, MethodInfo[] methods, InterfaceInfo[] interfaces, NativeMethodInfo[] natives, ImportLibraryInfo[] imports, string[] strings, IDictionary<string, uint[]> dataStrings,
+        internal Library(string name, byte[] code, byte[] constantData, uint dataSize, DefinitionInfo[] definitions, VariableInfo[] variables, FunctionInfo[] delegates, CoroutineInfo[] coroutines, MethodInfo[] methods, InterfaceInfo[] interfaces, NativeMethodInfo[] natives, ImportLibraryInfo[] imports, string[] strings, IDictionary<string, uint[]> dataStrings,
             Space[] children, ExportDefinition[] exportDefinitions, ExportIndex[] exportVariables, ExportIndex[] exportDelegates, ExportIndex[] exportCoroutines, ExportMethod[] exportMethods, ExportInterface[] exportInterfaces, ExportMethod[] exportNatives) : base(name, children, exportDefinitions, exportVariables, exportDelegates, exportCoroutines, exportMethods, exportInterfaces, exportNatives)
         {
             this.code = code;
-            this.data = data;
+            this.constantData = constantData;
+            this.dataSize = dataSize;
             this.definitions = definitions;
             this.variables = variables;
             this.delegates = delegates;

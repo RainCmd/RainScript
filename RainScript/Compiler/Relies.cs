@@ -345,7 +345,7 @@ namespace RainScript.Compiler
                 }
             return false;
         }
-        bool ISpace.TryFindChild(StringSegment name, out ISpace child)
+        public bool TryFindChild(StringSegment name, out ISpace child)
         {
             if (children.TryGetValue(name, out var result))
             {
@@ -358,7 +358,7 @@ namespace RainScript.Compiler
                 return false;
             }
         }
-        bool ISpace.TryFindDeclaration(StringSegment name, out Declaration declaration)
+        public bool TryFindDeclaration(StringSegment name, out Declaration declaration)
         {
             return declarations.TryGetValue(name, out declaration);
         }

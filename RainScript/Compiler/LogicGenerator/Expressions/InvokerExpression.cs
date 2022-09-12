@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RainScript.Compiler.LogicGenerator.Expressions
+﻿namespace RainScript.Compiler.LogicGenerator.Expressions
 {
     internal class InvokerDelegateExpression : Expression
     {
@@ -21,6 +19,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             for (int i = 0; i < returns.Length; i++) parameter.results[i] = parameter.variable.DecareTemporary(parameter.pool, returns[i]);
             var invokerParameter = new GeneratorParameter(parameter, 1);
             invoker.Generator(invokerParameter);
+            parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+            parameter.generator.WriteCode(invokerParameter.results[0]);
             var parameterParameter = new GeneratorParameter(parameter, this.parameter.returns.Length);
             this.parameter.Generator(parameterParameter);
             var parameterSize = 4u + (uint)returns.Length * 4 + Frame.SIZE;
@@ -79,9 +79,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             for (int i = 0; i < returns.Length; i++) parameter.results[i] = parameter.variable.DecareTemporary(parameter.pool, returns[i]);
             var invokerParameter = new GeneratorParameter(parameter, 1);
             invoker.Generator(invokerParameter);
-            parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+            parameter.generator.WriteCode(CommandMacro.BASE_NullJump);
             parameter.generator.WriteCode(invokerParameter.results[0]);
-            parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
             parameter.generator.WriteCode(returnPoint);
             var parameterParameter = new GeneratorParameter(parameter, this.parameter.returns.Length);
             this.parameter.Generator(parameterParameter);
@@ -253,6 +252,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             for (int i = 0; i < returns.Length; i++) parameter.results[i] = parameter.variable.DecareTemporary(parameter.pool, returns[i]);
             var targetParameter = new GeneratorParameter(parameter, 1);
             target.Generator(targetParameter);
+            parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+            parameter.generator.WriteCode(targetParameter.results[0]);
             var parameterParameter = new GeneratorParameter(parameter, this.parameter.returns.Length);
             this.parameter.Generator(parameterParameter);
             var parameterSize = 4u + (uint)returns.Length * 4 + Frame.SIZE;
@@ -315,6 +316,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             for (int i = 0; i < returns.Length; i++) parameter.results[i] = parameter.variable.DecareTemporary(parameter.pool, returns[i]);
             var targetParameter = new GeneratorParameter(parameter, 1);
             target.Generator(targetParameter);
+            parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+            parameter.generator.WriteCode(targetParameter.results[0]);
             var parameterParameter = new GeneratorParameter(parameter, this.parameter.returns.Length);
             this.parameter.Generator(parameterParameter);
             var parameterSize = 4u + (uint)returns.Length * 4 + Frame.SIZE;
@@ -377,9 +380,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             for (int i = 0; i < returns.Length; i++) parameter.results[i] = parameter.variable.DecareTemporary(parameter.pool, returns[i]);
             var targetParameter = new GeneratorParameter(parameter, 1);
             target.Generator(targetParameter);
-            parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+            parameter.generator.WriteCode(CommandMacro.BASE_NullJump);
             parameter.generator.WriteCode(targetParameter.results[0]);
-            parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
             parameter.generator.WriteCode(returnPoint);
             var parameterParameter = new GeneratorParameter(parameter, this.parameter.returns.Length);
             this.parameter.Generator(parameterParameter);
@@ -451,7 +453,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             var point = (uint)Frame.SIZE;
             point = PushParameter(point, parameter.results[0], parameter.generator);
             foreach (var variable in parameterParameter.results) point = PushParameter(point, variable, parameter.generator);
-            parameter.generator.WriteCode(CommandMacro.FUNCTION_MemberVirtualCall);
+            parameter.generator.WriteCode(CommandMacro.FUNCTION_MemberCall);
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);

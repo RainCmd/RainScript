@@ -16,7 +16,7 @@ namespace RainScript
         private Library(byte[] code, byte[] data, DefinitionInfo[] definitions, VariableInfo[] variables, MethodInfo[] methodInfos, ExportDefinition[] exportDefinitions, ExportIndex[] exportVariables, ExportMethod[] exportMethods) : base(KeyWorld.KERNEL, new Space[0], exportDefinitions, exportVariables, new ExportIndex[0], new ExportIndex[0], exportMethods, new ExportInterface[0], new ExportMethod[0])
         {
             this.code = code;
-            this.data = data;
+            this.constantData = data;
             this.definitions = definitions;
             this.variables = variables;
             delegates = new FunctionInfo[0];

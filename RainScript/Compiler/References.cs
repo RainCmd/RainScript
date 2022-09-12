@@ -145,6 +145,9 @@
     /// </summary>
     public class ReferenceSpace
     {
+        /// <summary>
+        /// 名称
+        /// </summary>
         public readonly string name;
         internal readonly ReferenceSpace[] children;
         internal readonly uint[] definitionIndices;

@@ -2384,7 +2384,11 @@ namespace RainScript.VirtualMachine
                         point += 17;
                         break;
                     case CommandMacro.HANDLE_CheckNull:
-                        flag = kernel.heapAgency.IsVaild(*(uint*)(stack + bottom + *(uint*)(library.code + point + 1))) ? 0 : 1;
+                        if(!kernel.heapAgency.IsVaild(*(uint*)(stack + bottom + *(uint*)(library.code + point + 1))))
+                        {
+                            flag = (long)ExitCode.NullReference;
+                            goto case CommandMacro.BASE_Exit;
+                        }
                         point += 5;
                         break;
                     case CommandMacro.HANDLE_Equals:

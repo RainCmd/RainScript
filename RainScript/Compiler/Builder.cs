@@ -52,11 +52,20 @@ namespace RainScript.Compiler
         /// <summary>
         /// 生成符号表
         /// </summary>
-        public readonly bool generatorSymbolTable;
+        internal readonly bool generatorSymbolTable;
         /// <summary>
         /// 忽略Exit功能
         /// </summary>
         public readonly bool ignoreExit;
+        /// <summary>
+        /// 编译命令选项
+        /// </summary>
+        /// <param name="ignoreExit"></param>
+        public CompilerCommand(bool ignoreExit)
+        {
+            generatorSymbolTable = false;
+            this.ignoreExit = ignoreExit;
+        }
     }
     /// <summary>
     /// 编译器
@@ -135,17 +144,19 @@ namespace RainScript.Compiler
 
                     using (var referenceGenerator = new ReferenceGenerator.Library(manager, pool, exceptions))
                     {
-                        if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.DeclaractionReferenceGeneratorFail();
+                        if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.ReferenceGeneratorFail();
                         ReferenceLibrary = referenceGenerator.GeneratorLibrary(pool);
                     }
 
                     manager.library.CalculatedVariableAddress();
 
                     using (var relied = new ReliedGenerator(manager, pool))
-                    using (var libraryGenerator = new Generator(manager.library.DataSize, pool))
+                    using (var libraryGenerator = new Generator(manager.library.ConstantData, pool))
                     {
-                        var library = libraryGenerator.GeneratorLibrary(new GeneratorParameter(command, manager, relied, pool, exceptions));
-                        if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.DeclaractionLibraryGeneratorFail();
+                        libraryGenerator.GeneratorLibrary(new GeneratorParameter(command, manager, relied, pool, exceptions), out var code, out var codeStrings, out var dataStrings);
+                        if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LogicGeneratorFail();
+                        var library = GeneratorLibrary(manager.library, pool, relied, code, codeStrings, dataStrings);
+                        if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LibraryGeneratorFail();
                         Library = library;
                     }
                 }
@@ -223,6 +234,220 @@ namespace RainScript.Compiler
                 foreach (var item in nameSet) nameList += " -> " + item;
                 exceptions.Add(CompilingExceptionCode.COMPILING_CIRCULAR_RELY, nameList);
             }
+        }
+        private Library GeneratorLibrary(Compiling.Library library, CollectionPool pool, ReliedGenerator relied, byte[] code, string[] codeStrings, Dictionary<string, uint[]> dataStrings)
+        {
+            var definitions = new DefinitionInfo[library.definitions.Count];
+            for (int i = 0; i < definitions.Length; i++)
+            {
+                var definition = library.definitions[i];
+                var parent = relied.Convert(new CompilingDefinition(definition.declaration)).RuntimeDefinition;
+                var inherits = new TypeDefinition[definition.inherits.Count];
+                for (int index = 0; index < inherits.Length; index++) inherits[index] = relied.Convert(definition.inherits[index]).RuntimeDefinition;
+                var memberVariables = new Type[definition.variables.Length];
+                for (int index = 0; index < memberVariables.Length; index++) memberVariables[index] = relied.Convert(definition.variables[index].type).RuntimeType;
+                var memberMethods = new uint[definition.methods.Length + 1];
+                Array.Copy(definition.methods, memberMethods, definition.methods.Length);
+                memberMethods[definition.methods.Length] = definition.constructors;
+                var relocations = pool.GetList<Relocation>();
+                //todo 重定位表
+                definitions[i] = new DefinitionInfo(parent, inherits, memberVariables, memberMethods, relocations.ToArray(), definition.destructorEntry);
+                relocations.Dispose();
+            }
+            var variables = new VariableInfo[library.variables.Count];
+            for (int i = 0; i < variables.Length; i++)
+            {
+                var variable = library.variables[i];
+                variables[i] = new VariableInfo(variable.address, relied.Convert(variable.type).RuntimeType);
+            }
+            var delegates = new FunctionInfo[library.delegates.Count];
+            for (int i = 0; i < delegates.Length; i++)
+            {
+                var function = library.delegates[i];
+                delegates[i] = new FunctionInfo(relied.Convert(function.parameters), relied.Convert(function.returns));
+            }
+            var coroutines = new CoroutineInfo[library.coroutines.Count];
+            for (int i = 0; i < coroutines.Length; i++)
+            {
+                var coroutine = library.coroutines[i];
+                coroutines[i] = new CoroutineInfo(relied.Convert(coroutine.returns));
+            }
+            var methods = new MethodInfo[library.methods.Count];
+            for (int i = 0; i < methods.Length; i++)
+            {
+                var method = library.methods[i];
+                var entries = new uint[method.Count];
+                var functions = new FunctionInfo[method.Count];
+                for (int index = 0; index < method.Count; index++)
+                {
+                    var function = method[index];
+                    entries[index] = function.entry.Value.address;
+                    functions[index] = new FunctionInfo(relied.Convert(function.parameters), relied.Convert(function.returns));
+                }
+                methods[i] = new MethodInfo(entries, functions);
+            }
+            var interfaces = new InterfaceInfo[library.interfaces.Count];
+            for (int i = 0; i < interfaces.Length; i++)
+            {
+                var definition = library.interfaces[i];
+                var relocations = pool.GetList<Relocation>();
+                var interfaceMethods = new InterfaceMethodInfo[definition.methods.Length];
+                for (int index = 0; index < definition.methods.Length; index++)
+                {
+                    var method = definition.methods[index];
+                    var functions = new FunctionInfo[method.functions.Length];
+                    for (int functionIndex = 0; functionIndex < functions.Length; functionIndex++)
+                        functions[functionIndex] = new FunctionInfo(relied.Convert(method.functions[functionIndex].parameters), relied.Convert(method.functions[functionIndex].returns));
+                    interfaceMethods[index] = new InterfaceMethodInfo(functions);
+                }
+                //todo 重定位表
+                interfaces[i] = new InterfaceInfo(relied.Convert(definition.inherits), relocations.ToArray(), interfaceMethods);
+                relocations.Dispose();
+            }
+            var natives = new NativeMethodInfo[library.natives.Count];
+            for (int i = 0; i < natives.Length; i++)
+            {
+                var native = library.natives[i];
+                var functions = new FunctionInfo[native.Count];
+                for (int index = 0; index < functions.Length; index++)
+                    functions[index] = new FunctionInfo(relied.Convert(native[index].parameters), relied.Convert(native[index].returns));
+                natives[i] = new NativeMethodInfo(native.name, functions);
+            }
+            GeneratorSpace(library, library, pool, out var children, out var exportDefinitions, out var exportVariables, out var exportDelegates, out var exportCoroutines, out var exportMethods, out var exportInterfaces, out var exportNatives);
+            return new Library(library.name, code, library.ConstantData, library.DataSize, definitions, variables, delegates, coroutines, methods, interfaces, natives, relied.Generator(), codeStrings, dataStrings,
+                children, exportDefinitions, exportVariables, exportDelegates, exportCoroutines, exportMethods, exportInterfaces, exportNatives);
+        }
+        private void GeneratorSpace(Compiling.Library library, Compiling.Space space, CollectionPool pool, out Space[] children, out ExportDefinition[] exportDefinitions, out ExportIndex[] exportVariables, out ExportIndex[] exportDelegates, out ExportIndex[] exportCoroutines, out ExportMethod[] exportMethods, out ExportInterface[] exportInterfaces, out ExportMethod[] exportNatives)
+        {
+            children = new Space[space.children.Count];
+            var index = 0u;
+            foreach (var child in space.children)
+            {
+                GeneratorSpace(library, child.Value, pool, out var childChildren, out var definitions, out var variables, out var delegates, out var coroutines, out var methods, out var interfaces, out var natives);
+                children[index++] = new Space(child.Key, childChildren, definitions, variables, delegates, coroutines, methods, interfaces, natives);
+            }
+            var definitionList = pool.GetList<ExportDefinition>();
+            var variableList = pool.GetList<ExportIndex>();
+            var delegateList = pool.GetList<ExportIndex>();
+            var coroutineList = pool.GetList<ExportIndex>();
+            var methodList = pool.GetList<ExportMethod>();
+            var interfaceList = pool.GetList<ExportInterface>();
+            var nativeList = pool.GetList<ExportMethod>();
+            foreach (var pair in space.declarations)
+                if (pair.Value.visibility == Visibility.Public)
+                {
+                    var name = pair.Key;
+                    var declaratioin = pair.Value;
+                    switch (declaratioin.code)
+                    {
+                        case DeclarationCode.Invalid: goto default;
+                        case DeclarationCode.Definition:
+                            {
+                                var definition = library.definitions[(int)declaratioin.index];
+                                var variables = pool.GetList<ExportIndex>();
+                                foreach (var variable in definition.variables)
+                                    if (variable.declaration.visibility.ContainAny(Visibility.Public) || variable.declaration.visibility == Visibility.Protected)
+                                        variables.Add(new ExportIndex(variable.name.Segment, variable.declaration.index));
+                                var methods = pool.GetList<ExportMethod>();
+                                foreach (var methodIndex in definition.methods)
+                                    using (var functions = pool.GetList<uint>())
+                                    {
+                                        var method = library.methods[(int)methodIndex];
+                                        foreach (var function in method)
+                                            if (function.declaration.visibility.ContainAny(Visibility.Public) || function.declaration.visibility == Visibility.Protected)
+                                                functions.Add(function.declaration.overrideIndex);
+                                        if (functions.Count > 0) methods.Add(new ExportMethod(method.name, methodIndex, functions.ToArray()));
+                                    }
+                                using (var functions = pool.GetList<uint>())
+                                {
+                                    var method = library.methods[(int)definition.constructors];
+                                    foreach (var function in method)
+                                        if (function.declaration.visibility.ContainAny(Visibility.Public) || function.declaration.visibility == Visibility.Protected)
+                                            functions.Add(function.declaration.overrideIndex);
+                                    if (functions.Count > 0) methods.Add(new ExportMethod(definition.name.Segment, (uint)definition.methods.Length, functions.ToArray()));
+                                }
+                                definitionList.Add(new ExportDefinition(pair.Key, declaratioin.index, variables.ToArray(), methods.ToArray()));
+                                variables.Dispose();
+                                methods.Dispose();
+                            }
+                            break;
+                        case DeclarationCode.MemberVariable:
+                        case DeclarationCode.MemberMethod:
+                        case DeclarationCode.MemberFunction:
+                        case DeclarationCode.Constructor:
+                        case DeclarationCode.ConstructorFunction: goto default;
+                        case DeclarationCode.Delegate:
+                            delegateList.Add(new ExportIndex(name, declaratioin.index));
+                            break;
+                        case DeclarationCode.Coroutine:
+                            coroutineList.Add(new ExportIndex(name, declaratioin.index));
+                            break;
+                        case DeclarationCode.Interface:
+                            {
+                                var definition = library.interfaces[(int)declaratioin.index];
+                                var methods = new ExportMethod[definition.methods.Length];
+                                for (int i = 0; i < methods.Length; i++)
+                                {
+                                    var method = definition.methods[i];
+                                    var functions = new uint[method.functions.Length];
+                                    for (index = 0; index < functions.Length; index++) functions[index] = index;
+                                    methods[i] = new ExportMethod(method.name, (uint)i, functions);
+                                }
+                                interfaceList.Add(new ExportInterface(name, declaratioin.index, methods));
+                            }
+                            break;
+                        case DeclarationCode.InterfaceMethod:
+                        case DeclarationCode.InterfaceFunction: goto default;
+                        case DeclarationCode.GlobalVariable:
+                            variableList.Add(new ExportIndex(name, declaratioin.index));
+                            break;
+                        case DeclarationCode.GlobalMethod:
+                            {
+                                var method = library.methods[(int)declaratioin.index];
+                                using (var functions = pool.GetList<uint>())
+                                {
+                                    foreach (var function in method)
+                                        if (function.declaration.visibility.ContainAny(Visibility.Public))
+                                            functions.Add(function.declaration.overrideIndex);
+                                    if (functions.Count > 0)
+                                        methodList.Add(new ExportMethod(name, declaratioin.index, functions.ToArray()));
+                                }
+                            }
+                            break;
+                        case DeclarationCode.GlobalFunction: goto default;
+                        case DeclarationCode.NativeMethod:
+                            {
+                                var method = library.natives[(int)declaratioin.index];
+                                using (var functions = pool.GetList<uint>())
+                                {
+                                    foreach (var function in method)
+                                        if (function.declaration.visibility.ContainAny(Visibility.Public))
+                                            functions.Add(function.declaration.overrideIndex);
+                                    if (functions.Count > 0)
+                                        nativeList.Add(new ExportMethod(name, declaratioin.index, functions.ToArray()));
+                                }
+                            }
+                            break;
+                        case DeclarationCode.NativeFunction:
+                        case DeclarationCode.Lambda:
+                        case DeclarationCode.LocalVariable:
+                        default: throw ExceptionGeneratorCompiler.Unknown();
+                    }
+                }
+            exportDefinitions = definitionList.ToArray();
+            exportVariables = variableList.ToArray();
+            exportDelegates = delegateList.ToArray();
+            exportCoroutines = coroutineList.ToArray();
+            exportMethods = methodList.ToArray();
+            exportInterfaces = interfaceList.ToArray();
+            exportNatives = nativeList.ToArray();
+            definitionList.Dispose();
+            variableList.Dispose();
+            delegateList.Dispose();
+            coroutineList.Dispose();
+            methodList.Dispose();
+            interfaceList.Dispose();
+            nativeList.Dispose();
         }
     }
 }

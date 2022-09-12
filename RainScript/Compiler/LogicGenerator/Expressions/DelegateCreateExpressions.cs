@@ -134,9 +134,8 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             var address = new Referencable<CodeAddress>(parameter.pool);
             var sourceParameter = new GeneratorParameter(parameter, 1);
             source.Generator(sourceParameter);
-            parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+            parameter.generator.WriteCode(CommandMacro.BASE_NullJump);
             parameter.generator.WriteCode(sourceParameter.results[0]);
-            parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
             parameter.generator.WriteCode(address);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             var function = parameter.relied.Convert(this.function);

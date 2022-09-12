@@ -1,4 +1,5 @@
-﻿namespace RainScript
+﻿#pragma warning disable CS1587 // XML 注释没有放在有效语言元素上
+namespace RainScript
 {
     internal static class LIBRARY
     {

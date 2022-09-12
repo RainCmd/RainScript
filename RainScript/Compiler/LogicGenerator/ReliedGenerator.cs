@@ -228,6 +228,18 @@ namespace RainScript.Compiler.LogicGenerator
             declarationMap = pool.GetDictionary<Declaration, Declaration>();
             libraries = pool.GetList<ReliedLibrary>();
         }
+        public Type[] Convert(CompilingType[] types)
+        {
+            var result = new Type[types.Length];
+            for (int i = 0; i < result.Length; i++) result[i] = Convert(types[i]).RuntimeType;
+            return result;
+        }
+        public TypeDefinition[] Convert(CompilingDefinition[] definitions)
+        {
+            var result = new TypeDefinition[definitions.Length];
+            for (int i = 0; i < result.Length; i++) result[i] = Convert(definitions[i]).RuntimeDefinition;
+            return result;
+        }
         public CompilingType Convert(CompilingType type)
         {
             return new CompilingType(Convert(type.definition), type.dimension);
@@ -239,7 +251,30 @@ namespace RainScript.Compiler.LogicGenerator
         public Declaration Convert(Declaration declaration)
         {
             if (declaration.code == DeclarationCode.LocalVariable) return declaration;
-            if (declaration.library == LIBRARY.SELF || declaration.library == LIBRARY.KERNEL) return declaration;
+            else if (declaration.library == LIBRARY.SELF || declaration.library == LIBRARY.KERNEL)
+            {
+                if (declaration.code == DeclarationCode.Constructor)
+                {
+                    if (!declarationMap.TryGetValue(declaration, out var method))
+                    {
+                        var definition = manager.library.definitions[(int)declaration.definitionIndex];
+                        method = new Declaration(declaration.library, declaration.visibility, declaration.code, (uint)definition.methods.Length, 0, declaration.definitionIndex);
+                        declarationMap.Add(declaration, method);
+                    }
+                    return method;
+                }
+                else if (declaration.code == DeclarationCode.ConstructorFunction)
+                {
+                    if (!declarationMap.TryGetValue(declaration, out var function))
+                    {
+                        var definition = manager.library.definitions[(int)declaration.definitionIndex];
+                        function = new Declaration(declaration.library, declaration.visibility, declaration.code, (uint)definition.methods.Length, declaration.overrideIndex, declaration.definitionIndex);
+                        declarationMap.Add(declaration, function);
+                    }
+                    return function;
+                }
+                return declaration;
+            }
             if (!declarationMap.TryGetValue(declaration, out var result))
             {
                 var rely = manager.relies[declaration.library];

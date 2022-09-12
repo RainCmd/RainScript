@@ -110,9 +110,8 @@
                 var address = new Referencable<CodeAddress>(parameter.pool);
                 var invokerParameter = new GeneratorParameter(parameter, 1);
                 invokerQuestionDelegate.invoker.Generator(invokerParameter);
-                parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+                parameter.generator.WriteCode(CommandMacro.BASE_NullJump);
                 parameter.generator.WriteCode(invokerParameter.results[0]);
-                parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
                 parameter.generator.WriteCode(address);
                 var parameterParameter = new GeneratorParameter(parameter, invokerQuestionDelegate.parameter.returns.Length);
                 invokerQuestionDelegate.parameter.Generator(parameterParameter);
@@ -175,9 +174,8 @@
                 var address = new Referencable<CodeAddress>(parameter.pool);
                 var targetParameter = new GeneratorParameter(parameter, 1);
                 invokerQuestionMember.target.Generator(targetParameter);
-                parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+                parameter.generator.WriteCode(CommandMacro.BASE_NullJump);
                 parameter.generator.WriteCode(targetParameter.results[0]);
-                parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
                 parameter.generator.WriteCode(address);
                 var parameterParameter = new GeneratorParameter(parameter, invokerQuestionMember.parameter.returns.Length);
                 invokerQuestionMember.parameter.Generator(parameterParameter);

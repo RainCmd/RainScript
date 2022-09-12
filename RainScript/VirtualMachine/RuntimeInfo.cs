@@ -313,7 +313,7 @@ namespace RainScript.VirtualMachine
             this.index = index;
             name = library.name;
             code = Tools.A2P(library.code);
-            data = Tools.A2P(library.data);
+            data = Tools.A2P(library.constantData);
             imports = new ImportLibrary[library.imports.Length];
             strings = InitStrings();
             definitions = new RuntimeDefinitionInfo[library.definitions.Length];

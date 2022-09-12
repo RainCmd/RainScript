@@ -77,11 +77,15 @@ namespace RainScript.Compiler
         {
             return new ExpectedException("有接口没实现");
         }
-        public static ExpectedException DeclaractionReferenceGeneratorFail()
+        public static ExpectedException ReferenceGeneratorFail()
         {
             return new ExpectedException("引用信息生成失败");
         }
-        public static ExpectedException DeclaractionLibraryGeneratorFail()
+        public static ExpectedException LogicGeneratorFail()
+        {
+            return new ExpectedException("库生成失败");
+        }
+        public static ExpectedException LibraryGeneratorFail()
         {
             return new ExpectedException("库生成失败");
         }

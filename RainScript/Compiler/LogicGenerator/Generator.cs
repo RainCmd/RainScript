@@ -25,10 +25,10 @@
         private readonly ScopeList<string> codeStrings;
         private readonly ScopeDictionary<string, ScopeList<uint>> dataStrings;
         public uint Point { get { return codeTop; } }
-        public Generator(uint dataSize, CollectionPool pool)
+        public Generator(byte[] data, CollectionPool pool)
         {
             code = Tools.MAlloc((int)codeSize);
-            data = new byte[dataSize];
+            this.data = data;
             codeStrings = pool.GetList<string>();
             dataStrings = pool.GetDictionary<string, ScopeList<uint>>();
         }
@@ -119,7 +119,7 @@
             address.Add(point);
         }
 
-        public void GeneratorLibrary2(GeneratorParameter parameter)
+        public void GeneratorLibrary(GeneratorParameter parameter, out byte[] codes, out string[] codeStrings, out System.Collections.Generic.Dictionary<string, uint[]> dataStrings)
         {
             using (var libraryCtor = new FunctionGenerator(parameter, this)) libraryCtor.Generate(parameter, this);
             for (int i = 0, count = parameter.manager.library.methods.Count; i < count; i++)
@@ -142,29 +142,11 @@
                     }
                 else definition.destructorEntry = LIBRARY.ENTRY_INVALID;
             foreach (var lambda in parameter.manager.lambdas) lambda.Generate(parameter, this);
-        }
-        public Library GeneratorLibrary(GeneratorParameter parameter)
-        {
-            var definitions = new DefinitionInfo[parameter.manager.library.definitions.Count];
-            var variables = new VariableInfo[parameter.manager.library.variables.Count];
-            var delegates = new FunctionInfo[parameter.manager.library.delegates.Count];
-            var coroutines = new CoroutineInfo[parameter.manager.library.coroutines.Count];
-            var methods = new MethodInfo[parameter.manager.library.methods.Count];
-            var interfaces = new InterfaceInfo[parameter.manager.library.interfaces.Count];
-            var natives = new NativeMethodInfo[parameter.manager.library.natives.Count];
-            var imports = new ImportLibraryInfo[] { };
-            var dataStrings = new System.Collections.Generic.Dictionary<string, uint[]>();
-            foreach (var item in this.dataStrings) dataStrings.Add(item.Key, item.Value.ToArray());
-            var children = new Space[parameter.manager.library.children.Count];
-            var exportDefinitions = new ExportDefinition[] { };
-            var exportVariables = new ExportIndex[] { };
-            var exportDelegates = new ExportIndex[] { };
-            var exportCoroutines = new ExportIndex[] { };
-            var exportMethods = new ExportMethod[] { };
-            var exportInterfaces = new ExportInterface[] { };
-            var exportNatoves = new ExportMethod[] { };
 
-            return new Library(parameter.manager.library.name, Tools.P2A(code, codeTop), data, definitions, variables, delegates, coroutines, methods, interfaces, natives, imports, codeStrings.ToArray(), dataStrings, children, exportDefinitions, exportVariables, exportDelegates, exportCoroutines, exportMethods, exportInterfaces, exportNatoves); ;
+            codes = Tools.P2A(code, codeTop);
+            codeStrings = this.codeStrings.ToArray();
+            dataStrings = new System.Collections.Generic.Dictionary<string, uint[]>();
+            foreach (var item in this.dataStrings) dataStrings.Add(item.Key, item.Value.ToArray());
         }
         ~Generator()
         {

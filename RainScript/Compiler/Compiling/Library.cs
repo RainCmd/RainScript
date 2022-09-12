@@ -118,11 +118,11 @@ namespace RainScript.Compiler.Compiling
             parameterNames = new Anchor[parameterCount];
         }
 
-        public string Name => name.Segment;
-        public ISpace Space => space;
-        public Compiler.Declaration Declaration => declaration;
-        public CompilingType[] Parameters => parameters;
-        public CompilingType[] Returns => returns;
+        string IDeclaramtion.Name => name.Segment;
+        ISpace IDeclaramtion.Space => space;
+        Compiler.Declaration IDeclaramtion.Declaration => declaration;
+        CompilingType[] IFunction.Parameters => parameters;
+        CompilingType[] IFunction.Returns => returns;
     }
     internal class Coroutine : Declaration
     {
@@ -156,11 +156,11 @@ namespace RainScript.Compiler.Compiling
             entry = new LogicGenerator.Referencable<LogicGenerator.CodeAddress>(pool);
         }
 
-        public ISpace Space => space;
-        public string Name => name.Segment.ToString();
-        public Compiler.Declaration Declaration => declaration;
-        public CompilingType[] Returns => returns;
-        public CompilingType[] Parameters => parameters;
+        CompilingType[] IFunction.Parameters => parameters;
+        CompilingType[] IFunction.Returns => returns;
+        Compiler.Declaration IDeclaramtion.Declaration => declaration;
+        ISpace IDeclaramtion.Space => space;
+        string IDeclaramtion.Name => name.Segment;
     }
     internal class Method : IMethod
     {
@@ -189,9 +189,9 @@ namespace RainScript.Compiler.Compiling
                 yield return item;
         }
 
-        public string Name { get { return name; } }
-        public int FunctionCount => functions.Count;
-        public IFunction GetFunction(int index)
+        int IMethod.FunctionCount => functions.Count;
+        string IMethod.Name => name;
+        IFunction IMethod.GetFunction(int index)
         {
             return functions[index];
         }
@@ -228,12 +228,12 @@ namespace RainScript.Compiler.Compiling
             this.methods = methods;
         }
 
-        public ISpace Space => space;
-        public string Name => name.Segment;
-        public Compiler.Declaration Declaration => declaration;
         IList<CompilingDefinition> IInterface.Inherits { get { return inherits; } }
-        public int MethodCount => methods.Length;
-        public IMethod GetMethod(int index)
+        int IInterface.MethodCount => methods.Length;
+        Compiler.Declaration IDeclaramtion.Declaration => declaration;
+        ISpace IDeclaramtion.Space => space;
+        string IDeclaramtion.Name => name.Segment;
+        IMethod IInterface.GetMethod(int index)
         {
             return methods[index];
         }
@@ -265,9 +265,9 @@ namespace RainScript.Compiler.Compiling
                 yield return item;
         }
 
-        public string Name { get { return name; } }
-        public int FunctionCount => functions.Count;
-        public IFunction GetFunction(int index)
+        int IMethod.FunctionCount => functions.Count;
+        string IMethod.Name => name;
+        IFunction IMethod.GetFunction(int index)
         {
             return functions[index];
         }
@@ -278,7 +278,6 @@ namespace RainScript.Compiler.Compiling
         public readonly Dictionary<string, Space> children = new Dictionary<string, Space>();
         public readonly string name;
         public readonly Dictionary<string, Compiler.Declaration> declarations = new Dictionary<string, Compiler.Declaration>();
-
 
         public Space(Space parent, string name)
         {
@@ -292,8 +291,9 @@ namespace RainScript.Compiler.Compiling
             return child;
         }
 
-        public string Name { get { return name; } }
-        public ISpace Parent { get { return parent; } }
+        string ISpace.Name => name;
+        ISpace ISpace.Parent => parent;
+
         public bool Contain(ISpace space)
         {
             for (var index = space; index != null; index = index.Parent)
@@ -338,6 +338,7 @@ namespace RainScript.Compiler.Compiling
         public readonly List<Method> methods = new List<Method>();
         public readonly List<Interface> interfaces = new List<Interface>();
         public readonly List<Native> natives = new List<Native>();
+        public byte[] ConstantData { get; private set; }
         public uint DataSize { get; private set; }
         public Library(string name) : base(null, name) { }
         public void CalculatedVariableAddress()
@@ -350,11 +351,20 @@ namespace RainScript.Compiler.Compiling
                     else item.size += variable.type.definition.code.FieldSize();
                 }
             foreach (var item in variables)
-            {
-                item.address = DataSize;
-                if (item.type.dimension > 0) DataSize += TypeCode.Handle.FieldSize();
-                else DataSize += item.type.definition.code.FieldSize();
-            }
+                if (item.constant)
+                {
+                    item.address = DataSize;
+                    if (item.type.dimension > 0) DataSize += TypeCode.Handle.FieldSize();
+                    else DataSize += item.type.definition.code.FieldSize();
+                }
+            ConstantData = new byte[DataSize];
+            foreach (var item in variables)
+                if (!item.constant)
+                {
+                    item.address = DataSize;
+                    if (item.type.dimension > 0) DataSize += TypeCode.Handle.FieldSize();
+                    else DataSize += item.type.definition.code.FieldSize();
+                }
         }
         public void DeclarationValidityCheck(CollectionPool pool, ExceptionCollector exceptions)
         {
