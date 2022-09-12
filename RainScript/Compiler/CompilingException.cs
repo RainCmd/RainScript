@@ -220,6 +220,10 @@ namespace RainScript.Compiler
             this.code = code;
             this.message = message;
         }
+        public override string ToString()
+        {
+            return "\r\n{0}[{1},{2}]\r\b异常代码：{3}\r\n{4}\r\n".Format(path, start, end, code, message);
+        }
     }
     /// <summary>
     /// 异常收集器
@@ -278,17 +282,9 @@ namespace RainScript.Compiler
         {
             Add(text.path, text[line].segment, code, message);
         }
-        internal void Add(string path, StringSegment segment, CompilingExceptionCode code)
-        {
-            Add(path, segment.start, segment.end, code, "");
-        }
         internal void Add(string path, StringSegment segment, CompilingExceptionCode code, string message)
         {
             Add(path, segment.start, segment.end, code, message);
-        }
-        internal void Add(string path, int start, int end, CompilingExceptionCode code)
-        {
-            Add(path, start, end, code, "");
         }
         internal void Add(string path, int start, int end, CompilingExceptionCode code, string message)
         {

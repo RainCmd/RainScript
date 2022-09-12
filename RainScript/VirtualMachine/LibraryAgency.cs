@@ -41,7 +41,7 @@ namespace RainScript.VirtualMachine
         /// <param name="handle"></param>
         public unsafe static implicit operator bool(FunctionHandle handle)
         {
-            return handle.library != null && handle.function != null && handle.library.code[handle.entry] == (byte)CommandMacro.FUNCTION_Entrance;
+            return handle != null && handle.library != null && handle.function != null && handle.library.code[handle.entry] == (byte)CommandMacro.FUNCTION_Entrance;
         }
     }
     internal class LibraryAgency : IDisposable
@@ -59,11 +59,15 @@ namespace RainScript.VirtualMachine
                 return libraries[(int)index];
             }
         }
-        internal LibraryAgency(Kernel kernel, Library library, Func<string, Library> libraryLoader)
+        internal LibraryAgency(Kernel kernel, Func<string, Library> libraryLoader)
         {
             this.kernel = kernel;
             kernelLibrary = new RuntimeLibraryInfo(kernel, LIBRARY.KERNEL, Library.kernel);
             this.libraryLoader = libraryLoader;
+        }
+        internal void Init(Library library)
+        {
+            kernelLibrary.InitRuntimeData();
             Load(library);
         }
         internal RuntimeLibraryInfo Load(string name)
@@ -78,6 +82,7 @@ namespace RainScript.VirtualMachine
         {
             var result = new RuntimeLibraryInfo(kernel, (uint)libraries.Count, library);
             libraries.Add(result);
+            result.InitRuntimeData();
             var invoker = kernel.coroutineAgency.Invoker(new FunctionHandle(result, 0, FunctionInfo.EMPTY));
             invoker.Start(true, true);
             invoker.Recycle();

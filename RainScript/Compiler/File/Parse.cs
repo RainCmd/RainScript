@@ -235,7 +235,7 @@ namespace RainScript.Compiler.File
         public readonly ScopeList<Function> functions;
         public readonly ScopeList<Interface> interfaces;
         public readonly ScopeList<FunctionDeclaration> natives;
-        public Space(Compiling.Library library, TextInfo text, CollectionPool pool, ExceptionCollector exceptions) : this(null, library, text, 0, 0, pool, exceptions) { }
+        public Space(Compiling.Library library, TextInfo text, CollectionPool pool, ExceptionCollector exceptions) : this(null, library, text, 0, -1, pool, exceptions) { }
         private Space(Space parent, Compiling.Space space, TextInfo text, int startLineIndex, int parentIndent, CollectionPool pool, ExceptionCollector exceptions)
         {
             this.parent = parent;
@@ -265,14 +265,17 @@ namespace RainScript.Compiler.File
                         if (indent < 0)
                         {
                             indent = line.indent;
-                            if (indent <= parentIndent) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_INDENT);
-                            segment = new TextSegment(text, startLineIndex, index - 1);
-                            return;
+                            if (indent <= parentIndent)
+                            {
+                                exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_INDENT);
+                                segment = new TextSegment(text, startLineIndex, index - 1);
+                                return;
+                            }
                         }
-                        else if (line.indent != indent)
+                        else if (line.indent < indent)
                         {
                             segment = new TextSegment(text, startLineIndex, index - 1);
-                            if (parent == null || line.indent > parentIndent) exceptions.Add(new Anchor(text, line.segment), CompilingExceptionCode.SYNTAX_INDENT);
+                            if (parent == null || line.indent < parentIndent) exceptions.Add(new Anchor(text, line.segment), CompilingExceptionCode.SYNTAX_INDENT);
                             return;
                         }
                         if (lexical.anchor == KeyWorld.IMPORT) ParseImport(text, indent, pool, exceptions);
@@ -346,7 +349,6 @@ namespace RainScript.Compiler.File
                     visibility |= Visibility.Private;
                 }
                 else return true;
-                index++;
             }
             exceptions.Add(lexicals[-1].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LINE_END);
             return false;
@@ -379,7 +381,7 @@ namespace RainScript.Compiler.File
                     {
                         if (TryParseFunction(lexicals, index + 1, out var end, out var name, out var parameters, out var returns, pool))
                         {
-                            if (end < lexicals.Count) exceptions.Add(lexicals[end].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                            if (end + 1 < lexicals.Count) exceptions.Add(lexicals[end].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                             natives.Add(new FunctionDeclaration(name, visibility, this, parameters, returns));
                         }
                         else exceptions.Add(text, line, CompilingExceptionCode.SYNTAX_UNKNOW);
@@ -388,7 +390,7 @@ namespace RainScript.Compiler.File
                     {
                         if (TryParseFunction(lexicals, index + 1, out var end, out var name, out var parameters, out var returns, pool))
                         {
-                            if (end < lexicals.Count) exceptions.Add(lexicals[end].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                            if (end + 1 < lexicals.Count) exceptions.Add(lexicals[end].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                             delegates.Add(new FunctionDeclaration(name, visibility, this, parameters, returns));
                         }
                         else exceptions.Add(text, line, CompilingExceptionCode.SYNTAX_UNKNOW);
@@ -397,11 +399,11 @@ namespace RainScript.Compiler.File
                     {
                         if (TryParseCoroutine(lexicals, index + 1, visibility, out var coroutine, pool, exceptions)) coroutines.Add(coroutine);
                     }
-                    else if (TryParseVariable(lexicals, index + 1, out var variableName, out var variableType, out var variableExpression, pool))
+                    else if (TryParseVariable(lexicals, index, out var variableName, out var variableType, out var variableExpression, pool))
                         variables.Add(new Variable(variableName, visibility, this, variableType, false, variableExpression));
-                    else if (TryParseFunction(lexicals, index + 1, out var functionEnd, out var functionName, out var functionParameters, out var functionReturns, pool))
+                    else if (TryParseFunction(lexicals, index, out var functionEnd, out var functionName, out var functionParameters, out var functionReturns, pool))
                     {
-                        if (functionEnd < lexicals.Count) exceptions.Add(lexicals[functionEnd].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                        if (functionEnd + 1 < lexicals.Count) exceptions.Add(lexicals[functionEnd].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                         functionEnd = SubBlock(text, line + 1, text[line].indent, exceptions);
                         functions.Add(new Function(functionName, visibility, this, functionParameters, functionReturns, new TextSegment(text, line + 1, functionEnd)));
                         line = functionEnd;
@@ -523,7 +525,7 @@ namespace RainScript.Compiler.File
                             if (Lexical.TryAnalysis(lineLexicals, text, text[lineIndex].segment, exceptions))
                                 if (TryParseFunction(lineLexicals, indent, out var functionEnd, out var functionName, out var parameters, out var returns, pool))
                                 {
-                                    if (functionEnd < lineLexicals.Count) exceptions.Add(lineLexicals[functionEnd].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                                    if (functionEnd + 1 < lineLexicals.Count) exceptions.Add(lineLexicals[functionEnd].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                                     functions.Add(new Interface.Function(functionName, parameters, returns));
                                 }
                                 else exceptions.Add(text, lineIndex, CompilingExceptionCode.SYNTAX_UNKNOW);
@@ -592,12 +594,12 @@ namespace RainScript.Compiler.File
                                     {
                                         if (returns.Count > 0) exceptions.Add(functionName, CompilingExceptionCode.SYNTAX_CONSTRUCTOR_NO_RETURN_VALUE);
                                         returns.Dispose();
-                                        if (functionEnd < lineLexicals.Count) constructors.Add(new Definition.Constructor(functionName, memberVisibility, parameters, body, new Anchor(text, lineLexicals[functionEnd].anchor.start, lineLexicals[-1].anchor.end)));
+                                        if (functionEnd + 1 < lineLexicals.Count) constructors.Add(new Definition.Constructor(functionName, memberVisibility, parameters, body, new Anchor(text, lineLexicals[functionEnd].anchor.start, lineLexicals[-1].anchor.end)));
                                         else constructors.Add(new Definition.Constructor(functionName, memberVisibility, parameters, body, default));
                                     }
                                     else
                                     {
-                                        if (functionEnd < lineLexicals.Count) exceptions.Add(lineLexicals[functionEnd].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                                        if (functionEnd + 1 < lineLexicals.Count) exceptions.Add(lineLexicals[functionEnd].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                                         functions.Add(new Function(functionName, memberVisibility, this, parameters, returns, body));
                                     }
                                 }

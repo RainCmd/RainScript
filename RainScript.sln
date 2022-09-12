@@ -5,6 +5,8 @@ VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainScript", "RainScript\RainScript.csproj", "{16709272-B08B-4975-B5C3-310166424A4E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{9544A881-DFD1-48D8-A2F1-16E6D7600E06}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,6 +20,12 @@ Global
 		{16709272-B08B-4975-B5C3-310166424A4E}.Fixed|Any CPU.Build.0 = Fixed|Any CPU
 		{16709272-B08B-4975-B5C3-310166424A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16709272-B08B-4975-B5C3-310166424A4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Fixed|Any CPU.ActiveCfg = Debug|Any CPU
+		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Fixed|Any CPU.Build.0 = Debug|Any CPU
+		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

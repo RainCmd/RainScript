@@ -307,6 +307,8 @@ namespace RainScript.Compiler
                         return declaration;
                 using (var declarations = pool.GetList<Declaration>())
                 {
+                    if (RelyKernel.kernel.TryFindDeclaration(name, out var kernelResult))
+                        declarations.Add(kernelResult);
                     foreach (var item in relyCompilings)
                         if (item.TryFindDeclaration(name, out var result))
                             declarations.Add(result);

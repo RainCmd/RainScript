@@ -58,6 +58,8 @@ namespace RainScript.Compiler
             for (int i = 0; i < context.Length; i++)
                 switch (context[i])
                 {
+                    case '\r':
+                        break;
                     case '\n':
                         if (!blank) lines.Add(new LineInfo(line, new StringSegment(context, start, i - 1), indent));
                         start = i + 1;

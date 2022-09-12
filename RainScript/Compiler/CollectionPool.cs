@@ -254,7 +254,7 @@ namespace RainScript.Compiler
             if (!pool.TryGetValue(typeof(T), out var stack))
             {
                 stack = new Stack<object>();
-                listPools.Add(typeof(T), stack);
+                pool.Add(typeof(T), stack);
             }
             value.OnRecycle();
             stack.Push(value);

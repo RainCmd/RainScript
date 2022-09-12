@@ -19,8 +19,8 @@ namespace RainScript.Compiler
             this.list = list;
             this.start = start < 0 ? list.Count + start : start;
             this.end = end < 0 ? list.Count + end : end;
-            if (start < 0 || start >= list.Count) throw new IndexOutOfRangeException();
-            if (end < 0 || end >= list.Count) throw new IndexOutOfRangeException();
+            if (this.start < 0 || this.start >= list.Count) throw new IndexOutOfRangeException();
+            if (this.end < 0 || this.end >= list.Count) throw new IndexOutOfRangeException();
         }
         public T this[int index]
         {

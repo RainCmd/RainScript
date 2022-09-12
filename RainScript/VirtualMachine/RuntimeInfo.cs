@@ -180,7 +180,7 @@ namespace RainScript.VirtualMachine
             public readonly FunctionInfo[] functions;
             public Method(RuntimeLibraryInfo library, FunctionInfo[] functions)
             {
-                characteristics=new uint[functions.Length];
+                characteristics = new uint[functions.Length];
                 this.functions = new FunctionInfo[functions.Length];
                 for (int i = 0; i < functions.Length; i++)
                     this.functions[i] = new FunctionInfo(library.LocalToGlobal(functions[i].parameters), library.LocalToGlobal(functions[i].returns));
@@ -313,7 +313,9 @@ namespace RainScript.VirtualMachine
             this.index = index;
             name = library.name;
             code = Tools.A2P(library.code);
-            data = Tools.A2P(library.constantData);
+            data = Tools.MAlloc((int)library.dataSize);
+            fixed (byte* constantData = library.constantData)
+                Tools.Copy(constantData, data, (uint)library.constantData.Length);
             imports = new ImportLibrary[library.imports.Length];
             strings = InitStrings();
             definitions = new RuntimeDefinitionInfo[library.definitions.Length];
@@ -330,7 +332,9 @@ namespace RainScript.VirtualMachine
             for (uint i = 0; i < interfaces.Length; i++) interfaces[i] = new RuntimeInterfaceInfo(this, new TypeDefinition(index, TypeCode.Interface, i), library.interfaces[i]);
             natives = new RuntimeNativeInfo[library.natives.Length];
             for (int i = 0; i < natives.Length; i++) natives[i] = new RuntimeNativeInfo(this, library.natives[i]);
-
+        }
+        public void InitRuntimeData()
+        {
             InterfaceFunctionRelocation();
             CalculateDefinitionRuntimeData();
         }
@@ -385,17 +389,11 @@ namespace RainScript.VirtualMachine
                     {
                         definition.CalculateBaseOffset(kernel.libraryAgency);
                         definition.RelocationMethods(this, library.definitions[list[i]]);
+                        list.RemoveAt(i--);
                     }
                 }
                 if (count == list.Count) throw ExceptionGeneratorVM.CyclicInheritance(library.name);
             }
-        }
-
-        public uint LocalToGlobal(uint library)
-        {
-            if (library == LIBRARY.KERNEL) return library;
-            else if (library == LIBRARY.SELF) return index;
-            else return GetImportLibrary(library).library.index;
         }
         public Type LocalToGlobal(Type type)
         {
@@ -409,7 +407,8 @@ namespace RainScript.VirtualMachine
         }
         public TypeDefinition LocalToGlobal(TypeDefinition definition)
         {
-            if (definition.library == LIBRARY.KERNEL) return definition;
+            if (definition == TypeDefinition.INVALID) return definition;
+            else if (definition.library == LIBRARY.KERNEL) return definition;
             else if (definition.library == LIBRARY.SELF) return new TypeDefinition(index, definition.code, definition.index);
             var import = GetImportLibrary(definition.library);
             if (definition.code == TypeCode.Handle) return new TypeDefinition(import.library.index, TypeCode.Handle, import.definitions[definition.index].index);

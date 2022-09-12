@@ -29,7 +29,8 @@ namespace RainScript.VirtualMachine
             stringAgency = new StringAgency();
             heapAgency = new HeapAgency(this);
             coroutineAgency = new CoroutineAgency(this);
-            libraryAgency = new LibraryAgency(this, library, libraryLoader);
+            libraryAgency = new LibraryAgency(this, libraryLoader);
+            libraryAgency.Init(library);
         }
         /// <summary>
         /// 获取函数句柄
