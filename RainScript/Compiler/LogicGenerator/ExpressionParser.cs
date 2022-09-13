@@ -660,6 +660,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 case LexicalType.Assignment:
                                     if (TryAssignmentConvert(right, left.returns[0], out right, out _))
                                     {
+                                        if (left is BlurryVariableDeclarationExpression) left = new VariableLocalExpression(localContext.AddLocal(left.anchor, right.returns[0]), TokenAttribute.Assignable);
                                         result = new VariableAssignmentExpression(assignment.anchor, left, right, left.returns[0]);
                                         return true;
                                     }

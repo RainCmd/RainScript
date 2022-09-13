@@ -10,6 +10,11 @@
         private readonly Declaration declaration;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
+        public VariableLocalExpression(Local local, TokenAttribute attribute) : base(local.anchor, local.type)
+        {
+            declaration = local.Declaration;
+            this.attribute = attribute.AddTypeAttribute(local.type);
+        }
         public VariableLocalExpression(Anchor anchor, Declaration declaration, TokenAttribute attribute, CompilingType type) : base(anchor, type)
         {
             this.declaration = declaration;
@@ -22,7 +27,8 @@
         }
         public override void GeneratorAssignment(GeneratorParameter parameter)
         {
-            parameter.variable.TryGetLocal(declaration.index, out var variable);
+            if (!parameter.variable.TryGetLocal(declaration.index, out var variable))
+                variable = parameter.variable.DecareLocal(declaration.index, returns[0]);
             if (variable.type.IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_Handle);
             else if (variable.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_1);
             else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_8);
