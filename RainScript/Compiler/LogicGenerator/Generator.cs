@@ -89,15 +89,6 @@
             codeTop += size;
             return point;
         }
-        public void CodeKnockout(uint start, uint length)
-        {
-            while (start + length < codeTop)
-            {
-                code[start] = code[start + length];
-                start++;
-            }
-            codeTop = start;
-        }
         public void SetCodeAddress(Referencable<CodeAddress> referencable)
         {
             referencable.SetValue(this, new CodeAddress(codeTop));

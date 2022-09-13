@@ -60,16 +60,14 @@ namespace RainScript.Compiler.LogicGenerator
             addressTop = Math.Max(temporaryAddress, addressTop);
             return temporary;
         }
-        public bool GeneratorTemporaryClear(Generator generator)
+        public void GeneratorTemporaryClear(Generator generator)
         {
-            var result = false;
-            foreach (var temporary in statementTemporaries) result |= ClearVariable(generator, temporary.address, temporary.type);
+            foreach (var temporary in statementTemporaries) ClearVariable(generator, temporary.referencable, temporary.type);
             generator.WriteCode(CommandMacro.BASE_Stackzero);
             generator.WriteCode(localTop);
             generator.WriteCode(temporaryAddress);
             temporaryAddress = 0;
             statementTemporaries.Clear();
-            return result;
         }
         public uint Generator(Generator generator)
         {
@@ -78,27 +76,41 @@ namespace RainScript.Compiler.LogicGenerator
             foreach (var item in locals) ClearVariable(generator, item.Value.address, item.Value.type);
             return localAddress + addressTop;
         }
-        private bool ClearVariable(Generator generator, uint address, CompilingType type)
+        private void ClearVariable(Generator generator, Referencable<CodeAddress> address, CompilingType type)
         {
             if (type.IsHandle)
             {
                 generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_HandleNull);
                 generator.WriteCode(address);
-                return true;
             }
             else if (type.definition.code == TypeCode.String)
             {
                 generator.WriteCode(CommandMacro.STRING_Release);
                 generator.WriteCode(address);
-                return true;
             }
             else if (type.definition.code == TypeCode.Entity)
             {
                 generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_EntityNull);
                 generator.WriteCode(address);
-                return true;
             }
-            return false;
+        }
+        private void ClearVariable(Generator generator, uint address, CompilingType type)
+        {
+            if (type.IsHandle)
+            {
+                generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_HandleNull);
+                generator.WriteCode(address);
+            }
+            else if (type.definition.code == TypeCode.String)
+            {
+                generator.WriteCode(CommandMacro.STRING_Release);
+                generator.WriteCode(address);
+            }
+            else if (type.definition.code == TypeCode.Entity)
+            {
+                generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_EntityNull);
+                generator.WriteCode(address);
+            }
         }
         public void Dispose()
         {

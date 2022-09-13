@@ -748,7 +748,7 @@ namespace RainScript.VirtualMachine
                         {
                             kernel.libraryAgency[library.LocalToGlobal(*(uint*)(library.code + point + 1))].NativeInvoker(*(Function*)(library.code + point + 5), stack, top);
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             flag = (long)ExitCode.NativeException;
                             goto case CommandMacro.BASE_Exit;

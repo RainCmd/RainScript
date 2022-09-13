@@ -2945,10 +2945,17 @@ namespace RainScript.Compiler.LogicGenerator
                                             var array = expressionStack.Pop();
                                             if (expression.returns.Length == 1)
                                             {
-                                                expression = new ArrayEvaluationExpression(lexical.anchor, array, expression, new CompilingType(array.returns[0].definition, array.returns[0].dimension - 1));
-                                                expressionStack.Push(expression);
-                                                attribute = expression.Attribute;
-                                                break;
+                                                if (array.returns[0].dimension > 0)
+                                                {
+                                                    expression = new ArrayEvaluationExpression(lexical.anchor, array, expression, new CompilingType(array.returns[0].definition, array.returns[0].dimension - 1));
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
+                                                    break;
+                                                }
+                                                else if (array.returns[0] == RelyKernel.STRING_TYPE)
+                                                {
+                                                    break;
+                                                }
                                             }
                                             else if (expression.returns.Length == 2)
                                             {

@@ -73,6 +73,29 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             parameter.generator.WriteCode(parameter.results[0]);
         }
     }
+    internal class StringEvaluationExpression : Expression
+    {
+        private readonly Expression source;
+        private readonly Expression index;
+        public override TokenAttribute Attribute => TokenAttribute.Value;
+        public StringEvaluationExpression(Anchor anchor, Expression source, Expression index) : base(anchor, RelyKernel.INTEGER_TYPE)
+        {
+            this.source = source;
+            this.index = index;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+            var sourceParameter = new GeneratorParameter(parameter, 1);
+            source.Generator(sourceParameter);
+            var indexParameter = new GeneratorParameter(parameter, 1);
+            index.Generator(indexParameter);
+            parameter.generator.WriteCode(CommandMacro.STRING_Element);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(sourceParameter.results[0]);
+            parameter.generator.WriteCode(indexParameter.results[0]);
+        }
+    }
     internal class ArraySubExpression : Expression
     {
         public readonly Expression array;
