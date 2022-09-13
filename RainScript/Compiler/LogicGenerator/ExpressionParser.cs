@@ -475,7 +475,11 @@ namespace RainScript.Compiler.LogicGenerator
                             if (stack.Count > 0)
                             {
                                 var breacket = stack.Pop();
-                                if (breacket.type == LexicalType.BracketLeft1) break;
+                                if (breacket.type == LexicalType.BracketLeft1)
+                                {
+                                    if (flag.ContainAny(SplitFlag.Bracket1)) return true;
+                                    break;
+                                }
                                 else
                                 {
                                     exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
@@ -483,7 +487,6 @@ namespace RainScript.Compiler.LogicGenerator
                                     return false;
                                 }
                             }
-                            else if (flag.ContainAny(SplitFlag.Bracket1)) return true;
                             exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             return false;
                         case LexicalType.BracketRight2:
@@ -2955,6 +2958,9 @@ namespace RainScript.Compiler.LogicGenerator
                                                 }
                                                 else if (array.returns[0] == RelyKernel.STRING_TYPE)
                                                 {
+                                                    expression = new StringEvaluationExpression(lexical.anchor, array, expression);
+                                                    expressionStack.Push(expression);
+                                                    attribute = expression.Attribute;
                                                     break;
                                                 }
                                             }
@@ -3260,7 +3266,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 {
                                     if (attribute.ContainAny(TokenAttribute.Value) && expressionStack.Peek().returns.Length == 1)
                                     {
-                                        var expression = expressionStack.Peek();
+                                        var expression = expressionStack.Pop();
                                         var type = expression.returns[0];
                                         if (type.dimension > 0) type = RelyKernel.ARRAY_TYPE;
                                         if (context.TryFindMemberDeclarartion(manager, lexical.anchor, type.definition, out var declaration, pool))

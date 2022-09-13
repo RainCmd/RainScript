@@ -127,6 +127,7 @@ namespace RainScript.Compiler
         {
             var space = this.space;
             while (space.parent != null) space = space.parent;
+            if (space is RelyKernel) return RelyKernel.methods[methods[index]];
             var library = (RelyLibrary)space;
             return library.methods[methods[index]];
         }

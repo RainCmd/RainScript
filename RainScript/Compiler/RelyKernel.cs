@@ -76,25 +76,21 @@
             foreach (var item in variables) kernel.declarations.Add(item.name, item.declaration);
 
             methods = new RelyMethod[KernelMethod.memberMethods.Length + KernelMethod.methods.Length];
-            var methodIndex = 0u;
-            var definitionIndex = 0u;
-            foreach (var method in KernelMethod.memberMethods)
-            {
-                while (true)
+            foreach (var definition in definitions)
+                for (uint index = 0; index < definition.methods.Length; index++)
                 {
-                    var definition = definitions[definitionIndex];
-                    if (definition.methods.Length > 0 && definition.methods[definition.methods.Length - 1] >= methodIndex) break;
-                    definitionIndex++;
+                    var method = KernelMethod.memberMethods[definition.methods[index]];
+                    var functions = new RelyFunction[method.functions.Length];
+                    for (uint i = 0; i < functions.Length; i++)
+                    {
+                        var functionDeclaration = new Declaration(LIBRARY.KERNEL, Visibility.Public, DeclarationCode.MemberFunction, index, i, definition.declaration.index);
+                        functions[i] = new RelyFunction(method.name, functionDeclaration, kernel, RuntimeToCompiling(method.functions[i].returns), RuntimeToCompiling(method.functions[i].parameters));
+                    }
+                    var declaration = new Declaration(LIBRARY.KERNEL, Visibility.Public, DeclarationCode.MemberMethod, index, 0, definition.declaration.index);
+                    methods[definition.methods[index]] = new RelyMethod(method.name, declaration, kernel, functions);
                 }
-                var functions = new RelyFunction[method.functions.Length];
-                for (int i = 0; i < functions.Length; i++)
-                {
-                    var functionDeclaration = new Declaration(LIBRARY.KERNEL, Visibility.Public, DeclarationCode.MemberFunction, methodIndex - definitions[definitionIndex].methods[0], (uint)i, definitionIndex);
-                    functions[i] = new RelyFunction(method.name, functionDeclaration, kernel, RuntimeToCompiling(method.functions[i].returns), RuntimeToCompiling(method.functions[i].parameters));
-                }
-                var declaration = new Declaration(LIBRARY.KERNEL, Visibility.Public, DeclarationCode.MemberMethod, methodIndex, 0, definitionIndex);
-                methods[methodIndex++] = new RelyMethod(method.name, declaration, kernel, functions);
-            }
+
+            var methodIndex = (uint)KernelMethod.memberMethods.Length;
             foreach (var method in KernelMethod.methods)
             {
                 var functions = new RelyFunction[method.functions.Length];

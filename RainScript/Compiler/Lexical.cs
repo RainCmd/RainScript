@@ -70,6 +70,10 @@
             this.type = type;
             this.anchor = anchor;
         }
+        public override string ToString()
+        {
+            return "{0}\t{1}".Format(type, anchor.Segment);
+        }
         public static bool TryAnalysis(ScopeList<Lexical> list, TextInfo text, StringSegment segment, ExceptionCollector exceptions)
         {
             var exceptionCount = exceptions.Count;
@@ -297,7 +301,9 @@
                                         return true;
                                     }
                                     else dot = true;
+                                    idx++;
                                 }
+                                else break;
                             }
                             lexical = new Lexical(dot ? LexicalType.ConstReal : LexicalType.ConstNumber, text, segment[index, idx - 1]);
                             return true;
@@ -321,8 +327,6 @@
             lexical = default;
             return false;
         }
-
-
         public static bool TryExtractName(ListSegment<Lexical> lexicals, int start, out int index, out ScopeList<Lexical> name, CollectionPool pool)
         {
             name = pool.GetList<Lexical>();

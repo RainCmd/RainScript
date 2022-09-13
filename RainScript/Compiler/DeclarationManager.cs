@@ -241,7 +241,7 @@ namespace RainScript.Compiler
             if (method.Declaration.code == DeclarationCode.MemberMethod)
             {
                 var declaration = new Declaration(method.Declaration.library, Visibility.Public, DeclarationCode.Definition, method.Declaration.definitionIndex, 0, 0);
-                while (TryGetDefinition(new CompilingDefinition(declaration), out var parent))
+                while (TryGetDefinition(GetParent(new CompilingDefinition(declaration)), out var parent))
                 {
                     for (int i = 0; i < parent.MethodCount; i++)
                         if (parent.GetMethod(i).Name == method.Name)
@@ -252,14 +252,16 @@ namespace RainScript.Compiler
             else if (method.Declaration.code == DeclarationCode.InterfaceMethod)
             {
                 var declaration = new Declaration(method.Declaration.library, Visibility.Public, DeclarationCode.Interface, method.Declaration.definitionIndex, 0, 0);
-                if (TryGetOverrideMethod(declaration, method.Name, out var result))
-                    return result;
+                if (TryGetInterface(new CompilingDefinition(declaration), out var result))
+                    foreach (var inherit in result.Inherits)
+                        if (TryGetOverrideMethod(new CompilingDefinition(inherit.Declaration), method.Name, out method))
+                            return method;
             }
             return default;
         }
-        private bool TryGetOverrideMethod(Declaration definition, string name, out IMethod method)
+        private bool TryGetOverrideMethod(CompilingDefinition definition, string name, out IMethod method)
         {
-            if (TryGetInterface(new CompilingDefinition(definition), out var result))
+            if (TryGetInterface(definition, out var result))
             {
                 for (int i = 0; i < result.MethodCount; i++)
                     if (result.GetMethod(i).Name == name)
@@ -268,7 +270,7 @@ namespace RainScript.Compiler
                         return true;
                     }
                 foreach (var item in result.Inherits)
-                    if (TryGetOverrideMethod(item.Declaration, name, out method))
+                    if (TryGetOverrideMethod(new CompilingDefinition(item.Declaration), name, out method))
                         return true;
             }
             method = default;
