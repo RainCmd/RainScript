@@ -73,7 +73,6 @@
         public override void GeneratorAssignment(GeneratorParameter parameter)
         {
             var declaration = parameter.relied.Convert(this.declaration);
-            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_Handle);
             else if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_8);
@@ -125,7 +124,6 @@
             var targetParameter = new GeneratorParameter(parameter, 1);
             target.Generator(targetParameter);
             var declaration = parameter.relied.Convert(this.declaration);
-            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_Handle);
             else if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_8);

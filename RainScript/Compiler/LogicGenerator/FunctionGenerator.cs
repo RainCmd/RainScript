@@ -204,7 +204,7 @@ namespace RainScript.Compiler.LogicGenerator
                 else InitMemberVariable(parameter, thisExpression);
             }
             else for (int i = 0; i < parameters.Length; i++) localContext.AddLocal(function.parameterNames[i], parameters[i]);
-            Parse(parameter, function.space, function.body, localContext);
+            if ((bool)function.body.body) Parse(parameter, function.space, function.body, localContext);
             if (returns.Length > 0 && !CheckReturn(statements))
                 parameter.exceptions.Add(function.name, CompilingExceptionCode.GENERATOR_MISSING_RETURN);
             localContext.Dispose();

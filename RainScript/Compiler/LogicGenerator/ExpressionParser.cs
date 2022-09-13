@@ -2472,96 +2472,94 @@ namespace RainScript.Compiler.LogicGenerator
                     }
                     break;
                 case TokenType.Casting:
-                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    if (expressionStack.Count >= 2)
                     {
+                        right = expressionStack.Pop();
+                        var typeExpression = (TypeExpression)expressionStack.Pop();
                         if (right.returns.Length == 1)
                         {
-                            if (left is TypeExpression typeExpression)
+                            if (typeExpression.type == right.returns[0])
                             {
-                                if (typeExpression.type == right.returns[0])
+                                expressionStack.Push(right);
+                                return right.Attribute;
+                            }
+                            else if (typeExpression.type == RelyKernel.INTEGER_TYPE)
+                            {
+                                if (right.returns[0] == RelyKernel.REAL_TYPE)
                                 {
+                                    if (right.TryEvaluation(out real value)) right = new ConstantIntegerExpression(right.anchor, (long)value);
+                                    else right = new RealToIntegerExpression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
                                 }
-                                else if (typeExpression.type == RelyKernel.INTEGER_TYPE)
+                            }
+                            else if (typeExpression.type == RelyKernel.REAL_TYPE)
+                            {
+                                if (right.returns[0] == RelyKernel.INTEGER_TYPE)
                                 {
-                                    if (right.returns[0] == RelyKernel.REAL_TYPE)
-                                    {
-                                        if (right.TryEvaluation(out real value)) right = new ConstantIntegerExpression(right.anchor, (long)value);
-                                        else right = new RealToIntegerExpression(right.anchor, right);
-                                        expressionStack.Push(right);
-                                        return right.Attribute;
-                                    }
-                                }
-                                else if (typeExpression.type == RelyKernel.REAL_TYPE)
-                                {
-                                    if (right.returns[0] == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, (real)value);
-                                        else right = new IntegerToRealExpression(right.anchor, right);
-                                        expressionStack.Push(right);
-                                        return right.Attribute;
-                                    }
-                                }
-                                else if (typeExpression.type == RelyKernel.REAL2_TYPE)
-                                {
-                                    if (right.returns[0] == RelyKernel.REAL3_TYPE)
-                                    {
-                                        if (right.TryEvaluation(out Real3 value)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
-                                        else right = new Real2ToReal3Expression(right.anchor, right);
-                                        expressionStack.Push(right);
-                                        return right.Attribute;
-                                    }
-                                    else if (right.returns[0] == RelyKernel.REAL4_TYPE)
-                                    {
-                                        if (right.TryEvaluation(out Real4 value)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
-                                        else right = new Real2ToReal4Expression(right.anchor, right);
-                                        expressionStack.Push(right);
-                                        return right.Attribute;
-                                    }
-                                }
-                                else if (typeExpression.type == RelyKernel.REAL3_TYPE)
-                                {
-                                    if (right.returns[0] == RelyKernel.REAL2_TYPE)
-                                    {
-                                        if (right.TryEvaluation(out Real2 value)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
-                                        else right = new Real3ToReal2Expression(right.anchor, right);
-                                        expressionStack.Push(right);
-                                        return right.Attribute;
-                                    }
-                                    else if (right.returns[0] == RelyKernel.REAL4_TYPE)
-                                    {
-                                        if (right.TryEvaluation(out Real4 value)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
-                                        else right = new Real3ToReal4Expression(right.anchor, right);
-                                        expressionStack.Push(right);
-                                        return right.Attribute;
-                                    }
-                                }
-                                else if (typeExpression.type == RelyKernel.REAL4_TYPE)
-                                {
-                                    if (right.returns[0] == RelyKernel.REAL2_TYPE)
-                                    {
-                                        if (right.TryEvaluation(out Real2 value)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
-                                        else right = new Real4ToReal2Expression(right.anchor, right);
-                                        expressionStack.Push(right);
-                                        return right.Attribute;
-                                    }
-                                    else if (right.returns[0] == RelyKernel.REAL3_TYPE)
-                                    {
-                                        if (right.TryEvaluation(out Real3 value)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
-                                        else right = new Real4ToReal3Expression(right.anchor, right);
-                                        expressionStack.Push(right);
-                                        return right.Attribute;
-                                    }
-                                }
-                                else if (typeExpression.type.IsHandle && right.returns[0].IsHandle)
-                                {
-                                    var castExpression = new CastHandleExpression(anchor, right, typeExpression.type);
-                                    expressionStack.Push(castExpression);
-                                    return castExpression.Attribute;
+                                    if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, (real)value);
+                                    else right = new IntegerToRealExpression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
                                 }
                             }
-                            else throw ExceptionGeneratorCompiler.Unknown();
+                            else if (typeExpression.type == RelyKernel.REAL2_TYPE)
+                            {
+                                if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                                {
+                                    if (right.TryEvaluation(out Real3 value)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
+                                    else right = new Real2ToReal3Expression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                                else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                                {
+                                    if (right.TryEvaluation(out Real4 value)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
+                                    else right = new Real2ToReal4Expression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                            }
+                            else if (typeExpression.type == RelyKernel.REAL3_TYPE)
+                            {
+                                if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                                {
+                                    if (right.TryEvaluation(out Real2 value)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
+                                    else right = new Real3ToReal2Expression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                                else if (right.returns[0] == RelyKernel.REAL4_TYPE)
+                                {
+                                    if (right.TryEvaluation(out Real4 value)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
+                                    else right = new Real3ToReal4Expression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                            }
+                            else if (typeExpression.type == RelyKernel.REAL4_TYPE)
+                            {
+                                if (right.returns[0] == RelyKernel.REAL2_TYPE)
+                                {
+                                    if (right.TryEvaluation(out Real2 value)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
+                                    else right = new Real4ToReal2Expression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                                else if (right.returns[0] == RelyKernel.REAL3_TYPE)
+                                {
+                                    if (right.TryEvaluation(out Real3 value)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
+                                    else right = new Real4ToReal3Expression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                            }
+                            else if (typeExpression.type.IsHandle && right.returns[0].IsHandle)
+                            {
+                                var castExpression = new CastHandleExpression(anchor, right, typeExpression.type);
+                                expressionStack.Push(castExpression);
+                                return castExpression.Attribute;
+                            }
                         }
                         goto default;
                     }
@@ -4005,7 +4003,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         case DeclarationCode.NativeFunction:
                                         case DeclarationCode.Lambda: goto default;
                                         case DeclarationCode.LocalVariable:
-                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
+                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
                                                 var expression = new VariableLocalExpression(lexical.anchor, declaration, TokenAttribute.Assignable | TokenAttribute.Value, GetVariableType(declaration));
                                                 expressionStack.Push(expression);

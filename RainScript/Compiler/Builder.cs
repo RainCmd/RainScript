@@ -241,7 +241,7 @@ namespace RainScript.Compiler
             for (int i = 0; i < definitions.Length; i++)
             {
                 var definition = library.definitions[i];
-                var parent = relied.Convert(new CompilingDefinition(definition.declaration)).RuntimeDefinition;
+                var parent = relied.Convert(manager.GetParent(new CompilingDefinition(definition.declaration))).RuntimeDefinition;
                 var inherits = new TypeDefinition[definition.inherits.Count];
                 for (int index = 0; index < inherits.Length; index++) inherits[index] = relied.Convert(definition.inherits[index]).RuntimeDefinition;
                 var memberVariables = new Type[definition.variables.Length];
