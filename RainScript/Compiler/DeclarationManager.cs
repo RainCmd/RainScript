@@ -30,15 +30,16 @@ namespace RainScript.Compiler
         }
         public bool TryGetDefinition(CompilingDefinition definition, out IDefinition result)
         {
-            if (definition.library == LIBRARY.KERNEL)
+            if (definition.code == TypeCode.Handle)
             {
-                result = RelyKernel.definitions[definition.index];
+                if (definition.library == LIBRARY.KERNEL) result = RelyKernel.definitions[(int)definition.index];
+                else if (definition.library == LIBRARY.SELF) result = library.definitions[(int)definition.index];
+                else result = relies[definition.library].definitions[definition.index];
                 return true;
             }
-            else if (definition.code == TypeCode.Handle)
+            else if (definition.code != TypeCode.Invalid)
             {
-                if (definition.library == LIBRARY.SELF) result = library.definitions[(int)definition.index];
-                else result = relies[definition.library].definitions[definition.index];
+                result = RelyKernel.definitions[(int)definition.code];
                 return true;
             }
             result = default;

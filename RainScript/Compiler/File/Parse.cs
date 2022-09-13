@@ -636,6 +636,7 @@ namespace RainScript.Compiler.File
                         return true;
                     }
                 }
+                type.Dispose();
             }
 
             name = default;
@@ -645,7 +646,6 @@ namespace RainScript.Compiler.File
         }
         private bool TryParseFunction(ListSegment<Lexical> lexicals, int start, out int index, out Anchor name, out ScopeList<Parameter> paraemters, out ScopeList<Type> returns, CollectionPool pool)
         {
-            //todo 函数定义的解析需要重写
             paraemters = null;
             returns = pool.GetList<Type>();
             if (Lexical.TryExtractName(lexicals, start, out index, out var nameList, pool))
@@ -675,6 +675,7 @@ namespace RainScript.Compiler.File
                     }
                     else
                     {
+                        index--;
                         returns.Add(new Type(nameList, Lexical.ExtractDimension(lexicals, ref index)));
                         while (++index < lexicals.Count)
                         {
@@ -697,6 +698,7 @@ namespace RainScript.Compiler.File
                         foreach (var item in returns) item.Dispose();
                     }
                 }
+                else nameList.Dispose();
             }
             index = default;
             name = default;
@@ -707,7 +709,7 @@ namespace RainScript.Compiler.File
         private bool TryParseParameters(ListSegment<Lexical> lexicals, int start, out int index, out ScopeList<Parameter> parameters, CollectionPool pool)
         {
             index = start;
-            if (lexicals[index].type == LexicalType.BracketLeft0)
+            if (start < lexicals.Count && lexicals[index].type == LexicalType.BracketLeft0)
             {
                 parameters = pool.GetList<Parameter>();
                 if (index + 1 < lexicals.Count && lexicals[index + 1].type == LexicalType.BracketRight0)

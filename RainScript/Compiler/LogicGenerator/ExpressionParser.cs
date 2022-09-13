@@ -640,489 +640,551 @@ namespace RainScript.Compiler.LogicGenerator
         {
             if (assignmentIndex > 0 && assignmentIndex < lexicals.Count - 1)
             {
-                if (TryParse(lexicals[0, assignmentIndex - 1], out var left) && TryParse(lexicals[assignmentIndex + 1, -1], out var right))
+                if (TryParseTuple(lexicals[0, assignmentIndex - 1], out var leftTuple) && TryParseTuple(lexicals[assignmentIndex + 1, -1], out var rightTuple))
                 {
-                    if (left.Attribute.ContainAny(TokenAttribute.Assignable))
+                    var attribute = TokenAttribute.Assignable;
+                    foreach (var item in leftTuple) attribute &= item.Attribute;
+                    if (attribute.ContainAny(TokenAttribute.Assignable))
                     {
                         var assignment = lexicals[assignmentIndex];
-                        if (left.returns.Length > 1 && left.returns.Length == right.returns.Length)
+                        var leftReturnCount = 0;
+                        for (int i = 0, ri = 0, rti = 0; i < leftTuple.Length; i++)
                         {
-                            if (assignment.type == LexicalType.Assignment && TryAssignmentConvert(right, left.returns, out right, out _))
+                            if (leftTuple[i] is BlurryVariableDeclarationExpression)
                             {
-                                result = new TupleAssignmentExpression(assignment.anchor, left, right, left.returns);
-                                return true;
-                            }
-                            else exceptions.Add(lexicals[0, assignmentIndex - 1], CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
-                        }
-                        else if (left.returns.Length == 1 || right.returns.Length == 1)
-                        {
-                            var lrt = left.returns[0];
-                            var rrt = right.returns[0];
-                            switch (assignment.type)
-                            {
-                                case LexicalType.Assignment:
-                                    if (TryAssignmentConvert(right, left.returns[0], out right, out _))
+                                while (ri < rightTuple.Length)
+                                    if (rti < rightTuple[ri].returns.Length) break;
+                                    else
                                     {
-                                        if (left is BlurryVariableDeclarationExpression) left = new VariableLocalExpression(localContext.AddLocal(left.anchor, right.returns[0]), TokenAttribute.Assignable);
-                                        result = new VariableAssignmentExpression(assignment.anchor, left, right, left.returns[0]);
-                                        return true;
+                                        rti = 0;
+                                        ri++;
                                     }
+                                if (ri < rightTuple.Length)
+                                {
+                                    var rt = rightTuple[ri].returns[rti];
+                                    if (rt != RelyKernel.NULL_TYPE && rt != RelyKernel.BLURRY_TYPE) leftTuple[i] = new VariableLocalExpression(localContext.AddLocal(leftTuple[i].anchor, rt), TokenAttribute.Assignable);
+                                    else
+                                    {
+                                        exceptions.Add(leftTuple[i].anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
+                                        result = default;
+                                        return false;
+                                    }
+                                }
+                            }
+                            leftReturnCount += leftTuple[i].returns.Length;
+                            var lrc = leftTuple[i].returns.Length;
+                            while (lrc-- > 0)
+                            {
+                                while (ri < rightTuple.Length)
+                                    if (rti < rightTuple[ri].returns.Length)
+                                    {
+                                        rti++;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        rti = 0;
+                                        ri++;
+                                    }
+                                if (ri >= rightTuple.Length)
+                                {
                                     exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                #region 运算
-                                case LexicalType.BitAndAssignment:
-                                    if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_And, left, right, RelyKernel.BOOL_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.BitOrAssignment:
-                                    if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_Or, left, right, RelyKernel.BOOL_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.BitXorAssignment:
-                                    if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_Xor, left, right, RelyKernel.BOOL_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.ShiftLeftAssignment:
-                                    if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.ShiftRightAssignment:
-                                    if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.PlusAssignment:
-                                    if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    else if (lrt == RelyKernel.REAL_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.INTEGER_TYPE)
-                                        {
-                                            right = new IntegerToRealExpression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL2_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new Real3ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Plus, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL3_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new Real2ToReal3Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL3_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal3Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL3_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Plus, left, right, RelyKernel.REAL3_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL4_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new Real2ToReal4Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL4_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new Real3ToReal4Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL4_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Plus, left, right, RelyKernel.REAL4_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.STRING_TYPE && rrt == RelyKernel.STRING_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.MinusAssignment:
-                                    if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    else if (lrt == RelyKernel.REAL_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.INTEGER_TYPE)
-                                        {
-                                            right = new IntegerToRealExpression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL2_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new Real3ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Minus, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL3_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new Real2ToReal3Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL3_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal3Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL3_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Minus, left, right, RelyKernel.REAL3_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL4_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new Real2ToReal4Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL4_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new Real3ToReal4Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL4_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Minus, left, right, RelyKernel.REAL4_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.MulAssignment:
-                                    if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    else if (lrt == RelyKernel.REAL_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.INTEGER_TYPE)
-                                        {
-                                            right = new IntegerToRealExpression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL2_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new Real3ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vv, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL3_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new Real2ToReal3Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL3_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal3Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL3_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vv, left, right, RelyKernel.REAL3_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL4_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new Real2ToReal4Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL4_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new Real3ToReal4Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL4_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vv, left, right, RelyKernel.REAL4_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.DivAssignment:
-                                    if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    else if (lrt == RelyKernel.REAL_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.INTEGER_TYPE)
-                                        {
-                                            right = new IntegerToRealExpression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL2_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new Real3ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vv, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL3_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal3Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL3_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vv, left, right, RelyKernel.REAL3_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL4_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vv, left, right, RelyKernel.REAL4_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                case LexicalType.ModAssignment:
-                                    if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                    {
-                                        right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
-                                        goto case LexicalType.Assignment;
-                                    }
-                                    else if (lrt == RelyKernel.REAL_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.INTEGER_TYPE)
-                                        {
-                                            right = new IntegerToRealExpression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL2_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new Real3ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal2Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL2_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL2_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vv, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL3_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        else if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new Real4ToReal3Expression(right.anchor, right);
-                                            rrt = RelyKernel.REAL3_TYPE;
-                                        }
-                                        if (rrt == RelyKernel.REAL3_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vv, left, right, RelyKernel.REAL3_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    else if (lrt == RelyKernel.REAL4_TYPE)
-                                    {
-                                        if (rrt == RelyKernel.REAL_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        if (rrt == RelyKernel.REAL4_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vv, left, right, RelyKernel.REAL4_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                    }
-                                    exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                                    break;
-                                #endregion
-                                default: throw ExceptionGeneratorCompiler.InvalidLexicalType(assignment.type);
+                                    result = default;
+                                    return false;
+                                }
                             }
+                        }
+                        var rightReturnCount = 0;
+                        foreach (var item in rightTuple) rightReturnCount += item.returns.Length;
+                        if (leftReturnCount == rightReturnCount)
+                        {
+                            if (leftReturnCount == 1)
+                            {
+                                var left = TupleExpression.Combine(leftTuple);
+                                var right = TupleExpression.Combine(rightTuple);
+                                var lrt = left.returns[0];
+                                var rrt = right.returns[0];
+                                switch (assignment.type)
+                                {
+                                    case LexicalType.Assignment:
+                                        if (TryAssignmentConvert(right, left.returns[0], out right, out _))
+                                        {
+                                            if (left is BlurryVariableDeclarationExpression) left = new VariableLocalExpression(localContext.AddLocal(left.anchor, right.returns[0]), TokenAttribute.Assignable);
+                                            result = new VariableAssignmentExpression(assignment.anchor, left, right, left.returns[0]);
+                                            return true;
+                                        }
+                                        exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    #region 运算
+                                    case LexicalType.BitAndAssignment:
+                                        if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_And, left, right, RelyKernel.BOOL_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.BitOrAssignment:
+                                        if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_Or, left, right, RelyKernel.BOOL_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.BitXorAssignment:
+                                        if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_Xor, left, right, RelyKernel.BOOL_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.ShiftLeftAssignment:
+                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.ShiftRightAssignment:
+                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.PlusAssignment:
+                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        else if (lrt == RelyKernel.REAL_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL2_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new Real3ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Plus, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL3_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new Real2ToReal3Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL3_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal3Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL3_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Plus, left, right, RelyKernel.REAL3_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL4_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new Real2ToReal4Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL4_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new Real3ToReal4Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL4_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Plus, left, right, RelyKernel.REAL4_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.STRING_TYPE && rrt == RelyKernel.STRING_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.MinusAssignment:
+                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        else if (lrt == RelyKernel.REAL_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL2_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new Real3ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Minus, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL3_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new Real2ToReal3Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL3_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal3Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL3_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Minus, left, right, RelyKernel.REAL3_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL4_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new Real2ToReal4Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL4_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new Real3ToReal4Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL4_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Minus, left, right, RelyKernel.REAL4_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.MulAssignment:
+                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        else if (lrt == RelyKernel.REAL_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL2_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new Real3ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vv, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL3_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new Real2ToReal3Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL3_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal3Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL3_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vv, left, right, RelyKernel.REAL3_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL4_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new Real2ToReal4Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL4_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new Real3ToReal4Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL4_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vv, left, right, RelyKernel.REAL4_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.DivAssignment:
+                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        else if (lrt == RelyKernel.REAL_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL2_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new Real3ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vv, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL3_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal3Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL3_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vv, left, right, RelyKernel.REAL3_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL4_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vv, left, right, RelyKernel.REAL4_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    case LexicalType.ModAssignment:
+                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        {
+                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                                            goto case LexicalType.Assignment;
+                                        }
+                                        else if (lrt == RelyKernel.REAL_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL2_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new Real3ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal2Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL2_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL2_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vv, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL3_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            else if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new Real4ToReal3Expression(right.anchor, right);
+                                                rrt = RelyKernel.REAL3_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.REAL3_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vv, left, right, RelyKernel.REAL3_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        else if (lrt == RelyKernel.REAL4_TYPE)
+                                        {
+                                            if (rrt == RelyKernel.REAL_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                            if (rrt == RelyKernel.REAL4_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vv, left, right, RelyKernel.REAL4_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
+                                        }
+                                        exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        break;
+                                    #endregion
+                                    default: throw ExceptionGeneratorCompiler.InvalidLexicalType(assignment.type);
+                                }
+                            }
+                            else if (assignment.type == LexicalType.Assignment)
+                            {
+                                var leftReturns = new CompilingType[leftReturnCount];
+                                var leftReturnIndex = 0;
+                                foreach (var expression in leftTuple)
+                                    foreach (var returnType in expression.returns)
+                                        leftReturns[leftReturnIndex++] = returnType;
+                                if (TryAssignmentConvert(rightTuple, leftReturns, out var right, out _))
+                                {
+                                    result = new TupleAssignmentExpression(assignment.anchor, TupleExpression.Combine(leftTuple), right, leftReturns);
+                                    return true;
+                                }
+                                else exceptions.Add(lexicals[0, assignmentIndex - 1], CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
+                            }
+                            else exceptions.Add(assignment.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                         }
                         else exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                     }

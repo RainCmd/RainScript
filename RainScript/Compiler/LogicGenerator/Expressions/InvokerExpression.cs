@@ -348,6 +348,7 @@
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
             parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
+            parameter.generator.WriteCode(targetParameter.results[0]);
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }
@@ -414,6 +415,7 @@
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
             parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
+            parameter.generator.WriteCode(targetParameter.results[0]);
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }

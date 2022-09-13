@@ -39,7 +39,7 @@
                 if (returns[i].IsHandle) parameter.generator.WriteCode(TypeCode.Handle);
                 else parameter.generator.WriteCode(returns[i].definition.code);
                 parameter.generator.WriteCode(parameter.results[i]);
-                parameter.generator.WriteCode(indices[i]);
+                parameter.generator.WriteCode((int)indices[i]);
             }
         }
     }

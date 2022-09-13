@@ -99,6 +99,7 @@ namespace RainScript.VirtualMachine
         }
         internal bool TryGetInheritDepth(TypeDefinition baseDefinition, TypeDefinition subDefinition, out uint depth)
         {
+            if (baseDefinition.library == LIBRARY.KERNEL) baseDefinition = new TypeDefinition(LIBRARY.KERNEL, (TypeCode)baseDefinition.index, baseDefinition.index);
             if (baseDefinition == subDefinition)
             {
                 depth = 0;
@@ -232,20 +233,23 @@ namespace RainScript.VirtualMachine
             {
                 var characteristic = GetFunctionCharacteristic(function);
                 var definition = this[type.definition.library].definitions[type.definition.index];
-                foreach (var method in definition.methods)
+                for (uint index = 0; index < definition.methods.Length; index++)
+                {
+                    var method = definition.methods[index];
                     for (uint i = 0; i < method.characteristic.Length; i++)
                         if (method.characteristic[i] == characteristic)
                         {
-                            targetFunction = new DefinitionFunction(type.definition, new Function(method.method, i));
+                            targetFunction = new DefinitionFunction(type.definition, new Function(index, i));
                             return true;
                         }
+                }
             }
             targetFunction = default;
             return false;
         }
         internal FunctionHandle GetFunctionHandle(DefinitionFunction function)
         {
-            if (function.definition.code != TypeCode.Handle) throw ExceptionGenerator.InvalidTypeCode(function.definition.code);
+            if (function.definition.code != TypeCode.Handle && function.definition.library != LIBRARY.KERNEL) throw ExceptionGenerator.InvalidTypeCode(function.definition.code);
             var library = this[function.definition.library];
             return library.GetFunctionHandle(new Function(library.definitions[function.definition.index].methods[function.funtion.method].method, function.funtion.index));
         }

@@ -449,7 +449,7 @@ namespace RainScript.VirtualMachine
                                 flag = (long)ExitCode.CoroutineNotCompleted;
                                 goto case CommandMacro.BASE_Exit;
                             }
-                            var resultCount = *(int*)(stack + bottom + *(uint*)(library.code + point + 5));
+                            var resultCount = *(uint*)(library.code + point + 5);
                             point += 9;
                             for (var i = 0; i < resultCount; i++, point += 9)
                             {
