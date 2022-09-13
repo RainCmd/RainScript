@@ -457,7 +457,11 @@ namespace RainScript.Compiler.LogicGenerator
                             if (stack.Count > 0)
                             {
                                 var breacket = stack.Pop();
-                                if (breacket.type == LexicalType.BracketLeft0 || breacket.type == LexicalType.QuestionInvoke) break;
+                                if (breacket.type == LexicalType.BracketLeft0 || breacket.type == LexicalType.QuestionInvoke)
+                                {
+                                    if (flag.ContainAny(SplitFlag.Bracket0)) return true;
+                                    break;
+                                }
                                 else
                                 {
                                     exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
@@ -465,7 +469,6 @@ namespace RainScript.Compiler.LogicGenerator
                                     return false;
                                 }
                             }
-                            else if (flag.ContainAny(SplitFlag.Bracket0)) return true;
                             exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             return false;
                         case LexicalType.BracketRight1:

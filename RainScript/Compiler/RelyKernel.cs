@@ -106,7 +106,9 @@
                 var declaration = new Declaration(LIBRARY.KERNEL, Visibility.Public, DeclarationCode.GlobalMethod, methodIndex, 0, 0);
                 methods[methodIndex++] = new RelyMethod(method.name, declaration, kernel, functions);
             }
-            foreach (var item in methods) kernel.declarations.Add(item.name, item.declaration);
+            foreach (var item in methods)
+                if (item.declaration.code == DeclarationCode.GlobalMethod)
+                    kernel.declarations.Add(item.name, item.declaration);
         }
     }
 }
