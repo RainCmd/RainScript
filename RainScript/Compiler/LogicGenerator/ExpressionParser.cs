@@ -3280,7 +3280,8 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             else if (declaration.code == DeclarationCode.MemberMethod || declaration.code == DeclarationCode.InterfaceMethod)
                                             {
-                                                expression = new MethodVirtualExpression(lexical.anchor, expression, declaration);
+                                                if (type.IsHandle) expression = new MethodVirtualExpression(lexical.anchor, expression, declaration);
+                                                else expression = new MethodMemberExpression(lexical.anchor, expression, declaration);
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
                                                 break;
@@ -3320,7 +3321,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         if (type.dimension > 0) type = RelyKernel.ARRAY_TYPE;
                                         if (context.TryFindMemberDeclarartion(manager, lexical.anchor, type.definition, out var declaration, pool))
                                         {
-                                            if (declaration.code == DeclarationCode.MemberVariable)
+                                            if (!type.IsHandle)
+                                            {
+                                                exceptions.Add(expression.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                                goto parse_fail;
+                                            }
+                                            else if (declaration.code == DeclarationCode.MemberVariable)
                                             {
                                                 expression = new VariableQuestionMemberExpression(lexical.anchor, declaration, expression, GetVariableType(declaration));
                                                 expressionStack.Push(expression);
