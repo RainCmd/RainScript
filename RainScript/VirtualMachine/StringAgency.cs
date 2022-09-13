@@ -22,6 +22,10 @@ namespace RainScript.VirtualMachine
             public string value;
             public uint refernce;
             public uint next;
+            public override string ToString()
+            {
+                return "{0} {1} {2}".Format(refernce, next, value);
+            }
         }
         private uint[] buckets;
         private uint slotTop, freeSlot;
@@ -50,7 +54,7 @@ namespace RainScript.VirtualMachine
         public uint Add(string value)
         {
             if (string.IsNullOrEmpty(value)) return 0;
-            var bidx = value.GetHashCode() % buckets.Length;
+            var bidx = (uint)value.GetHashCode() % buckets.Length;
             var sidx = buckets[bidx];
             while (sidx > 0)
             {
@@ -62,8 +66,6 @@ namespace RainScript.VirtualMachine
             {
                 sidx = freeSlot;
                 freeSlot = slots[sidx].next;
-                slots[sidx].next = buckets[bidx];
-                buckets[bidx] = sidx;
             }
             else
             {
@@ -93,7 +95,7 @@ namespace RainScript.VirtualMachine
                 slots[value].refernce--;
                 if (slots[value].refernce == 0)
                 {
-                    var idx = slots[value].value.GetHashCode() % buckets.Length;
+                    var idx = (uint)slots[value].value.GetHashCode() % buckets.Length;
                     if (buckets[idx] == value) buckets[idx] = slots[value].next;
                     else
                     {

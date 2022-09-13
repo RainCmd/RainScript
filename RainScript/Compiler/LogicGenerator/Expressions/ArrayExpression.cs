@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RainScript.Compiler.LogicGenerator.Expressions
+﻿namespace RainScript.Compiler.LogicGenerator.Expressions
 {
     internal class ArrayCreateExpression : Expression
     {

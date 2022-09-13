@@ -459,7 +459,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 var breacket = stack.Pop();
                                 if (breacket.type == LexicalType.BracketLeft0 || breacket.type == LexicalType.QuestionInvoke)
                                 {
-                                    if (flag.ContainAny(SplitFlag.Bracket0)) return true;
+                                    if (flag.ContainAny(SplitFlag.Bracket0) && stack.Count == 0) return true;
                                     break;
                                 }
                                 else
@@ -477,7 +477,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 var breacket = stack.Pop();
                                 if (breacket.type == LexicalType.BracketLeft1)
                                 {
-                                    if (flag.ContainAny(SplitFlag.Bracket1)) return true;
+                                    if (flag.ContainAny(SplitFlag.Bracket1) && stack.Count == 0) return true;
                                     break;
                                 }
                                 else
@@ -3905,6 +3905,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (TrySub(lexicals[index + 1, -1], SplitFlag.Bracket0, out var coroutineEnd))
                                             {
+                                                coroutineEnd += index + 1;
                                                 if (TryParse(lexicals[index + 1, coroutineEnd], out var invoker))
                                                 {
                                                     var expression = new BlurryCoroutineExpression(lexical.anchor, invoker);

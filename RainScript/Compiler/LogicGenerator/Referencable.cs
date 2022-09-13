@@ -22,7 +22,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         internal void AddReference(Generator generator)
         {
-            if (assigned) generator.WriteCode(value);
+            if (assigned) generator.WriteCode(4, value);
             else references.Add(generator.AllocationCode(4));
         }
         public void SetValue(Generator generator, T value)

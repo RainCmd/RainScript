@@ -101,7 +101,7 @@
                 invokerDelegate.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegateCoroutine);
                 parameter.generator.WriteCode(parameter.results[0]);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
                 parameter.generator.WriteCode(invokerParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
             }
@@ -117,7 +117,7 @@
                 invokerQuestionDelegate.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegateCoroutine);
                 parameter.generator.WriteCode(parameter.results[0]);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
                 parameter.generator.WriteCode(invokerParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
                 parameter.generator.SetCodeAddress(address);
@@ -129,7 +129,8 @@
                 var parameterParameter = new GeneratorParameter(parameter, invokerGlobal.parameter.returns.Length);
                 invokerGlobal.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateCoroutine);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE);
+                parameter.generator.WriteCode(parameter.results[0]);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
                 parameter.generator.WriteCode(FunctionType.Global);
                 var function = parameter.relied.Convert(invokerGlobal.declaration);
                 parameter.generator.WriteCode(function.library);
@@ -143,7 +144,8 @@
                 var parameterParameter = new GeneratorParameter(parameter, invokerMember.parameter.returns.Length);
                 invokerMember.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateCoroutine);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE);
+                parameter.generator.WriteCode(parameter.results[0]);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
                 parameter.generator.WriteCode(FunctionType.Member);
                 var function = parameter.relied.Convert(invokerMember.declaration);
                 parameter.generator.WriteCode(function.library);
@@ -158,13 +160,14 @@
                 var parameterParameter = new GeneratorParameter(parameter, invokerVirtual.parameter.returns.Length);
                 invokerVirtual.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateCoroutine);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE);
-                parameter.generator.WriteCode(FunctionType.Virtual);
+                parameter.generator.WriteCode(parameter.results[0]);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
+                if (invokerVirtual.declaration.code == DeclarationCode.MemberFunction) parameter.generator.WriteCode(FunctionType.Virtual);
+                else if (invokerVirtual.declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(FunctionType.Interface);
+                else throw ExceptionGeneratorCompiler.Unknown();
                 var function = parameter.relied.Convert(invokerVirtual.declaration);
                 parameter.generator.WriteCode(function.library);
-                if (invokerVirtual.declaration.code == DeclarationCode.MemberFunction) parameter.generator.WriteCode(function.definitionIndex);
-                else if (invokerVirtual.declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(function.definitionIndex);
-                else throw ExceptionGeneratorCompiler.Unknown();
+                parameter.generator.WriteCode(function.definitionIndex);
                 parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
                 parameter.generator.WriteCode(targetParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
@@ -180,13 +183,14 @@
                 var parameterParameter = new GeneratorParameter(parameter, invokerQuestionMember.parameter.returns.Length);
                 invokerQuestionMember.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateCoroutine);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE);
-                parameter.generator.WriteCode(FunctionType.Virtual);
+                parameter.generator.WriteCode(parameter.results[0]);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
+                if (invokerQuestionMember.declaration.code == DeclarationCode.MemberFunction) parameter.generator.WriteCode(FunctionType.Virtual);
+                else if (invokerQuestionMember.declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(FunctionType.Interface);
+                else throw ExceptionGeneratorCompiler.Unknown();
                 var function = parameter.relied.Convert(invokerQuestionMember.declaration);
                 parameter.generator.WriteCode(function.library);
-                if (invokerQuestionMember.declaration.code == DeclarationCode.MemberFunction) parameter.generator.WriteCode(function.definitionIndex);
-                else if (invokerQuestionMember.declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(function.definitionIndex);
-                else throw ExceptionGeneratorCompiler.Unknown();
+                parameter.generator.WriteCode(function.definitionIndex);
                 parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
                 parameter.generator.WriteCode(targetParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
@@ -202,8 +206,8 @@
             parameter.generator.WriteCode(parameter.results.Length);
             foreach (var variable in parameter.results)
             {
-                if(variable.type.IsHandle) parameter.generator.WriteCode((byte)TypeCode.Handle);
-                else parameter.generator.WriteCode((byte)variable.type.definition.code);
+                if (variable.type.IsHandle) parameter.generator.WriteCode(TypeCode.Handle);
+                else parameter.generator.WriteCode(variable.type.definition.code);
                 parameter.generator.WriteCode(variable);
             }
         }

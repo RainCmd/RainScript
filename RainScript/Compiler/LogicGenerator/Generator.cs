@@ -1,4 +1,11 @@
-﻿namespace RainScript.Compiler.LogicGenerator
+﻿using RainScript.Vector;
+#if FIXED
+using real = RainScript.Real.Fixed;
+#else
+using real = System.Double;
+#endif
+
+namespace RainScript.Compiler.LogicGenerator
 {
     internal struct GeneratorParameter
     {
@@ -49,15 +56,71 @@
             *(T*)(code + codeTop) = value;
             codeTop += size;
         }
+        public void WriteCode(bool value)
+        {
+            WriteCode(1, value);
+        }
+        public void WriteCode(int value)
+        {
+            WriteCode(4, value);
+        }
+        public void WriteCode(uint value)
+        {
+            WriteCode(4, value);
+        }
+        public void WriteCode(long value)
+        {
+            WriteCode(8, value);
+        }
+        public void WriteCode(real value)
+        {
+            WriteCode(8, value);
+        }
+        public void WriteCode(Real2 value)
+        {
+            WriteCode(16, value);
+        }
+        public void WriteCode(Real3 value)
+        {
+            WriteCode(24, value);
+        }
+        public void WriteCode(Real4 value)
+        {
+            WriteCode(32, value);
+        }
+        public void WriteCode(TypeDefinition definition)
+        {
+            WriteCode(9, definition);
+        }
+        public void WriteCode(Type type)
+        {
+            WriteCode(13, type);
+        }
+        public void WriteCode(CommandMacro command)
+        {
+            WriteCode(1, command);
+        }
+        public void WriteCode(Function function)
+        {
+            WriteCode(8, function);
+        }
+        public void WriteCode(MemberVariable variable)
+        {
+            WriteCode(8, variable);
+        }
+        public void WriteCode(FunctionType type)
+        {
+            WriteCode(1, type);
+        }
+        public void WriteCode(TypeCode type)
+        {
+            WriteCode(1, type);
+        }
         public void WriteCode<T>(uint size, T value, uint point) where T : unmanaged
         {
             var temp = stackalloc byte[sizeof(T)];
             *(T*)temp = value;
             while (size-- > 0) code[point + size] = temp[size];
-        }
-        public void WriteCode<T>(T value) where T : unmanaged
-        {
-            WriteCode((uint)sizeof(T), value);
         }
         public void WriteCode<T>(T value, uint point) where T : unmanaged
         {

@@ -672,7 +672,7 @@ namespace RainScript.VirtualMachine
                     case CommandMacro.FUNCTION_Call://[1,4]library [5,12]Function
                         {
                             bottom = top;
-                            library.LocalToGlobal(*(uint*)(library.code + point + 1), *(Function*)(library.code + point + 4), out var globalLibrary, out var globalFunction);
+                            library.LocalToGlobal(*(uint*)(library.code + point + 1), *(Function*)(library.code + point + 5), out var globalLibrary, out var globalFunction);
                             library = kernel.libraryAgency[globalLibrary];
                             point = library.GetFunctionHandle(globalFunction).entry;
                         }

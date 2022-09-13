@@ -44,7 +44,6 @@
             {
                 var expressionParameter = new Expressions.GeneratorParameter(parameter, expression.returns.Length);
                 expression.Generator(expressionParameter);
-                expressionParameter.CheckResult(expression.anchor, expression.returns);
             }
         }
     }

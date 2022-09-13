@@ -72,7 +72,7 @@
         }
         public override string ToString()
         {
-            return "{0}\t{1}".Format(type, anchor.Segment);
+            return "{0}    {1}    ".Format(type.ToString().PadRight(24), anchor.Segment);
         }
         public static bool TryAnalysis(ScopeList<Lexical> list, TextInfo text, StringSegment segment, ExceptionCollector exceptions)
         {

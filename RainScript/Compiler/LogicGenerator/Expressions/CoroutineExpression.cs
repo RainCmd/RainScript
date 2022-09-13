@@ -36,7 +36,7 @@
             parameter.generator.WriteCode(indices.Length);
             for (int i = 0; i < indices.Length; i++)
             {
-                if (returns[i].IsHandle) parameter.generator.WriteCode((byte)TypeCode.Handle);
+                if (returns[i].IsHandle) parameter.generator.WriteCode(TypeCode.Handle);
                 else parameter.generator.WriteCode(returns[i].definition.code);
                 parameter.generator.WriteCode(parameter.results[i]);
                 parameter.generator.WriteCode(indices[i]);
