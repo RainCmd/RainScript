@@ -31,7 +31,7 @@ namespace RainScript.VirtualMachine
             parameterSize = 0u;
             for (int i = 0; i < function.parameters.Length; i++)
             {
-                parameterPoints[i] = returnSize;
+                parameterPoints[i] = parameterSize;
                 parameterSize += function.parameters[i].FieldSize;
             }
         }
