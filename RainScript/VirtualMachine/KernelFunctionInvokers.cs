@@ -124,7 +124,7 @@ namespace RainScript.VirtualMachine
                 localPoint += item.FieldSize;
             }
             var returnPosition = (uint)stream.Position;
-            stream.Write((byte)CommandMacro.FUNCTION_Return);
+            stream.WriteByte((byte)CommandMacro.FUNCTION_Return);
             stream.Seek(finallyPoint, SeekOrigin.Begin);
             stream.Write(returnPosition);
             stream.Seek(returnPosition + 1, SeekOrigin.Begin);
@@ -162,7 +162,7 @@ namespace RainScript.VirtualMachine
             var parameterPoint = PushParameter(stream, type, returnPoint);
             foreach (var item in info.parameters) parameterPoint = PushParameter(stream, item, parameterPoint);
 
-            stream.Write((byte)CommandMacro.FUNCTION_KernelMemberCall);
+            stream.WriteByte((byte)CommandMacro.FUNCTION_KernelMemberCall);
             stream.Write(method);
             stream.Write(function);
 
@@ -412,7 +412,7 @@ namespace RainScript.VirtualMachine
 
             foreach (var item in info.parameters) parameterPoint = PushParameter(stream, item, parameterPoint);
 
-            stream.Write((byte)CommandMacro.FUNCTION_KernelCall);
+            stream.WriteByte((byte)CommandMacro.FUNCTION_KernelCall);
             stream.Write(method);
             stream.Write(function);
 

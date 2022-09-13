@@ -1716,11 +1716,11 @@ namespace RainScript.VirtualMachine
                         point += 13;
                         break;
                     case CommandMacro.INTEGER_Increment:
-                        (*(long*)(stack + bottom + *(uint*)(library.code + point + 5)))++;
+                        (*(long*)(stack + bottom + *(uint*)(library.code + point + 1)))++;
                         point += 5;
                         break;
                     case CommandMacro.INTEGER_Decrement:
-                        (*(long*)(stack + bottom + *(uint*)(library.code + point + 5)))--;
+                        (*(long*)(stack + bottom + *(uint*)(library.code + point + 1)))--;
                         point += 5;
                         break;
                     #endregion Integer
