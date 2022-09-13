@@ -271,7 +271,8 @@
             }
             point = PushParameter(point, targetParameter.results[0], parameter.generator);
             foreach (var variable in parameterParameter.results) point = PushParameter(point, variable, parameter.generator);
-            parameter.generator.WriteCode(CommandMacro.FUNCTION_MemberCall);
+            if (declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(CommandMacro.FUNCTION_InterfaceCall);
+            else parameter.generator.WriteCode(CommandMacro.FUNCTION_MemberCall);
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
@@ -335,7 +336,8 @@
             }
             point = PushParameter(point, targetParameter.results[0], parameter.generator);
             foreach (var variable in parameterParameter.results) point = PushParameter(point, variable, parameter.generator);
-            parameter.generator.WriteCode(CommandMacro.FUNCTION_MemberVirtualCall);
+            if (declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(CommandMacro.FUNCTION_InterfaceCall);
+            else parameter.generator.WriteCode(CommandMacro.FUNCTION_MemberVirtualCall);
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
@@ -400,7 +402,8 @@
             }
             point = PushParameter(point, targetParameter.results[0], parameter.generator);
             foreach (var variable in parameterParameter.results) point = PushParameter(point, variable, parameter.generator);
-            parameter.generator.WriteCode(CommandMacro.FUNCTION_MemberVirtualCall);
+            if (declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(CommandMacro.FUNCTION_InterfaceCall);
+            else parameter.generator.WriteCode(CommandMacro.FUNCTION_MemberVirtualCall);
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);

@@ -54,8 +54,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             Array.Copy(right.returns, 0, returns, left.returns.Length, right.returns.Length);
             return new TupleExpression(new Anchor(left.anchor.textInfo, left.anchor.start, right.anchor.end), new Expression[] { left, right }, returns);
         }
-        public static TupleExpression Combine(params Expression[] expressions)
+        public static Expression Combine(params Expression[] expressions)
         {
+            if (expressions.Length == 0) return new TupleExpression(default, expressions, new CompilingType[0]);
+            if (expressions.Length == 1) return expressions[0];
             var count = 0;
             foreach (var item in expressions)
                 count += item.returns.Length;

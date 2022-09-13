@@ -217,7 +217,7 @@ namespace RainScript.Compiler
                 else if (declaration.code == DeclarationCode.MemberMethod) return RelyKernel.methods[RelyKernel.definitions[declaration.definitionIndex].methods[declaration.index]];
                 else if (declaration.code == DeclarationCode.GlobalMethod) return RelyKernel.methods[declaration.index];
             }
-            else if (declaration.library == LIBRARY.KERNEL)
+            else if (declaration.library == LIBRARY.SELF)
             {
                 if (declaration.code == DeclarationCode.Constructor) return library.methods[(int)declaration.index];
                 else if (declaration.code == DeclarationCode.MemberMethod) return library.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]];

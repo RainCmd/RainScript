@@ -170,7 +170,7 @@ namespace RainScript.Compiler.LogicGenerator
                 var expression = sources[index];
                 if (expression.returns.Length == 1)
                 {
-                    if (TryAssignmentConvert(expression, types[typeIndex], out expression, out var value))
+                    if (typeIndex < types.Length && TryAssignmentConvert(expression, types[typeIndex], out expression, out var value))
                     {
                         sources[index] = expression;
                         measure += value;
@@ -184,7 +184,7 @@ namespace RainScript.Compiler.LogicGenerator
                 }
                 else if (expression.returns.Length > 1)
                     for (int i = 0; i < expression.returns.Length; i++)
-                        if (!CanConvert(expression.returns[i], types[typeIndex++], out _, out _))
+                        if (!(typeIndex < types.Length && CanConvert(expression.returns[i], types[typeIndex++], out _, out _)))
                         {
                             result = default;
                             return false;
@@ -2753,7 +2753,7 @@ namespace RainScript.Compiler.LogicGenerator
                 for (int i = 0; i < method.FunctionCount; i++)
                 {
                     var index = method.GetFunction(i);
-                    if (context.IsVisible(manager, function.Declaration) && TryAssignmentConvert(expressions, index.Parameters, out var indexParameter, out var indexMeasure))
+                    if (context.IsVisible(manager, index.Declaration) && TryAssignmentConvert(expressions, index.Parameters, out var indexParameter, out var indexMeasure))
                     {
                         if (function == null || indexMeasure < measure)
                         {
@@ -2804,8 +2804,7 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (TryParseBracket(lexicals, SplitFlag.Bracket0, ref index, out var expressions))
                                 {
-                                    if (expressions.Length == 0) exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
-                                    else if (attribute.ContainAny(TokenAttribute.Method))
+                                    if (attribute.ContainAny(TokenAttribute.Method))
                                     {
                                         var methodExpression = expressionStack.Pop();
                                         if (methodExpression is MethodMemberExpression memberMethod)
@@ -2911,7 +2910,8 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
-                                        if (expressions.Length == 1 && expressions[0].Attribute.ContainAny(TokenAttribute.Type))
+                                        if (expressions.Length == 0) exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                        else if (expressions.Length == 1 && expressions[0].Attribute.ContainAny(TokenAttribute.Type))
                                         {
                                             expressionStack.Push(expressions[0]);
                                             attribute = expressions[0].Attribute;

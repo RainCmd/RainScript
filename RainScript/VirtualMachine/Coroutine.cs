@@ -26,6 +26,7 @@ namespace RainScript.VirtualMachine
             this.kernel = kernel;
             stackSize = 1024;
             stack = Tools.MAlloc((int)stackSize);
+            for (int i = 0; i < stackSize; i++) stack[i] = 0;
         }
         private void EnsureStackSize(uint hold, uint size)
         {
@@ -34,6 +35,8 @@ namespace RainScript.VirtualMachine
                 var nss = stackSize;
                 while (nss < size) nss <<= 1;
                 var ns = Tools.MAlloc((int)nss);
+                size = hold;
+                while (size < nss) ns[size++] = 0;
                 while (hold-- > 0) ns[hold] = stack[hold];
                 Tools.Free(stack);
                 stack = ns;
@@ -698,7 +701,7 @@ namespace RainScript.VirtualMachine
                             else throw ExceptionGeneratorVM.EntryNotFound(library.name, function);
                         }
                         break;
-                    case CommandMacro.FUNCTION_InterfaceCall://[1,4]library [5,16]InterfaceFunction [17,20]目标对象变量地址
+                    case CommandMacro.FUNCTION_InterfaceCall://[1,4]library [5,8]定义编号 [9,16]Function [17,20]目标对象变量地址
                         {
                             flag = (long)kernel.heapAgency.TryGetType(*(uint*)(stack + bottom + *(uint*)(library.code + point + 17)), out var type);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
@@ -726,7 +729,7 @@ namespace RainScript.VirtualMachine
                                     point = library.GetFunctionHandle(delegateInfo->function).entry;
                                     break;
                                 case FunctionType.Native:
-                                    kernel.libraryAgency[delegateInfo->library].NativeInvoker(delegateInfo->function, stack, bottom, top);
+                                    kernel.libraryAgency[delegateInfo->library].NativeInvoker(delegateInfo->function, stack, top);
                                     point += 5;
                                     break;
                                 case FunctionType.Member:
@@ -743,11 +746,11 @@ namespace RainScript.VirtualMachine
                     case CommandMacro.FUNCTION_NativeCall://[1,4]引用程序集编号 [5,12]Function
                         try
                         {
-                            kernel.libraryAgency[*(uint*)(library.code + point + 1)].NativeInvoker(*(Function*)(library.code + point + 5), stack, bottom, top);
+                            kernel.libraryAgency[library.LocalToGlobal(*(uint*)(library.code + point + 1))].NativeInvoker(*(Function*)(library.code + point + 5), stack, top);
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
-                            flag = (long)ExitCode.Unknown;
+                            flag = (long)ExitCode.NativeException;
                             goto case CommandMacro.BASE_Exit;
                         }
                         point += 13;
@@ -2384,7 +2387,7 @@ namespace RainScript.VirtualMachine
                         point += 17;
                         break;
                     case CommandMacro.HANDLE_CheckNull:
-                        if(!kernel.heapAgency.IsVaild(*(uint*)(stack + bottom + *(uint*)(library.code + point + 1))))
+                        if (!kernel.heapAgency.IsVaild(*(uint*)(stack + bottom + *(uint*)(library.code + point + 1))))
                         {
                             flag = (long)ExitCode.NullReference;
                             goto case CommandMacro.BASE_Exit;

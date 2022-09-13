@@ -225,7 +225,11 @@ namespace RainScript.Compiler.File
                         continue;
                     }
                 }
-                else native = new Compiling.Native((uint)manager.library.natives.Count, item.name.Segment, compiling);
+                else
+                {
+                    native = new Compiling.Native((uint)manager.library.natives.Count, item.name.Segment, compiling);
+                    manager.library.natives.Add(native);
+                }
                 declaration = new Compiler.Declaration(LIBRARY.SELF, item.visibility, DeclarationCode.NativeFunction, native.Declaration.index, (uint)native.Count, 0);
                 item.compiling = new Compiling.Delegate(item.name, declaration, compiling, item.returns.Count, item.parameters.Count);
                 native.AddFunction(item.compiling);

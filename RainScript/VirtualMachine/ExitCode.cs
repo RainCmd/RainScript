@@ -37,5 +37,9 @@
         /// 携程未完成
         /// </summary>
         CoroutineNotCompleted,
+        /// <summary>
+        /// 内部函数调用异常
+        /// </summary>
+        NativeException,
     }
 }

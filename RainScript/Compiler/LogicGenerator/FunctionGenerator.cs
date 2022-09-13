@@ -469,7 +469,7 @@ namespace RainScript.Compiler.LogicGenerator
                             else
                             {
                                 var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
-                                if (parser.TryParse(lexicals[1, -1], out var result))
+                                if (parser.TryParse(lexicals, out var result))
                                     statementStack.Peek().statements.Add(new ExpressionStatement(result));
                             }
                         }

@@ -94,7 +94,7 @@ namespace RainScript.VirtualMachine
                 coroutines = new Coroutine[(count << 1) - count + 1];
             }
             count = 0;
-            for (var index = head; index == null; index = index.next)
+            for (var index = head; index != null; index = index.next)
                 if (!index.pause) coroutines[count++] = index;
             for (var i = 0; i < count; i++)
             {

@@ -417,6 +417,12 @@ namespace RainScript.VirtualMachine
             else if (definition.code == TypeCode.Coroutine) return new TypeDefinition(import.library.index, TypeCode.Coroutine, import.coroutines[definition.index]);
             throw ExceptionGeneratorVM.MissingDefinition(name, import.library.name, definition.code);
         }
+        public uint LocalToGlobal(uint library)
+        {
+            if (library == LIBRARY.KERNEL) return library;
+            else if (library == LIBRARY.SELF) return index;
+            else return GetImportLibrary(library).library.index;
+        }
         public void LocalToGlobal(uint library, Function function, out uint globalLibrary, out Function globalFunction)
         {
             if (library == LIBRARY.KERNEL)
@@ -689,11 +695,11 @@ namespace RainScript.VirtualMachine
             }
             return imports[libraryIndex];
         }
-        public void NativeInvoker(Function native, byte* stack, uint bottom, uint top)
+        public void NativeInvoker(Function native, byte* stack, uint top)
         {
             if (performer == null) performer = kernel.performerLoader(name);
             if (natives[native.method].invokers[native.index] == null) natives[native.method].invokers[native.index] = new NativeInvoker(natives[native.method].name, natives[native.method].infos[native.index], performer);
-            natives[native.method].invokers[native.index].invoke(kernel, performer, stack, bottom, top);
+            natives[native.method].invokers[native.index].invoke(kernel, performer, stack, top);
         }
         public void Dispose()
         {
