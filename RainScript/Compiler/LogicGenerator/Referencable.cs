@@ -31,7 +31,7 @@ namespace RainScript.Compiler.LogicGenerator
             else
             {
                 this.value = value;
-                foreach (var reference in references) generator.WriteCode(value, reference);
+                foreach (var reference in references) generator.WriteCodeAt(value, reference);
                 references.Clear();
                 assigned = true;
             }

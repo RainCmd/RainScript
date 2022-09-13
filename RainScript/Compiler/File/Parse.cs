@@ -645,6 +645,7 @@ namespace RainScript.Compiler.File
         }
         private bool TryParseFunction(ListSegment<Lexical> lexicals, int start, out int index, out Anchor name, out ScopeList<Parameter> paraemters, out ScopeList<Type> returns, CollectionPool pool)
         {
+            //todo 函数定义的解析需要重写
             paraemters = null;
             returns = pool.GetList<Type>();
             if (Lexical.TryExtractName(lexicals, start, out index, out var nameList, pool))

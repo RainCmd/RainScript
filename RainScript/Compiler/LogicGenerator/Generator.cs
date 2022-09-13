@@ -122,7 +122,7 @@ namespace RainScript.Compiler.LogicGenerator
             *(T*)temp = value;
             while (size-- > 0) code[point + size] = temp[size];
         }
-        public void WriteCode<T>(T value, uint point) where T : unmanaged
+        public void WriteCodeAt<T>(T value, uint point) where T : unmanaged
         {
             WriteCode((uint)sizeof(T), value, point);
         }

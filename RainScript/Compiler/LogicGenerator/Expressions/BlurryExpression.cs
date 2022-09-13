@@ -101,7 +101,7 @@
                 invokerDelegate.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegateCoroutine);
                 parameter.generator.WriteCode(parameter.results[0]);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE.RuntimeDefinition);
                 parameter.generator.WriteCode(invokerParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
             }
@@ -117,7 +117,7 @@
                 invokerQuestionDelegate.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegateCoroutine);
                 parameter.generator.WriteCode(parameter.results[0]);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE.RuntimeDefinition);
                 parameter.generator.WriteCode(invokerParameter.results[0]);
                 Generator(parameter.results[0], parameterParameter);
                 parameter.generator.SetCodeAddress(address);
@@ -130,7 +130,7 @@
                 invokerGlobal.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateCoroutine);
                 parameter.generator.WriteCode(parameter.results[0]);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE.RuntimeDefinition);
                 parameter.generator.WriteCode(FunctionType.Global);
                 var function = parameter.relied.Convert(invokerGlobal.declaration);
                 parameter.generator.WriteCode(function.library);
@@ -145,7 +145,7 @@
                 invokerMember.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateCoroutine);
                 parameter.generator.WriteCode(parameter.results[0]);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE.RuntimeDefinition);
                 parameter.generator.WriteCode(FunctionType.Member);
                 var function = parameter.relied.Convert(invokerMember.declaration);
                 parameter.generator.WriteCode(function.library);
@@ -161,7 +161,7 @@
                 invokerVirtual.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateCoroutine);
                 parameter.generator.WriteCode(parameter.results[0]);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE.RuntimeDefinition);
                 if (invokerVirtual.declaration.code == DeclarationCode.MemberFunction) parameter.generator.WriteCode(FunctionType.Virtual);
                 else if (invokerVirtual.declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(FunctionType.Interface);
                 else throw ExceptionGeneratorCompiler.Unknown();
@@ -184,7 +184,7 @@
                 invokerQuestionMember.parameter.Generator(parameterParameter);
                 parameter.generator.WriteCode(CommandMacro.BASE_CreateCoroutine);
                 parameter.generator.WriteCode(parameter.results[0]);
-                parameter.generator.WriteCode(RelyKernel.COROUTINE_TYPE.RuntimeType);
+                parameter.generator.WriteCode(RelyKernel.COROUTINE.RuntimeDefinition);
                 if (invokerQuestionMember.declaration.code == DeclarationCode.MemberFunction) parameter.generator.WriteCode(FunctionType.Virtual);
                 else if (invokerQuestionMember.declaration.code == DeclarationCode.InterfaceFunction) parameter.generator.WriteCode(FunctionType.Interface);
                 else throw ExceptionGeneratorCompiler.Unknown();
