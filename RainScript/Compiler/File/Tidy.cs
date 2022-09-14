@@ -201,7 +201,7 @@ namespace RainScript.Compiler.File
                 for (int i = 0; i < interfaceCompilingMethods.Length; i++)
                 {
                     var methodDeclaration = new Compiler.Declaration(LIBRARY.SELF, interfaceMethods[i].visibility, DeclarationCode.InterfaceMethod, (uint)i, 0, declaration.index);
-                    interfaceCompilingMethods[i] = new Compiling.InterfaceMethod(declaration, compiling, interfaceMethods[i].name, interfaceMethods[i].functions.ToArray());
+                    interfaceCompilingMethods[i] = new Compiling.InterfaceMethod(methodDeclaration, compiling, interfaceMethods[i].name, interfaceMethods[i].functions.ToArray());
                     interfaceMethods[i].Dispose();
                 }
                 interfaceMethods.Dispose();

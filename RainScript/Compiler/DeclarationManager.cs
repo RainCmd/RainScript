@@ -37,7 +37,7 @@ namespace RainScript.Compiler
                 else result = relies[definition.library].definitions[definition.index];
                 return true;
             }
-            else if (definition.code != TypeCode.Invalid)
+            else if (definition.library == LIBRARY.KERNEL || definition.code == TypeCode.Function || definition.code == TypeCode.Coroutine)
             {
                 result = RelyKernel.definitions[(int)definition.code];
                 return true;
