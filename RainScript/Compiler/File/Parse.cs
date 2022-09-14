@@ -781,9 +781,6 @@ namespace RainScript.Compiler.File
             foreach (var item in imports) item.Dispose();
             imports.Dispose();
 
-            relyCompilings.Dispose();
-            relyReferences.Dispose();
-
             foreach (var item in definitions) item.Dispose();
             definitions.Dispose();
             foreach (var item in variables) item.Dispose();

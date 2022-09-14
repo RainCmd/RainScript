@@ -24,6 +24,8 @@ namespace RainScript.Compiler.File
         public readonly ScopeList<RelySpace> relyReferences;
         private void InitRelies(DeclarationManager manager, ExceptionCollector exceptions)
         {
+            manager.relyCompilings.Add(relyCompilings);
+            manager.relyReferences.Add(relyReferences);
             foreach (var lexicals in imports)
             {
                 if (compiling.TryFindSpace(lexicals[0].anchor.Segment, out var space))
@@ -41,14 +43,18 @@ namespace RainScript.Compiler.File
                     var name = lexicals[0].anchor.Segment;
                     foreach (var item in manager.relies)
                         if (item.name == name)
+                        {
+                            space = item;
                             for (int i = 1; i < lexicals.Count; i++)
                                 if (!space.TryFindChild(lexicals[i].anchor.Segment, out space))
                                 {
                                     exceptions.Add(lexicals[i].anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
                                     goto next;
                                 }
-                            next:
-                    if (space != null) relyReferences.Add((RelySpace)space);
+                        }
+                    if (space == null) exceptions.Add(lexicals[0].anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
+                    else relyReferences.Add((RelySpace)space);
+                    next:;
                 }
             }
         }

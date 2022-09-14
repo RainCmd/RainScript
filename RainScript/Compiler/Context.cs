@@ -1,17 +1,15 @@
 ﻿using System.Collections.Generic;
+using RainScript.Compiler.Compiling;
 
 namespace RainScript.Compiler
 {
-    using Compiling;
-    using System.Linq;
-
     internal struct Context
     {
-        public readonly Space space;
+        public readonly Compiling.Space space;
         public readonly Definition definition;
-        public readonly IList<Space> relyCompilings;
+        public readonly IList<Compiling.Space> relyCompilings;
         public readonly IList<RelySpace> relyReferences;
-        public Context(Space space, Definition definition, IList<Space> relyCompilings, IList<RelySpace> relyReferences)
+        public Context(Compiling.Space space, Definition definition, IList<Compiling.Space> relyCompilings, IList<RelySpace> relyReferences)
         {
             this.space = space;
             this.definition = definition;

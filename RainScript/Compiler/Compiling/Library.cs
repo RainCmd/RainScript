@@ -191,7 +191,7 @@ namespace RainScript.Compiler.Compiling
         {
             functions.Add(function);
             var visibility = declaration.visibility | function.declaration.visibility;
-            declaration = new Compiler.Declaration(LIBRARY.SELF, visibility, declaration.code, declaration.index, 0, 0);
+            declaration = new Compiler.Declaration(LIBRARY.SELF, visibility, declaration.code, declaration.index, 0, function.declaration.definitionIndex);
         }
         public IEnumerator<Function> GetEnumerator()
         {

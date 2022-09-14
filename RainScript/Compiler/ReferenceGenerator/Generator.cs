@@ -126,6 +126,11 @@
             children.Add(result);
             return result;
         }
+        public Space GetSpace(ISpace space, CollectionPool pool)
+        {
+            if (space.Parent == null) return this;
+            else return GetSpace(space.Parent, pool).GetChild(space.Name, pool);
+        }
         public void GetDeclarationIndices(CollectionPool pool, out uint[] definitions, out uint[] variables, out uint[] delegates, out uint[] coroutines, out uint[] methods, out uint[] interfaces, out uint[] natives)
         {
             var definitionList = pool.GetList<uint>();
@@ -225,11 +230,6 @@
             delegates = pool.GetList<string>();
             coroutines = pool.GetList<string>();
         }
-        public Space GetSpace(RelySpace space, CollectionPool pool)
-        {
-            if (space.parent == null) return this;
-            else return GetSpace(space.parent, pool).GetChild(space.name, pool);
-        }
         private void Generator(ReferenceRelyLibrary library, Space index, ReferenceRelySpace relyIndex)
         {
             foreach (var item in index.children)
@@ -282,19 +282,35 @@
             var index = 0u;
             foreach (var item in manager.library.definitions)
                 if (item.declaration.visibility.ContainAll(Visibility.Public))
-                    map.Add(item.declaration, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Definition, index++, 0, 0));
+                {
+                    var declaration = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Definition, index++, 0, 0);
+                    GetSpace(item.space, pool).declarations.Add(declaration);
+                    map.Add(item.declaration, declaration);
+                }
             index = 0;
             foreach (var item in manager.library.interfaces)
                 if (item.declaration.visibility.ContainAll(Visibility.Public))
-                    map.Add(item.declaration, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Interface, index++, 0, 0));
+                {
+                    var declaration = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Interface, index++, 0, 0);
+                    GetSpace(item.space, pool).declarations.Add(declaration);
+                    map.Add(item.declaration, declaration);
+                }
             index = 0;
             foreach (var item in manager.library.delegates)
                 if (item.declaration.visibility.ContainAll(Visibility.Public))
-                    map.Add(item.declaration, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Delegate, index++, 0, 0));
+                {
+                    var declaration = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Delegate, index++, 0, 0);
+                    GetSpace(item.space, pool).declarations.Add(declaration);
+                    map.Add(item.declaration, declaration);
+                }
             index = 0;
             foreach (var item in manager.library.coroutines)
                 if (item.declaration.visibility.ContainAll(Visibility.Public))
-                    map.Add(item.declaration, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Coroutine, index++, 0, 0));
+                {
+                    var declaration = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Coroutine, index++, 0, 0);
+                    GetSpace(item.space, pool).declarations.Add(declaration);
+                    map.Add(item.declaration, declaration);
+                }
 
             foreach (var item in manager.library.definitions)
                 if (item.declaration.visibility.ContainAll(Visibility.Public))
@@ -302,7 +318,11 @@
 
             foreach (var item in manager.library.variables)
                 if (item.declaration.visibility.ContainAll(Visibility.Public))
+                {
+                    var declaration = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.GlobalVariable, (uint)variables.Count, 0, 0);
+                    GetSpace(item.space, pool).declarations.Add(declaration);
                     variables.Add(new ReferenceVariable(item.name.Segment, item.constant, CompilingToReference(manager, item.name, item.type, pool, exceptions)));
+                }
 
             foreach (var item in manager.library.delegates)
                 if (item.declaration.visibility.ContainAll(Visibility.Public))
@@ -315,6 +335,8 @@
             foreach (var item in manager.library.methods)
                 if (item.Declaration.visibility.ContainAny(Visibility.Public))
                 {
+                    var declaration = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.GlobalMethod, (uint)methods.Count, 0, 0);
+                    GetSpace(item.space, pool).declarations.Add(declaration);
                     var method = new Method(item.name, Visibility.Public, pool);
                     foreach (var function in item)
                         if (function.declaration.visibility.ContainAll(Visibility.Public))
@@ -340,6 +362,8 @@
             foreach (var item in manager.library.natives)
                 if (item.Declaration.visibility.ContainAny(Visibility.Public))
                 {
+                    var declaration = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.NativeMethod, (uint)natives.Count, 0, 0);
+                    GetSpace(item.space, pool).declarations.Add(declaration);
                     var native = new Method(item.name, Visibility.Public, pool);
                     foreach (var function in item)
                         if (function.declaration.visibility.ContainAll(Visibility.Public))
@@ -399,7 +423,7 @@
                                 var declaration = rely.definitions[definition.index];
                                 result = new CompilingDefinition((uint)index, Visibility.Public, TypeCode.Handle, (uint)referenceRely.definitions.Count);
                                 referenceRely.map.Add(definition, result);
-                                referenceRely.GetSpace(declaration.space, pool).declarations.Add(declaration.declaration);
+                                referenceRely.GetSpace(declaration.space, pool).declarations.Add(new Declaration((uint)index, Visibility.Public, DeclarationCode.Definition, result.index, 0, 0));
                                 return result;
                             }
                         case DeclarationCode.MemberVariable:
@@ -413,7 +437,7 @@
                                 var declaration = rely.delegates[definition.index];
                                 result = new CompilingDefinition((uint)index, Visibility.Public, TypeCode.Function, (uint)referenceRely.delegates.Count);
                                 referenceRely.map.Add(definition, result);
-                                referenceRely.GetSpace(declaration.space, pool).declarations.Add(declaration.declaration);
+                                referenceRely.GetSpace(declaration.space, pool).declarations.Add(new Declaration((uint)index, Visibility.Public, DeclarationCode.Delegate, result.index, 0, 0));
                                 return result;
                             }
                         case DeclarationCode.Coroutine:
@@ -421,7 +445,7 @@
                                 var declaration = rely.coroutines[definition.index];
                                 result = new CompilingDefinition((uint)index, Visibility.Public, TypeCode.Coroutine, (uint)referenceRely.coroutines.Count);
                                 referenceRely.map.Add(definition, result);
-                                referenceRely.GetSpace(declaration.space, pool).declarations.Add(declaration.declaration);
+                                referenceRely.GetSpace(declaration.space, pool).declarations.Add(new Declaration((uint)index, Visibility.Public, DeclarationCode.Coroutine, result.index, 0, 0));
                                 return result;
                             }
                         case DeclarationCode.Interface:
@@ -429,7 +453,7 @@
                                 var declaration = rely.interfaces[definition.index];
                                 result = new CompilingDefinition((uint)index, Visibility.Public, TypeCode.Interface, (uint)referenceRely.interfaces.Count);
                                 referenceRely.map.Add(definition, result);
-                                referenceRely.GetSpace(declaration.space, pool).declarations.Add(declaration.declaration);
+                                referenceRely.GetSpace(declaration.space, pool).declarations.Add(new Declaration((uint)index, Visibility.Public, DeclarationCode.Interface, result.index, 0, 0));
                                 return result;
                             }
                         case DeclarationCode.InterfaceMethod:

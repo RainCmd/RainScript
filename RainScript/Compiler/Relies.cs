@@ -324,16 +324,17 @@ namespace RainScript.Compiler
                     var function = method.functions[i];
                     functions[i] = new RelyFunction(method.name, new Declaration(library.library, function.visibility, DeclarationCode.GlobalFunction, index, i, 0), this, map.LocalToGlobal(function.returns), map.LocalToGlobal(function.parameters));
                 }
+                declarations.Add(method.name, declaration);
                 library.methods[index] = new RelyMethod(method.name, declaration, this, functions);
             }
             foreach (var index in source.interfaceIndices)
             {
-                var referenceInterface = sourceLibrary.interfaces[index];
+                var definition = sourceLibrary.interfaces[index];
                 var declaration = new Declaration(library.library, Visibility.Public, DeclarationCode.Interface, index, 0, 0);
-                var methods = new RelyMethod[referenceInterface.methods.Length];
+                var methods = new RelyMethod[definition.methods.Length];
                 for (uint methodIndex = 0; methodIndex < methods.Length; methodIndex++)
                 {
-                    var method = referenceInterface.methods[methodIndex];
+                    var method = definition.methods[methodIndex];
                     var methodDeclaration = new Declaration(library.library, Visibility.Public, DeclarationCode.InterfaceMethod, methodIndex, 0, index);
                     var functions = new RelyFunction[method.functions.Length];
                     for (uint i = 0; i < functions.Length; i++)
@@ -344,7 +345,8 @@ namespace RainScript.Compiler
                     }
                     methods[methodIndex] = new RelyMethod(method.name, methodDeclaration, this, functions);
                 }
-                library.interfaces[index] = new RelyInterface(referenceInterface.name, map.LocalToGlobal(referenceInterface.inherits), declaration, this, methods);
+                declarations.Add(definition.name, declaration);
+                library.interfaces[index] = new RelyInterface(definition.name, map.LocalToGlobal(definition.inherits), declaration, this, methods);
             }
             foreach (var index in source.nativeIndices)
             {
@@ -356,6 +358,7 @@ namespace RainScript.Compiler
                     var function = native.functions[i];
                     functions[i] = new RelyFunction(native.name, new Declaration(library.library, function.visibility, DeclarationCode.NativeFunction, index, i, 0), this, map.LocalToGlobal(function.returns), map.LocalToGlobal(function.parameters));
                 }
+                declarations.Add(native.name, declaration);
                 library.natives[index] = new RelyMethod(native.name, declaration, this, functions);
             }
         }

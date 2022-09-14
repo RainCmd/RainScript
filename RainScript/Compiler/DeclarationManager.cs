@@ -8,11 +8,16 @@ namespace RainScript.Compiler
         public readonly Compiling.Library library;
         public readonly RelyLibrary[] relies;
         public readonly ScopeList<LambdaFunction> lambdas;
+
+        public readonly ScopeList<ScopeList<Compiling.Space>> relyCompilings;
+        public readonly ScopeList<ScopeList<RelySpace>> relyReferences;
         public DeclarationManager(string name, RelyLibrary[] relies, CollectionPool pool)
         {
             library = new Compiling.Library(name);
             this.relies = relies;
             lambdas = pool.GetList<LambdaFunction>();
+            relyCompilings = pool.GetList<ScopeList<Compiling.Space>>();
+            relyReferences = pool.GetList<ScopeList<RelySpace>>();
         }
         public CompilingDefinition GetParent(CompilingDefinition definition)
         {
@@ -1023,6 +1028,10 @@ namespace RainScript.Compiler
         public void Dispose()
         {
             lambdas.Dispose();
+            foreach (var item in relyCompilings) item.Dispose();
+            relyCompilings.Dispose();
+            foreach (var item in relyReferences) item.Dispose();
+            relyReferences.Dispose();
         }
     }
 }
