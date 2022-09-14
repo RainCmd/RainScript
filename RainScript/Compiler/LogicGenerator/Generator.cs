@@ -12,13 +12,15 @@ namespace RainScript.Compiler.LogicGenerator
         public readonly CompilerCommand command;
         public readonly DeclarationManager manager;
         public readonly ReliedGenerator relied;
+        public readonly SymbolTableGenerator symbol;
         public readonly CollectionPool pool;
         public readonly ExceptionCollector exceptions;
-        public GeneratorParameter(CompilerCommand command, DeclarationManager manager, ReliedGenerator relied, CollectionPool pool, ExceptionCollector exceptions)
+        public GeneratorParameter(CompilerCommand command, DeclarationManager manager, ReliedGenerator relied, SymbolTableGenerator symbol, CollectionPool pool, ExceptionCollector exceptions)
         {
             this.command = command;
             this.manager = manager;
             this.relied = relied;
+            this.symbol = symbol;
             this.pool = pool;
             this.exceptions = exceptions;
         }
@@ -28,7 +30,7 @@ namespace RainScript.Compiler.LogicGenerator
         private bool disposed = false;
         private byte* code;
         private uint codeTop = 0, codeSize = 1024;
-        private byte[] data;
+        private readonly byte[] data;
         private readonly ScopeList<string> codeStrings;
         private readonly ScopeDictionary<string, ScopeList<uint>> dataStrings;
         public uint Point { get { return codeTop; } }

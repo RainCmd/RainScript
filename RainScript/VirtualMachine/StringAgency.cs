@@ -41,7 +41,7 @@ namespace RainScript.VirtualMachine
                 buckets = new uint[nbs];
                 for (uint i = 1; i < slotTop; i++)
                 {
-                    var idx = slots[i].value.GetHashCode() % nbs;
+                    var idx = (uint)slots[i].value.GetHashCode() % nbs;
                     slots[i].next = buckets[idx];
                     buckets[idx] = i;
                 }

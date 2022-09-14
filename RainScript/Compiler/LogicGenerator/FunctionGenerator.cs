@@ -63,8 +63,11 @@ namespace RainScript.Compiler.LogicGenerator
         public readonly CompilingType[] parameters;
         public readonly CompilingType[] returns;
         public readonly BlockStatement statements;
+        private readonly string file;
+        private readonly string fullName;
         public FunctionGenerator(GeneratorParameter parameter, Generator generator)
         {
+            file = fullName = "";
             parameters = returns = new CompilingType[0];
             statements = new BlockStatement(default, parameter.pool);
             foreach (var variable in parameter.manager.library.variables)
@@ -151,6 +154,8 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public FunctionGenerator(GeneratorParameter parameter, Compiling.Function function)
         {
+            file = function.name.textInfo.path;
+            fullName = parameter.manager.GetDeclarationFullName(function.declaration);
             statements = new BlockStatement(default, parameter.pool);
             parameters = function.parameters;
             returns = function.returns;
@@ -211,6 +216,8 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public FunctionGenerator(GeneratorParameter parameter, Definition definition)
         {
+            file = definition.name.textInfo.path;
+            fullName = parameter.manager.GetDeclarationFullName(definition.declaration) + ".~";
             statements = new BlockStatement(default, parameter.pool);
             var localContext = new LocalContext(parameter.pool);
             localContext.PushBlock(parameter.pool);
@@ -451,7 +458,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (anchor.Segment == KeyWorld.EXIT)
                             {
-                                if (lexicals.Count > 2)
+                                if (lexicals.Count > 1)
                                 {
                                     var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
                                     if (parser.TryParse(lexicals[1, -1], out var condition))
@@ -503,6 +510,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public void Generate(GeneratorParameter parameter, Generator generator)
         {
+            parameter.symbol.WriteFunction(generator.Point, file, fullName);
             var returnSize = (uint)returns.Length * 4;
             using (var variable = new VariableGenerator(parameter.pool, Frame.SIZE + returnSize))
             {

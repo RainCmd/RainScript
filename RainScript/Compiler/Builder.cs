@@ -60,10 +60,11 @@ namespace RainScript.Compiler
         /// <summary>
         /// 编译命令选项
         /// </summary>
+        /// <param name="generatorSymbolTable"></param>
         /// <param name="ignoreExit"></param>
-        public CompilerCommand(bool ignoreExit)
+        public CompilerCommand(bool generatorSymbolTable, bool ignoreExit)
         {
-            generatorSymbolTable = false;
+            this.generatorSymbolTable = generatorSymbolTable;
             this.ignoreExit = ignoreExit;
         }
     }
@@ -95,6 +96,10 @@ namespace RainScript.Compiler
         /// 给其他库引用的信息
         /// </summary>
         public ReferenceLibrary ReferenceLibrary { get; private set; }
+        /// <summary>
+        /// 符号表
+        /// </summary>
+        public SymbolTable SymbolTable { get; private set; }
         /// <summary>
         /// 编译器
         /// </summary>
@@ -151,13 +156,15 @@ namespace RainScript.Compiler
                     manager.library.CalculatedVariableAddress();
 
                     using (var relied = new ReliedGenerator(manager, pool))
+                    using (var symbol = new SymbolTableGenerator(command.generatorSymbolTable, pool))
                     using (var libraryGenerator = new Generator(manager.library.ConstantData, pool))
                     {
-                        libraryGenerator.GeneratorLibrary(new GeneratorParameter(command, manager, relied, pool, exceptions), out var code, out var codeStrings, out var dataStrings);
+                        libraryGenerator.GeneratorLibrary(new GeneratorParameter(command, manager, relied, symbol, pool, exceptions), out var code, out var codeStrings, out var dataStrings);
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LogicGeneratorFail();
                         var library = GeneratorLibrary(manager, manager.library, relied, code, codeStrings, dataStrings);
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LibraryGeneratorFail();
                         Library = library;
+                        SymbolTable = symbol.Generator();
                     }
                 }
                 State = CompileState.Completed;

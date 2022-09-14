@@ -69,6 +69,24 @@ namespace RainScript.VirtualMachine
             coroutineAgency.Update();
         }
         /// <summary>
+        /// 获取栈帧详细数据，需要有
+        /// </summary>
+        /// <param name="frame">帧数据</param>
+        /// <param name="symbolLoader">符号表</param>
+        /// <param name="file">文件</param>
+        /// <param name="function">函数</param>
+        /// <param name="line">行数</param>
+        public void GetFrameDetail(StackFrame frame, Func<string, SymbolTable> symbolLoader, out string file, out string function, out uint line)
+        {
+            var symbol = symbolLoader?.Invoke(libraryAgency[frame.library].name);
+            if (symbol == null)
+            {
+                file = function = "";
+                line = 0;
+            }
+            else symbol.GetInfo(frame.point, out file, out function, out line);
+        }
+        /// <summary>
         /// 析构
         /// </summary>
         ~Kernel() { if (!disposed) Dispose(); }

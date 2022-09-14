@@ -6,6 +6,7 @@
         public readonly CompilerCommand command;
         public readonly DeclarationManager manager;
         public readonly ReliedGenerator relied;
+        public readonly SymbolTableGenerator symbol;
         public readonly Generator generator;
         public readonly VariableGenerator variable;
         public readonly ExceptionCollector exceptions;
@@ -15,10 +16,16 @@
             command = parameter.command;
             manager = parameter.manager;
             relied = parameter.relied;
+            symbol = parameter.symbol;
             this.generator = generator;
             this.variable = variable;
             exceptions = parameter.exceptions;
             pool = parameter.pool;
+        }
+        public void WriteSymbol(Anchor anchor)
+        {
+            if (anchor.textInfo != null && anchor.textInfo.TryGetLineInfo(anchor.start, out var line))
+                symbol.WriteLine(generator.Point, (uint)line.number);
         }
     }
     internal abstract class Statement
@@ -40,6 +47,7 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            parameter.WriteSymbol(anchor);
             using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
             {
                 var expressionParameter = new Expressions.GeneratorParameter(parameter, expression.returns.Length);
@@ -56,6 +64,7 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            parameter.WriteSymbol(anchor);
             if (expression != null)
                 using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                 {
@@ -96,6 +105,7 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            parameter.WriteSymbol(anchor);
             if (condition == null)
             {
                 parameter.generator.WriteCode(CommandMacro.BASE_Jump);
@@ -125,6 +135,7 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            parameter.WriteSymbol(anchor);
             if (expression == null) parameter.generator.WriteCode(CommandMacro.BASE_Wait);
             else using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                 {
@@ -145,6 +156,7 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            parameter.WriteSymbol(anchor);
             using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
             {
                 var exitParameter = new Expressions.GeneratorParameter(parameter, 1);

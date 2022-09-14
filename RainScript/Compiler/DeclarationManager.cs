@@ -888,54 +888,54 @@ namespace RainScript.Compiler
                         case DeclarationCode.Definition:
                             {
                                 var definition = library.definitions[(int)declaration.index];
-                                return definition.space.GetFullName() + "." + definition.name;
+                                return definition.space.GetFullName() + "." + definition.name.Segment;
                             }
                         case DeclarationCode.MemberVariable:
                             {
                                 var definition = library.definitions[(int)declaration.definitionIndex];
                                 var vaibale = definition.variables[declaration.index];
-                                return definition.space.GetFullName() + "." + definition.name + "." + vaibale.name;
+                                return definition.space.GetFullName() + "." + definition.name.Segment + "." + vaibale.name;
                             }
                         case DeclarationCode.MemberMethod:
                         case DeclarationCode.MemberFunction:
                             {
                                 var definition = library.definitions[(int)declaration.definitionIndex];
                                 var method = library.methods[(int)definition.methods[declaration.index]];
-                                return definition.space.GetFullName() + "." + definition.name + "." + method.name;
+                                return definition.space.GetFullName() + "." + definition.name.Segment + "." + method.name;
                             }
                         case DeclarationCode.Constructor:
                         case DeclarationCode.ConstructorFunction:
                             {
                                 var definition = library.definitions[(int)declaration.definitionIndex];
                                 var method = library.methods[(int)definition.constructors];
-                                return definition.space.GetFullName() + "." + definition.name + "." + method.name;
+                                return definition.space.GetFullName() + "." + definition.name.Segment + "." + method.name;
                             }
                         case DeclarationCode.Delegate:
                             {
                                 var function = library.delegates[(int)declaration.index];
-                                return function.space.GetFullName() + "." + function.name;
+                                return function.space.GetFullName() + "." + function.name.Segment;
                             }
                         case DeclarationCode.Coroutine:
                             {
                                 var coroutine = library.coroutines[(int)declaration.index];
-                                return coroutine.space.GetFullName() + "." + coroutine.name;
+                                return coroutine.space.GetFullName() + "." + coroutine.name.Segment;
                             }
                         case DeclarationCode.Interface:
                             {
                                 var definition = library.interfaces[(int)declaration.index];
-                                return definition.space.GetFullName() + "." + definition.name;
+                                return definition.space.GetFullName() + "." + definition.name.Segment;
                             }
                         case DeclarationCode.InterfaceMethod:
                         case DeclarationCode.InterfaceFunction:
                             {
                                 var definition = library.interfaces[(int)declaration.definitionIndex];
                                 var method = definition.methods[(int)declaration.index];
-                                return definition.space.GetFullName() + "." + definition.name + "." + method.name;
+                                return definition.space.GetFullName() + "." + definition.name.Segment + "." + method.name;
                             }
                         case DeclarationCode.GlobalVariable:
                             {
                                 var variable = library.variables[(int)declaration.index];
-                                return variable.space.GetFullName() + "." + variable.name;
+                                return variable.space.GetFullName() + "." + variable.name.Segment;
                             }
                         case DeclarationCode.GlobalMethod:
                         case DeclarationCode.GlobalFunction:

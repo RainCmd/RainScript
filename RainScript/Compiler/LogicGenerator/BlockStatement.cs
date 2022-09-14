@@ -1,6 +1,8 @@
 ﻿namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
+    using RainScript.Compiler.File;
+
     internal class BlockStatement : Statement
     {
         public int indent;
@@ -11,6 +13,7 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            parameter.WriteSymbol(anchor);
             foreach (var item in statements) item.Generator(parameter, exitPoint);
         }
         public override void Dispose()
@@ -30,6 +33,7 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            parameter.WriteSymbol(anchor);
             var endPoint = new Referencable<CodeAddress>(parameter.pool);
             var truePoint = new Referencable<CodeAddress>(parameter.pool);
             using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
@@ -69,6 +73,7 @@
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            parameter.WriteSymbol(anchor);
             var loopPoint = new Referencable<CodeAddress>(parameter.pool);
             var loopBlockPoint = new Referencable<CodeAddress>(parameter.pool);
             var breakPoint = new Referencable<CodeAddress>(parameter.pool);
@@ -126,7 +131,10 @@
         {
             this.statements = statements;
         }
-        public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint) { }
+        public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
+        {
+            parameter.WriteSymbol(anchor);
+        }
     }
     internal class BreakStatement : JumpStatement
     {
