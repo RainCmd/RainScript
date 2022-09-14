@@ -5,7 +5,6 @@ namespace RainScript.VirtualMachine
     /// <summary>
     /// 核心
     /// </summary>
-    [Serializable]
     public class Kernel : IDisposable
     {
         private bool disposed = false;

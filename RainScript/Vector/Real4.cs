@@ -14,7 +14,6 @@ namespace RainScript.Vector
     /// <summary>
     /// 四维向量
     /// </summary>
-    [Serializable]
     [StructLayout(LayoutKind.Sequential)]
     public struct Real4
     {

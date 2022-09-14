@@ -22,10 +22,6 @@ namespace RainScript.VirtualMachine
             public string value;
             public uint refernce;
             public uint next;
-            public override string ToString()
-            {
-                return "{0} {1} {2}".Format(refernce, next, value);
-            }
         }
         private uint[] buckets;
         private uint slotTop, freeSlot;
@@ -69,6 +65,7 @@ namespace RainScript.VirtualMachine
             }
             else
             {
+                TryResize();
                 if (slotTop == slots.Length)
                 {
                     var newSlots = new Slot[slotTop << 1];
