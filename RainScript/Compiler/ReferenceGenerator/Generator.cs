@@ -333,7 +333,7 @@
                     coroutines.Add(new ReferenceCoroutine(item.name.Segment, CompilingToReference(manager, item.name, item.returns, pool, exceptions)));
 
             foreach (var item in manager.library.methods)
-                if (item.Declaration.visibility.ContainAny(Visibility.Public))
+                if (item.Declaration.code == DeclarationCode.GlobalMethod && item.Declaration.visibility.ContainAny(Visibility.Public))
                 {
                     var declaration = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.GlobalMethod, (uint)methods.Count, 0, 0);
                     GetSpace(item.space, pool).declarations.Add(declaration);

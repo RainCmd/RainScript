@@ -373,7 +373,7 @@ namespace RainScript.Compiler
                                         foreach (var function in method)
                                             if (function.declaration.visibility.ContainAny(Visibility.Public) || function.declaration.visibility == Visibility.Protected)
                                                 functions.Add(function.declaration.overloadIndex);
-                                        if (functions.Count > 0) methods.Add(new ExportMethod(method.name, methodIndex, functions.ToArray()));
+                                        if (functions.Count > 0) methods.Add(new ExportMethod(method.name, (uint)methods.Count, functions.ToArray()));
                                     }
                                 using (var functions = pool.GetList<uint>())
                                 {
@@ -381,7 +381,7 @@ namespace RainScript.Compiler
                                     foreach (var function in method)
                                         if (function.declaration.visibility.ContainAny(Visibility.Public) || function.declaration.visibility == Visibility.Protected)
                                             functions.Add(function.declaration.overloadIndex);
-                                    if (functions.Count > 0) methods.Add(new ExportMethod(definition.name.Segment, (uint)definition.methods.Length, functions.ToArray()));
+                                    if (functions.Count > 0) methods.Add(new ExportMethod(definition.name.Segment, (uint)methods.Count, functions.ToArray()));
                                 }
                                 definitionList.Add(new ExportDefinition(pair.Key, declaratioin.index, variables.ToArray(), methods.ToArray()));
                                 variables.Dispose();

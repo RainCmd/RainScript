@@ -319,7 +319,7 @@ namespace RainScript.Compiler.LogicGenerator
                             var sourceMethod = rely.methods[rely.definitions[declaration.definitionIndex].methods[declaration.index]];
                             var source = sourceMethod.functions[declaration.overloadIndex];
                             var methodDeclaration = Convert(sourceMethod.declaration);
-                            var method = libraries[(int)methodDeclaration.library].definitioins[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
+                            var method = libraries[(int)methodDeclaration.library].definitioins[(int)methodDeclaration.definitionIndex].methods[(int)methodDeclaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
                             var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
                             for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
@@ -340,7 +340,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             var source = rely.methods[declaration.index].functions[declaration.overloadIndex];
                             var methodDeclaration = Convert(rely.methods[declaration.index].declaration);
-                            var method = libraries[(int)methodDeclaration.library].definitioins[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
+                            var method = libraries[(int)methodDeclaration.library].definitioins[(int)methodDeclaration.definitionIndex].methods[(int)methodDeclaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
                             var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
                             for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
@@ -388,7 +388,7 @@ namespace RainScript.Compiler.LogicGenerator
                             var sourceMethod = rely.interfaces[declaration.definitionIndex].methods[declaration.index];
                             var source = sourceMethod.functions[declaration.overloadIndex];
                             var methodDeclaration = Convert(sourceMethod.declaration);
-                            var method = libraries[(int)methodDeclaration.library].interfaces[(int)methodDeclaration.definitionIndex].methods[(int)declaration.index];
+                            var method = libraries[(int)methodDeclaration.library].interfaces[(int)methodDeclaration.definitionIndex].methods[(int)methodDeclaration.index];
                             result = new Declaration((uint)index, declaration.visibility, declaration.code, methodDeclaration.index, (uint)method.functions.Count, methodDeclaration.definitionIndex);
                             var function = new ReliedFunction(relied.GetSpace(source.space, pool), source.name, new CompilingType[source.parameters.Length], new CompilingType[source.returns.Length]);
                             for (int i = 0; i < source.parameters.Length; i++) function.parameters[i] = Convert(source.parameters[i]);
