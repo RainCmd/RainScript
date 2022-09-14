@@ -618,7 +618,8 @@ namespace RainScript.Compiler.LogicGenerator
                             parameters.Add(lexical.anchor);
                         }
                         index++;
-                        if (index >= lambdaIndex || lexical.type != LexicalType.Comma)
+                        if (index >= lambdaIndex) break;
+                        else if (lexical.type != LexicalType.Comma)
                         {
                             exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                             result = default;
@@ -2850,9 +2851,12 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public bool TryParse(ListSegment<Lexical> lexicals, out Expression result)
         {
-            if (TrySub(lexicals, SplitFlag.Lambda, out var lambdaIndex)) return TryParseLambda(lexicals, lambdaIndex, out result);
-            else if (TrySub(lexicals, SplitFlag.Assignment, out var assignmentIndex)) return TryParseAssignment(lexicals, assignmentIndex, out result);
-            else if (TrySub(lexicals, SplitFlag.Question, out var questionIndex)) return TryParseQuestion(lexicals, questionIndex, out result);
+            if (TrySub(lexicals, SplitFlag.Lambda | SplitFlag.Assignment | SplitFlag.Question, out var splitIndex))
+            {
+                if (lexicals[splitIndex].type == LexicalType.Lambda) return TryParseLambda(lexicals, splitIndex, out result);
+                else if (lexicals[splitIndex].type == LexicalType.Question) return TryParseQuestion(lexicals, splitIndex, out result);
+                else return TryParseAssignment(lexicals, splitIndex, out result);
+            }
             else if (TrySub(lexicals, SplitFlag.Comma, out var commaIndex)) return TryParseComma(lexicals, commaIndex, out result);
             using (var expressionStack = pool.GetStack<Expression>())
             using (var tokenStack = pool.GetStack<Token>())
