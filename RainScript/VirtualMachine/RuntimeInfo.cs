@@ -600,14 +600,44 @@ namespace RainScript.VirtualMachine
             {
                 var import = this.library.imports[(int)libraryIndex];
                 var library = kernel.libraryAgency.Load(import.name);
-
                 var definitions = new ImportDefinition[import.definitions.Length];
+                var variables = new uint[import.variables.Length];
+                var delegates = new uint[import.delegates.Length];
+                var coroutines = new uint[import.coroutines.Length];
+                var methods = new ImportMethod[import.methods.Length];
+                var interfaces = new ImportInterface[import.interfaces.Length];
+                var natives = new ImportMethod[import.natives.Length];
+
+                imports[libraryIndex] = new ImportLibrary(library, definitions, variables, delegates, coroutines, methods, interfaces, natives);
+                //初始化定义声明
+                for (int i = 0; i < import.definitions.Length; i++)
+                {
+                    var importDefinition = import.definitions[i];
+                    if (!library.library.TryGetDefinition(importDefinition, out var exportDefinition)) throw ExceptionGeneratorVM.MissingDefinition(name, library.name, importDefinition.ToString());
+                    definitions[i] = new ImportDefinition(exportDefinition.index, new uint[importDefinition.variables.Length], new ImportMethod[importDefinition.methods.Length]);
+                }
+
+                for (int i = 0; i < delegates.Length; i++)
+                    if (!library.library.TryGetDelegate(import.delegates[i], out delegates[i]))
+                        throw ExceptionGeneratorVM.MissingDefinition(name, library.name, import.delegates[i].ToString());
+
+                for (int i = 0; i < coroutines.Length; i++)
+                    if (!library.library.TryGetCoroutine(import.coroutines[i], out coroutines[i]))
+                        throw ExceptionGeneratorVM.MissingDefinition(name, library.name, import.coroutines[i].ToString());
+
+                for (int i = 0; i < interfaces.Length; i++)
+                {
+                    var importInterface = import.interfaces[i];
+                    if (!library.library.TryGetInterface(importInterface, out var exportInterface)) throw ExceptionGeneratorVM.MissingDefinition(name, library.name, importInterface.ToString());
+                    interfaces[i] = new ImportInterface(exportInterface.index, new ImportMethod[importInterface.methods.Length]);
+                }
+                //连接
                 for (int i = 0; i < import.definitions.Length; i++)
                 {
                     var importDefinition = import.definitions[i];
                     if (!library.library.TryGetDefinition(importDefinition, out var exportDefinition)) throw ExceptionGeneratorVM.MissingDefinition(name, library.name, importDefinition.ToString());
 
-                    var memberVaribales = new uint[importDefinition.variables.Length];
+                    var memberVaribales = definitions[i].memberVariable;
                     for (uint index = 0; index < memberVaribales.Length; index++)
                     {
                         var flag = false;
@@ -625,14 +655,15 @@ namespace RainScript.VirtualMachine
                         if (!flag) throw ExceptionGeneratorVM.MissingDefinition(name, library.name, "{0}.{1}".Format(import.definitions[i].ToString(), importDefinition.variables[index].name));
                     }
 
-                    var memberMethods = new ImportMethod[importDefinition.methods.Length];
+                    var memberMethods = definitions[i].methods;
                     for (var index = 0; index < memberMethods.Length; index++)
                     {
                         var flag = false;
+                        var importMethod = importDefinition.methods[index];
                         foreach (var method in exportDefinition.methods)
-                            if (importDefinition.methods[index].name == method.name)
+                            if (importMethod.name == method.name)
                             {
-                                if (TryGetFunctions(importDefinition.methods[index].functions, library.methods[library.definitions[exportDefinition.index].methods[method.method].method].infos, method, out var functions))
+                                if (TryGetFunctions(importMethod.functions, library.methods[library.definitions[exportDefinition.index].methods[method.method].method].infos, method, out var functions))
                                 {
                                     memberMethods[index] = new ImportMethod(method.method, functions);
                                     flag = true;
@@ -641,41 +672,32 @@ namespace RainScript.VirtualMachine
                             }
                         if (!flag) throw ExceptionGeneratorVM.MissingDefinition(name, library.name, "{0}.{1}".Format(import.definitions[i].ToString(), importDefinition.methods[index].name));
                     }
-
-                    definitions[i] = new ImportDefinition(exportDefinition.index, memberVaribales, memberMethods);
                 }
 
-                var variables = new uint[import.variables.Length];
                 for (int i = 0; i < variables.Length; i++)
                     if (!library.library.TryGetVariable(import.variables[i], out variables[i]) ||
                         library.LocalToGlobal(library.library.variables[variables[i]].type) != LocalToGlobal(import.variables[i].type))
                         throw ExceptionGeneratorVM.MissingDefinition(name, library.name, import.variables[i].ToString());
 
-                var delegates = new uint[import.delegates.Length];
                 for (int i = 0; i < delegates.Length; i++)
-                    if (!library.library.TryGetDelegate(import.delegates[i], out delegates[i]) ||
-                        !Type.IsEquals(library.delegates[delegates[i]].parameters, LocalToGlobal(import.delegates[i].parameters)) ||
+                    if (!Type.IsEquals(library.delegates[delegates[i]].parameters, LocalToGlobal(import.delegates[i].parameters)) ||
                         !Type.IsEquals(library.delegates[delegates[i]].returns, LocalToGlobal(import.delegates[i].returns)))
                         throw ExceptionGeneratorVM.MissingDefinition(name, library.name, import.delegates[i].ToString());
 
-                var coroutines = new uint[import.coroutines.Length];
                 for (int i = 0; i < coroutines.Length; i++)
-                    if (!library.library.TryGetCoroutine(import.coroutines[i], out coroutines[i]) ||
-                        !Type.IsEquals(library.coroutines[coroutines[i]].returns, LocalToGlobal(import.coroutines[i].returns)))
+                    if (!Type.IsEquals(library.coroutines[coroutines[i]].returns, LocalToGlobal(import.coroutines[i].returns)))
                         throw ExceptionGeneratorVM.MissingDefinition(name, library.name, import.coroutines[i].ToString());
 
-                var methods = new ImportMethod[import.methods.Length];
                 for (int i = 0; i < methods.Length; i++)
                     if (library.library.TryGetMethod(import.methods[i], out var method) && TryGetFunctions(import.methods[i].functions, library.methods[method.method].infos, method, out var functions))
                         methods[i] = new ImportMethod(method.method, functions);
                     else throw ExceptionGeneratorVM.MissingDefinition(name, library.name, import.methods[i].ToString());
-
-                var interfaces = new ImportInterface[import.interfaces.Length];
+               
                 for (int i = 0; i < interfaces.Length; i++)
                 {
                     var importInterface = import.interfaces[i];
                     if (!library.library.TryGetInterface(importInterface, out var exportInterface)) throw ExceptionGeneratorVM.MissingDefinition(name, library.name, importInterface.ToString());
-                    var importMethods = new ImportMethod[importInterface.methods.Length];
+                    var importMethods = interfaces[i].methods;
                     for (int importMethodIndex = 0; importMethodIndex < importMethods.Length; importMethodIndex++)
                     {
                         var importMethod = importInterface.methods[importMethodIndex];
@@ -697,16 +719,12 @@ namespace RainScript.VirtualMachine
                         }
                         if (!flag) throw ExceptionGeneratorVM.MissingDefinition(name, library.name, importMethod.ToString());
                     }
-                    interfaces[i] = new ImportInterface(exportInterface.index, importMethods);
                 }
 
-                var natives = new ImportMethod[import.natives.Length];
                 for (int i = 0; i < natives.Length; i++)
                     if (library.library.TryGetNative(import.natives[i], out var native) && TryGetFunctions(import.natives[i].functions, library.natives[native.method].infos, native, out var functions))
                         natives[i] = new ImportMethod(native.method, functions);
                     else throw ExceptionGeneratorVM.MissingDefinition(name, library.name, import.natives[i].ToString());
-
-                imports[libraryIndex] = new ImportLibrary(library, definitions, variables, delegates, coroutines, methods, interfaces, natives);
             }
             return imports[libraryIndex];
         }

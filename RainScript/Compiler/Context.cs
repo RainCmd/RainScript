@@ -34,7 +34,7 @@ namespace RainScript.Compiler
                     case DeclarationCode.Constructor:
                     case DeclarationCode.ConstructorFunction:
                         if (manager.library.definitions[(int)declaration.definitionIndex].space.Contain(space))
-                            if (definition != null && definition.declaration == declaration) return true;
+                            if (definition != null && definition.declaration.index == declaration.definitionIndex) return true;
                             else if (declaration.visibility.ContainAny(Visibility.Protected)) return manager.TryGetInherit(new CompilingType(declaration.library, declaration.visibility, TypeCode.Handle, declaration.definitionIndex, 0), new CompilingType(LIBRARY.SELF, definition.declaration.visibility, TypeCode.Handle, definition.declaration.index, 0), out _);
                             else if (declaration.visibility.ContainAny(Visibility.Public | Visibility.Internal | Visibility.Space)) return true;
                         break;
