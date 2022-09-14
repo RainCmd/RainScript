@@ -2502,7 +2502,7 @@ namespace RainScript.VirtualMachine
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 5));
                             flag = (long)kernel.heapAgency.TryGetType(handle, out var handleType);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *result = kernel.libraryAgency.TryGetInheritDepth(*(Type*)(stack + bottom + *(uint*)(library.code + point + 9)), handleType, out _);
+                            *result = kernel.libraryAgency.TryGetInheritDepth(library.LocalToGlobal(*(Type*)(library.code + point + 9)), handleType, out _);
                         }
                         point += 22;
                         break;
@@ -2513,7 +2513,7 @@ namespace RainScript.VirtualMachine
                             flag = (long)kernel.heapAgency.TryGetType(handle, out var handleType);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             kernel.heapAgency.Release(*result);
-                            if (kernel.libraryAgency.TryGetInheritDepth(*(Type*)(stack + bottom + *(uint*)(library.code + point + 9)), handleType, out _))
+                            if (kernel.libraryAgency.TryGetInheritDepth(library.LocalToGlobal(*(Type*)(library.code + point + 9)), handleType, out _))
                             {
                                 kernel.heapAgency.Reference(handle);
                                 *result = handle;

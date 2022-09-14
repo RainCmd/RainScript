@@ -423,7 +423,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (anchor.Segment == KeyWorld.RETURN)
                             {
-                                if (lexicals.Count > 2)
+                                if (lexicals.Count > 1)
                                 {
                                     var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
                                     if (parser.TryParseTuple(lexicals[1, -1], out var results))

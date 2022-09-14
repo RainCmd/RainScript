@@ -631,7 +631,7 @@ namespace RainScript.Compiler.File
                     }
                     else if (lexicals[index].type == LexicalType.Assignment)
                     {
-                        if (++index < lexicals.Count) expression = new Anchor(lexicals[index].anchor.textInfo, lexicals[index].anchor.start, lexicals[index].anchor.end);
+                        if (++index < lexicals.Count) expression = new Anchor(lexicals[index].anchor.textInfo, lexicals[index].anchor.start, lexicals[-1].anchor.end);
                         else expression = default;
                         return true;
                     }

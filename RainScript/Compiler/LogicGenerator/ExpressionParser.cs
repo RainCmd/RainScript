@@ -513,7 +513,7 @@ namespace RainScript.Compiler.LogicGenerator
                         case LexicalType.Equals:
                             break;
                         case LexicalType.Lambda:
-                            if (stack.Count == 0 && flag.ContainAny(SplitFlag.Assignment)) return true;
+                            if (stack.Count == 0 && flag.ContainAny(SplitFlag.Lambda)) return true;
                             break;
                         case LexicalType.BitAnd:
                         case LexicalType.LogicAnd:
@@ -626,6 +626,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         index++;
                     }
+                    if (lambdaIndex + 1 >= lexicals.Count) exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
                     result = new BlurryLambdaExpression(GetAnchor(lexicals), parameters.ToArray(), lexicals[lambdaIndex + 1, -1]);
                     return true;
                 }
@@ -3896,8 +3897,9 @@ namespace RainScript.Compiler.LogicGenerator
                                                     var dimension = Lexical.ExtractDimension(lexicals, ref startIndex);
                                                     var type = new CompilingType(new CompilingDefinition(declaration), dimension);
                                                     VariableLocalExpression localExpression = null;
-                                                    if (CheckNext(lexicals, ref startIndex, LexicalType.Word))
+                                                    if (startIndex + 1 < lexicals.Count && lexicals[startIndex + 1].type == LexicalType.Word)
                                                     {
+                                                        startIndex++;
                                                         var local = localContext.AddLocal(lexicals[startIndex].anchor, type);
                                                         if (KeyWorld.IsKeyWorld(local.anchor.Segment)) exceptions.Add(local.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                                                         localExpression = new VariableLocalExpression(local.anchor, local.Declaration, TokenAttribute.Assignable, type);
