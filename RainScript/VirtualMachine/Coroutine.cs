@@ -136,7 +136,7 @@ namespace RainScript.VirtualMachine
                         else point = *(uint*)(library.code + point + 1);
                         break;
                     case CommandMacro.BASE_NullJump:
-                        if (*(uint*)(stack + bottom + *(uint*)(library.code + point + 5)) == 0) point = *(uint*)(library.code + point + 1);
+                        if (*(uint*)(stack + bottom + *(uint*)(library.code + point + 1)) == 0) point = *(uint*)(library.code + point + 5);
                         else point += 9;
                         break;
                     case CommandMacro.BASE_Flag_1:

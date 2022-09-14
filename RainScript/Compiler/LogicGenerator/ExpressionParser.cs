@@ -1310,7 +1310,8 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.REAL_TYPE || rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE)
                         {
-                            left = new IntegerToRealExpression(left.anchor, left);
+                            if (left.TryEvaluation(out long value)) left = new ConstantRealExpression(left.anchor, value);
+                            else left = new IntegerToRealExpression(left.anchor, left);
                             return true;
                         }
                     }
@@ -1318,7 +1319,8 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
-                            right = new IntegerToRealExpression(right.anchor, right);
+                            if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
                         else return rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE;
@@ -1327,7 +1329,8 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
-                            right = new IntegerToRealExpression(right.anchor, right);
+                            if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
                         else if (rightType == RelyKernel.REAL_TYPE) return true;
@@ -1346,7 +1349,8 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
-                            right = new IntegerToRealExpression(right.anchor, right);
+                            if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
                         else if (rightType == RelyKernel.REAL_TYPE) return true;
@@ -1365,7 +1369,8 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
-                            right = new IntegerToRealExpression(right.anchor, right);
+                            if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
                         else if (rightType == RelyKernel.REAL_TYPE) return true;

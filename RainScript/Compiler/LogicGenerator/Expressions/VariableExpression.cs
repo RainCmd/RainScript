@@ -157,8 +157,8 @@
             var targetParameter = new GeneratorParameter(parameter, 1);
             target.Generator(targetParameter);
             parameter.generator.WriteCode(CommandMacro.BASE_NullJump);
-            parameter.generator.WriteCode(address);
             parameter.generator.WriteCode(targetParameter.results[0]);
+            parameter.generator.WriteCode(address);
             var declaration = parameter.relied.Convert(this.declaration);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_Handle);
