@@ -14,10 +14,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             var lambda = parameter.relied.Convert(this.lambda);
-            var type = parameter.relied.Convert(returns[0]).RuntimeType;
+            var definition = parameter.relied.Convert(returns[0].definition).RuntimeDefinition;
             parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegate);
             parameter.generator.WriteCode(parameter.results[0]);
-            parameter.generator.WriteCode(type);
+            parameter.generator.WriteCode(definition);
             parameter.generator.WriteCode(FunctionType.Global);
             parameter.generator.WriteCode(lambda.library);
             parameter.generator.WriteCode(new Function(lambda.index, 0));
@@ -35,10 +35,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             var function = parameter.relied.Convert(this.function);
-            var type = parameter.relied.Convert(returns[0]).RuntimeType;
+            var definition = parameter.relied.Convert(returns[0].definition).RuntimeDefinition;
             parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegate);
             parameter.generator.WriteCode(parameter.results[0]);
-            parameter.generator.WriteCode(type);
+            parameter.generator.WriteCode(definition);
             parameter.generator.WriteCode(FunctionType.Global);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(new Function(function.index, 0));
@@ -56,10 +56,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             var function = parameter.relied.Convert(this.function);
-            var type = parameter.relied.Convert(returns[0]).RuntimeType;
+            var definition = parameter.relied.Convert(returns[0].definition).RuntimeDefinition;
             parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegate);
             parameter.generator.WriteCode(parameter.results[0]);
-            parameter.generator.WriteCode(type);
+            parameter.generator.WriteCode(definition);
             parameter.generator.WriteCode(FunctionType.Native);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(new Function(function.index, 0));
@@ -81,10 +81,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             source.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             var function = parameter.relied.Convert(this.function);
-            var type = parameter.relied.Convert(returns[0]).RuntimeType;
+            var definition = parameter.relied.Convert(returns[0].definition).RuntimeDefinition;
             parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegate);
             parameter.generator.WriteCode(parameter.results[0]);
-            parameter.generator.WriteCode(type);
+            parameter.generator.WriteCode(definition);
             parameter.generator.WriteCode(FunctionType.Member);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
@@ -108,10 +108,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             source.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             var function = parameter.relied.Convert(this.function);
-            var type = parameter.relied.Convert(returns[0]).RuntimeType;
+            var definition = parameter.relied.Convert(returns[0].definition).RuntimeDefinition;
             parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegate);
             parameter.generator.WriteCode(parameter.results[0]);
-            parameter.generator.WriteCode(type);
+            parameter.generator.WriteCode(definition);
             parameter.generator.WriteCode(FunctionType.Virtual);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
@@ -139,10 +139,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             parameter.generator.WriteCode(address);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             var function = parameter.relied.Convert(this.function);
-            var type = parameter.relied.Convert(returns[0]).RuntimeType;
+            var definition = parameter.relied.Convert(returns[0].definition).RuntimeDefinition;
             parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegate);
             parameter.generator.WriteCode(parameter.results[0]);
-            parameter.generator.WriteCode(type);
+            parameter.generator.WriteCode(definition);
             parameter.generator.WriteCode(FunctionType.Virtual);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);

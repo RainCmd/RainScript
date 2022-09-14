@@ -3,6 +3,8 @@
 namespace RainScript.Compiler
 {
     using Compiling;
+    using System.Linq;
+
     internal struct Context
     {
         public readonly Space space;
@@ -89,6 +91,7 @@ namespace RainScript.Compiler
         }
         public bool TryFindDeclaration(DeclarationManager manager, Anchor name, out Declaration result, CollectionPool pool, ExceptionCollector exceptions)
         {
+            var nameSegment = name.Segment;
             if (definition != null)
             {
                 for (var index = new CompilingDefinition(definition.declaration); index != CompilingDefinition.INVALID; index = manager.GetParent(index))
@@ -97,13 +100,13 @@ namespace RainScript.Compiler
                     {
                         var target = RelyKernel.definitions[index.index];
                         foreach (var item in target.variables)
-                            if (name.Segment == item.name)
+                            if (nameSegment == item.name)
                             {
                                 result = item.declaration;
                                 return true;
                             }
                         foreach (var item in target.methods)
-                            if (name == RelyKernel.methods[item].name)
+                            if (nameSegment == RelyKernel.methods[item].name)
                             {
                                 result = RelyKernel.methods[item].declaration;
                                 return true;
@@ -115,7 +118,7 @@ namespace RainScript.Compiler
                         {
                             var target = manager.library.definitions[(int)index.index];
                             foreach (var item in target.variables)
-                                if (item.name == name)
+                                if (item.name.Segment == nameSegment)
                                     if (target == definition || item.declaration.visibility.Access(target.space.Contain(space), true))
                                     {
                                         result = item.declaration;
@@ -125,7 +128,7 @@ namespace RainScript.Compiler
                             foreach (var item in target.methods)
                             {
                                 var method = manager.library.methods[(int)item];
-                                if (name == method.name)
+                                if (nameSegment == method.name)
                                 {
                                     if (target == definition || method.Declaration.visibility.Access(target.space.Contain(space), true))
                                     {
@@ -140,14 +143,14 @@ namespace RainScript.Compiler
                         {
                             var target = manager.relies[index.library].definitions[index.index];
                             foreach (var item in target.variables)
-                                if (name == item.name)
+                                if (nameSegment == item.name)
                                 {
                                     result = item.declaration;
                                     return true;
                                 }
                             var methods = manager.relies[index.library].methods;
                             foreach (var item in target.methods)
-                                if (name == methods[item].name)
+                                if (nameSegment == methods[item].name)
                                 {
                                     result = methods[item].declaration;
                                     return true;
@@ -158,7 +161,7 @@ namespace RainScript.Compiler
             memberExit:;
             }
             for (var index = space; index != null; index = index.parent)
-                if (index.TryFindDeclaration(name.Segment, out var declaration))
+                if (index.TryFindDeclaration(nameSegment, out var declaration))
                 {
                     result = declaration;
                     return true;
@@ -166,10 +169,10 @@ namespace RainScript.Compiler
             using (var declarations = pool.GetList<Declaration>())
             {
                 foreach (var item in relyCompilings)
-                    if (item.TryFindDeclaration(name.Segment, out var declaration))
+                    if (item.TryFindDeclaration(nameSegment, out var declaration))
                         declarations.Add(declaration);
                 foreach (var item in relyReferences)
-                    if (item.TryFindDeclaration(name.Segment, out var declaration))
+                    if (item.TryFindDeclaration(nameSegment, out var declaration))
                         declarations.Add(declaration);
 
                 var space = this.space;
@@ -344,7 +347,7 @@ namespace RainScript.Compiler
                             exceptions.Add(lexicals, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
                             return Declaration.INVALID;
                         }
-                    if (space.TryFindDeclaration(lexicals[-1].anchor.Segment, out var result)) return result;
+                    if (index.TryFindDeclaration(lexicals[-1].anchor.Segment, out var result)) return result;
                 }
                 else exceptions.Add(lexicals, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
             }

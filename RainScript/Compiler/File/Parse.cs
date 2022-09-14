@@ -278,8 +278,8 @@ namespace RainScript.Compiler.File
                             if (parent == null || line.indent < parentIndent) exceptions.Add(new Anchor(text, line.segment), CompilingExceptionCode.SYNTAX_INDENT);
                             return;
                         }
-                        if (lexical.anchor == KeyWorld.IMPORT) ParseImport(text, indent, pool, exceptions);
-                        else if (lexical.anchor == KeyWorld.NAMESPACE) indent = ParseChild(text, indent, pool, exceptions);
+                        if (lexical.anchor == KeyWorld.IMPORT) ParseImport(text, index, pool, exceptions);
+                        else if (lexical.anchor == KeyWorld.NAMESPACE) index = ParseChild(text, index, pool, exceptions);
                         else index = ParseDeclaration(text, index, pool, exceptions);
                     }
                     else if (lexical.type != LexicalType.Annotation) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
@@ -523,7 +523,7 @@ namespace RainScript.Compiler.File
                         else if (text[lineIndex].indent != indent) exceptions.Add(text, lineIndex, CompilingExceptionCode.SYNTAX_INDENT);
                         using (var lineLexicals = pool.GetList<Lexical>())
                             if (Lexical.TryAnalysis(lineLexicals, text, text[lineIndex].segment, exceptions))
-                                if (TryParseFunction(lineLexicals, indent, out var functionEnd, out var functionName, out var parameters, out var returns, pool))
+                                if (TryParseFunction(lineLexicals, 0, out var functionEnd, out var functionName, out var parameters, out var returns, pool))
                                 {
                                     if (functionEnd + 1 < lineLexicals.Count) exceptions.Add(lineLexicals[functionEnd].anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                                     functions.Add(new Interface.Function(functionName, parameters, returns));

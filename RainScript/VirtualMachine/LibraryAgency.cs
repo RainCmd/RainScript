@@ -35,6 +35,14 @@ namespace RainScript.VirtualMachine
                 parameterSize += function.parameters[i].FieldSize;
             }
         }
+        internal static FunctionHandle CreateMemberFunctionHandle(RuntimeLibraryInfo library, uint entry, TypeDefinition definition, FunctionInfo function)
+        {
+            var parameters = new Type[function.parameters.Length + 1];
+            parameters[0] = new Type(definition, 0);
+            Array.Copy(function.parameters, 0, parameters, 1, function.parameters.Length);
+            function = new FunctionInfo(parameters, function.returns);
+            return new FunctionHandle(library, entry, function);
+        }
         /// <summary>
         /// 判断是否是个有效的方法句柄
         /// </summary>
@@ -251,7 +259,7 @@ namespace RainScript.VirtualMachine
         {
             if (function.definition.code != TypeCode.Handle && function.definition.library != LIBRARY.KERNEL) throw ExceptionGenerator.InvalidTypeCode(function.definition.code);
             var library = this[function.definition.library];
-            return library.GetFunctionHandle(new Function(library.definitions[function.definition.index].methods[function.funtion.method].method, function.funtion.index));
+            return library.GetFunctionHandle(function.definition, new Function(library.definitions[function.definition.index].methods[function.funtion.method].method, function.funtion.index));
         }
         internal FunctionHandle GetFunctionHandle(string methodName)
         {

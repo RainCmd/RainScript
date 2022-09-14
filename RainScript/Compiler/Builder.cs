@@ -504,20 +504,21 @@ namespace RainScript.Compiler
         private bool TryFindDefinitionOverride(DeclarationManager manager, IFunction function, IInterface definition, out Declaration overrideFunction)
         {
             var method = definition.GetMethod(function.Name);
-            for (int i = 0; i < method.FunctionCount; i++)
-            {
-                var index = method.GetFunction(i);
-                if (CompilingType.IsEquals(index.Parameters, function.Parameters))
+            if (method != null)
+                for (int i = 0; i < method.FunctionCount; i++)
                 {
-                    if (!CompilingType.IsEquals(index.Returns, function.Returns))
+                    var index = method.GetFunction(i);
+                    if (CompilingType.IsEquals(index.Parameters, function.Parameters))
                     {
-                        exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(index.Declaration));
-                        exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(function.Declaration));
+                        if (!CompilingType.IsEquals(index.Returns, function.Returns))
+                        {
+                            exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(index.Declaration));
+                            exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(function.Declaration));
+                        }
+                        overrideFunction = index.Declaration;
+                        return true;
                     }
-                    overrideFunction = index.Declaration;
-                    return true;
                 }
-            }
             overrideFunction = default;
             return false;
         }

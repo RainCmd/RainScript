@@ -90,28 +90,25 @@ namespace RainScript.Compiler.File
                     constructorMethod.AddFunction(constructor.compiling);
                 }
 
-                var memberMethods = pool.GetList<Method>();
+                var memberMethods = pool.GetList<uint>();
                 foreach (var memberFunction in item.functions)
                 {
-                    var index = memberMethods.FindIndex(value => value.name == memberFunction.name.Segment);
+                    var index = memberMethods.FindIndex(value => manager.library.methods[(int)value].name == memberFunction.name.Segment);
                     if (index < 0)
                     {
-                        index = manager.library.methods.Count;
+                        index = memberMethods.Count;
                         var memberMethod = new Method((uint)index, DeclarationCode.MemberMethod, memberFunction.name.Segment, compiling);
-                        memberMethods.Add(memberMethod);
+                        memberMethods.Add((uint)manager.library.methods.Count);
                         manager.library.methods.Add(memberMethod);
                     }
-                    var method = memberMethods[index];
+                    var method = manager.library.methods[(int)memberMethods[index]];
                     var functionDeclaration = new Compiler.Declaration(LIBRARY.SELF, memberFunction.visibility, DeclarationCode.MemberFunction, method.Declaration.index, (uint)method.Count, declaration.index);
                     memberFunction.compiling = new Compiling.Function(memberFunction.name, functionDeclaration, compiling, memberFunction.returns.Count, memberFunction.parameters.Count, new LogicBody(relyCompilings, relyReferences, memberFunction.body), pool);
                     method.AddFunction(memberFunction.compiling);
                 }
-                var memberMethodIndices = new uint[memberMethods.Count];
-                for (int i = 0; i < memberMethodIndices.Length; i++) memberMethodIndices[i] = memberMethods[i].Declaration.index;
-                memberMethods.Dispose();
-
-                item.compiling = new Compiling.Definition(item.name, declaration, compiling, constructorMethod.Declaration.index, constructorInvokerExpressions, memberVariables, memberMethodIndices, new LogicBody(relyCompilings, relyReferences, item.destructor == null ? default : item.destructor.body));
+                item.compiling = new Compiling.Definition(item.name, declaration, compiling, constructorMethod.Declaration.index, constructorInvokerExpressions, memberVariables, memberMethods.ToArray(), new LogicBody(relyCompilings, relyReferences, item.destructor == null ? default : item.destructor.body));
                 manager.library.definitions.Add(item.compiling);
+                memberMethods.Dispose();
             }
 
             foreach (var item in variables)

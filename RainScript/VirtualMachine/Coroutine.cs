@@ -365,7 +365,9 @@ namespace RainScript.VirtualMachine
                                     goto error;
                                 case FunctionType.Member:
                                 case FunctionType.Virtual:
-                                    var invoker = kernel.coroutineAgency.InternalInvoker(kernel.libraryAgency[delegateInfo->library].GetFunctionHandle(delegateInfo->function));
+                                    var target = (long)kernel.heapAgency.TryGetType(delegateInfo->target, out var targetType);
+                                    if (flag != 0) goto error;
+                                    var invoker = kernel.coroutineAgency.InternalInvoker(kernel.libraryAgency[delegateInfo->library].GetFunctionHandle(targetType.definition, delegateInfo->function));
                                     invoker.SetHeapHandleParameter(0, delegateInfo->target);
                                     *coroutine = invoker.instanceID;
                                     flag = 1;
@@ -674,7 +676,7 @@ namespace RainScript.VirtualMachine
                             bottom = top;
                             library.LocalToGlobal(*(uint*)(library.code + point + 1), *(Function*)(library.code + point + 5), out var globalLibrary, out var globalFunction);
                             library = kernel.libraryAgency[globalLibrary];
-                            point = library.GetFunctionHandle(globalFunction).entry;
+                            point = library.GetFunctionEntry(globalFunction);
                         }
                         break;
                     case CommandMacro.FUNCTION_MemberCall://[1,4]library [5,8]定义编号 [9,16]Function
@@ -726,7 +728,7 @@ namespace RainScript.VirtualMachine
                                 case FunctionType.Global:
                                     bottom = top;
                                     library = kernel.libraryAgency[delegateInfo->library];
-                                    point = library.GetFunctionHandle(delegateInfo->function).entry;
+                                    point = library.GetFunctionEntry(delegateInfo->function);
                                     break;
                                 case FunctionType.Native:
                                     kernel.libraryAgency[delegateInfo->library].NativeInvoker(delegateInfo->function, stack, top);
@@ -737,7 +739,7 @@ namespace RainScript.VirtualMachine
                                     top -= 4;
                                     bottom = top;
                                     library = kernel.libraryAgency[delegateInfo->library];
-                                    point = library.GetFunctionHandle(delegateInfo->function).entry;
+                                    point = library.GetFunctionEntry(delegateInfo->function);
                                     break;
                                 default: throw ExceptionGeneratorVM.InvalidFunctionType(delegateInfo->type);
                             }

@@ -136,10 +136,19 @@ namespace RainScript.Compiler
         {
             var space = this.space;
             while (space.parent != null) space = space.parent;
-            var library = (RelyLibrary)space;
-            foreach (var method in methods)
-                if (library.methods[method].name == name)
-                    return library.methods[method];
+            if(space is RelyKernel)
+            {
+                foreach (var method in methods)
+                    if (RelyKernel.methods[method].name == name)
+                        return RelyKernel.methods[method];
+            }
+            else
+            {
+                var library = (RelyLibrary)space;
+                foreach (var method in methods)
+                    if (library.methods[method].name == name)
+                        return library.methods[method];
+            }
             return null;
         }
     }

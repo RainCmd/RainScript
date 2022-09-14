@@ -85,16 +85,17 @@ namespace RainScript.VirtualMachine
             tail = handle;
             return handle;
         }
-        private void Free(RuntimeDefinitionInfo definition, uint point)
+        private void Free(uint handle, RuntimeDefinitionInfo definition, uint point)
         {
             if (definition.destructor != null)
             {
                 var invoker = kernel.coroutineAgency.Invoker(definition.destructor);
+                invoker.SetHeapHandleParameter(0, handle);
                 kernel.coroutineAgency.Start(invoker, true, true);
                 kernel.coroutineAgency.Recycle(invoker);
             }
             if (definition.parent != TypeDefinition.INVALID)
-                Free(kernel.libraryAgency[definition.parent.library].definitions[definition.parent.index], point);
+                Free(handle, kernel.libraryAgency[definition.parent.library].definitions[definition.parent.index], point);
             point += definition.baseOffset;
             foreach (var variable in definition.variables)
             {
@@ -115,7 +116,7 @@ namespace RainScript.VirtualMachine
                         kernel.stringAgency.Release(*(uint*)(heap + point));
                         break;
                     case TypeCode.Handle:
-                        Free(kernel.libraryAgency[type.definition.library].definitions[type.definition.index], point);
+                        Free(handle, kernel.libraryAgency[type.definition.library].definitions[type.definition.index], point);
                         break;
                     case TypeCode.Entity:
                         kernel.manipulator.Release(*(Entity*)(heap + point));

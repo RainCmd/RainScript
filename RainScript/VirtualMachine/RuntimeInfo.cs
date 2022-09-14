@@ -62,7 +62,7 @@ namespace RainScript.VirtualMachine
             methods = new Method[info.methods.Length];
             for (int i = 0; i < methods.Length; i++) methods[i] = new Method(info.methods[i], sourceLibrary.methods[info.methods[i]].functions.Length);
             relocations = new RuntimeRelocationInfo[info.relocations.Length];
-            destructor = info.destructor == LIBRARY.ENTRY_INVALID ? null : new FunctionHandle(library, info.destructor, FunctionInfo.EMPTY);
+            destructor = info.destructor == LIBRARY.ENTRY_INVALID ? null : FunctionHandle.CreateMemberFunctionHandle(library, info.destructor, definition, FunctionInfo.EMPTY);
         }
         public void CalculateBaseOffset(LibraryAgency agency)
         {
@@ -159,6 +159,11 @@ namespace RainScript.VirtualMachine
             public FunctionHandle GetHandle(RuntimeLibraryInfo library, FunctionInfo info)
             {
                 if (handle == null) handle = new FunctionHandle(library, entry, info);
+                return handle;
+            }
+            public FunctionHandle GetHandle(RuntimeLibraryInfo library, TypeDefinition definition, FunctionInfo info)
+            {
+                if (handle == null) handle = FunctionHandle.CreateMemberFunctionHandle(library, entry, definition, info);
                 return handle;
             }
         }
@@ -370,6 +375,7 @@ namespace RainScript.VirtualMachine
                     foreach (var item in definition.inherits)
                         if (item.library == index && BinarySearch(list, item.index)) goto next;
                     definition.RelocationMethods(this, library.interfaces[list[i]]);
+                    list.RemoveAt(i--);
                 next:;
                 }
                 if (count == list.Count) throw ExceptionGeneratorVM.CyclicInheritance(library.name);
@@ -502,10 +508,19 @@ namespace RainScript.VirtualMachine
             }
         }
 
+        public uint GetFunctionEntry(Function function)
+        {
+            return methods[function.method].functions[function.index].entry;
+        }
         public FunctionHandle GetFunctionHandle(Function function)
         {
             var method = methods[function.method];
             return method.functions[function.index].GetHandle(this, method.infos[function.index]);
+        }
+        public FunctionHandle GetFunctionHandle(TypeDefinition definition, Function function)
+        {
+            var method = methods[function.method];
+            return method.functions[function.index].GetHandle(this, definition, method.infos[function.index]);
         }
         private bool TryGetExportMethod(Space space, string name, out ExportMethod method, bool includeSubSpace)
         {

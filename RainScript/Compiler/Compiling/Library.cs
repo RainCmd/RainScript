@@ -305,6 +305,7 @@ namespace RainScript.Compiler.Compiling
         {
             if (children.TryGetValue(name, out var child)) return child;
             child = new Space(this, name);
+            children.Add(name, child);
             return child;
         }
 

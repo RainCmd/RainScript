@@ -67,6 +67,8 @@
             parameter.generator.WriteCode(variableParameter.results[0]);
             parameter.generator.WriteCode(command);
             parameter.generator.WriteCode(variableParameter.results[0]);
+            if (!(variable is VariableLocalExpression))
+                variable.GeneratorAssignment(variableParameter);
         }
     }
     internal class OperationPrevIncrementExpression : OperationExpression//++x --x
@@ -81,6 +83,8 @@
             variable.Generator(parameter);
             parameter.generator.WriteCode(command);
             parameter.generator.WriteCode(parameter.results[0]);
+            if (!(variable is VariableLocalExpression))
+                variable.GeneratorAssignment(parameter);
         }
     }
 }

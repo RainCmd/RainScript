@@ -67,6 +67,18 @@ namespace RainScript.Compiler.File
                 }
                 foreach (var function in item.functions)
                 {
+                    for (int i = 0; i < function.returns.Count; i++)
+                    {
+                        var type = function.returns[i];
+                        var declaration = definitionContext.FindDeclaration(manager, type.name, pool, exceptions);
+                        if (declaration)
+                        {
+                            var definition = new CompilingDefinition(declaration);
+                            if ((bool)definition) function.compiling.returns[i] = new CompilingType(definition, type.dimension);
+                            else exceptions.Add(type.name, CompilingExceptionCode.COMPILING_INVALID_DEFINITION);
+                        }
+                        else exceptions.Add(type.name, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
+                    }
                     for (int i = 0; i < function.parameters.Count; i++)
                     {
                         var parameter = function.parameters[i];
