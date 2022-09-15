@@ -220,10 +220,6 @@ namespace RainScript.Compiler
             this.code = code;
             this.message = message;
         }
-        public override string ToString()
-        {
-            return "\r\n{0}[{1},{2}]\r\b异常代码：{3}\r\n{4}\r\n".Format(path, start, end, code, message);
-        }
     }
     /// <summary>
     /// 异常收集器

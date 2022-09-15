@@ -385,9 +385,14 @@ namespace RainScript.VirtualMachine
                         {
                             var handle = (uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             var type = library.LocalToGlobal(*(Type*)(library.code + point + 5));
-                            var length = *(uint*)(stack + bottom + *(uint*)(library.code + point + 18));
+                            var length = *(long*)(stack + bottom + *(uint*)(library.code + point + 18));
+                            if (length < 0)
+                            {
+                                flag = (long)ExitCode.OutOfRange;
+                                goto case CommandMacro.BASE_Exit;
+                            }
                             kernel.heapAgency.Release(*handle);
-                            *handle = kernel.heapAgency.AllocArray(type, length);
+                            *handle = kernel.heapAgency.AllocArray(type, (uint)length);
                             kernel.heapAgency.Reference(*handle);
                             point += 22;
                         }
@@ -1119,87 +1124,87 @@ namespace RainScript.VirtualMachine
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *address = *(stack + bottom + *(uint*)(library.code + point + 13));
+                            *address = *(stack + bottom + *(uint*)(library.code + point + 9));
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Local2Array_4:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 13));
+                            *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 9));
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Local2Array_8:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *(ulong*)address = *(ulong*)(stack + bottom + *(uint*)(library.code + point + 13));
+                            *(ulong*)address = *(ulong*)(stack + bottom + *(uint*)(library.code + point + 9));
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Local2Array_16:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *(Real2*)address = *(Real2*)(stack + bottom + *(uint*)(library.code + point + 13));
+                            *(Real2*)address = *(Real2*)(stack + bottom + *(uint*)(library.code + point + 9));
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Local2Array_24:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *(Real3*)address = *(Real3*)(stack + bottom + *(uint*)(library.code + point + 13));
+                            *(Real3*)address = *(Real3*)(stack + bottom + *(uint*)(library.code + point + 9));
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Local2Array_32:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *(Real4*)address = *(Real4*)(stack + bottom + *(uint*)(library.code + point + 13));
+                            *(Real4*)address = *(Real4*)(stack + bottom + *(uint*)(library.code + point + 9));
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Local2Array_String:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            var value = *(uint*)(stack + bottom + *(uint*)(library.code + point + 13));
+                            var value = *(uint*)(stack + bottom + *(uint*)(library.code + point + 9));
                             kernel.stringAgency.Reference(value);
                             kernel.stringAgency.Release(*(uint*)address);
                             *(uint*)address = value;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Local2Array_Handle:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 13));
+                            *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 9));
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Local2Array_Entity:
                         {
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            var value = *(Entity*)(stack + bottom + *(uint*)(library.code + point + 13));
+                            var value = *(Entity*)(stack + bottom + *(uint*)(library.code + point + 9));
                             kernel.manipulator.Reference(value);
                             kernel.manipulator.Release(*(Entity*)address);
                             *(Entity*)address = value;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     #endregion L2A
                     #region G2L [1,4]局部变量地址 [5,8]library      [9,12]全局变量编号
@@ -1434,7 +1439,7 @@ namespace RainScript.VirtualMachine
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             *result = *address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Array2Local_4:
                         {
@@ -1444,7 +1449,7 @@ namespace RainScript.VirtualMachine
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             *result = *(uint*)address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Array2Local_8:
                         {
@@ -1454,7 +1459,7 @@ namespace RainScript.VirtualMachine
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             *result = *(ulong*)address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Array2Local_16:
                         {
@@ -1464,7 +1469,7 @@ namespace RainScript.VirtualMachine
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             *result = *(Real2*)address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Array2Local_24:
                         {
@@ -1474,7 +1479,7 @@ namespace RainScript.VirtualMachine
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             *result = *(Real3*)address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Array2Local_32:
                         {
@@ -1484,7 +1489,7 @@ namespace RainScript.VirtualMachine
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             *result = *(Real4*)address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Array2Local_String:
                         {
@@ -1496,7 +1501,7 @@ namespace RainScript.VirtualMachine
                             kernel.stringAgency.Release(*result);
                             *result = *(uint*)address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Array2Local_Handle:
                         {
@@ -1508,7 +1513,7 @@ namespace RainScript.VirtualMachine
                             kernel.heapAgency.Release(*result);
                             *result = *(uint*)address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     case CommandMacro.ASSIGNMENT_Array2Local_Entity:
                         {
@@ -1520,7 +1525,7 @@ namespace RainScript.VirtualMachine
                             kernel.manipulator.Release(*result);
                             *result = *(Entity*)address;
                         }
-                        point += 17;
+                        point += 13;
                         break;
                     #endregion A2L
                     #endregion Assignment
@@ -2577,6 +2582,7 @@ namespace RainScript.VirtualMachine
                 invoker.CopyFrom(stack, invoker.handle.returnSize);
                 invoker.exit = exit;
                 invoker.state = InvokerState.Completed;
+                if (exit != 0) kernel.OnExit?.Invoke(invoker.GetStackFrames(), exit);
             }
         }
         public void Dispose()

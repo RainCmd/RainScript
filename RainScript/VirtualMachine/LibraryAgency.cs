@@ -237,6 +237,7 @@ namespace RainScript.VirtualMachine
         }
         internal bool TryGetFunction(DefinitionFunction function, Type type, out DefinitionFunction targetFunction)
         {
+            if (type.dimension > 0) type = KERNEL_TYPE.ARRAY;
             if (TryGetInheritDepth(new Type(function.definition, 0), type, out _))
             {
                 var characteristic = GetFunctionCharacteristic(function);

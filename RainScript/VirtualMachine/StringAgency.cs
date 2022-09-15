@@ -33,7 +33,7 @@ namespace RainScript.VirtualMachine
             slots = new Slot[32];
             TryResize();
         }
-        private void TryResize()
+        private bool TryResize()
         {
             var nbs = GetPrimes(slotTop * 2);
             if (buckets == null || buckets.Length < nbs)
@@ -45,7 +45,9 @@ namespace RainScript.VirtualMachine
                     slots[i].next = buckets[idx];
                     buckets[idx] = i;
                 }
+                return true;
             }
+            return false;
         }
         public uint Add(string value)
         {
@@ -65,7 +67,7 @@ namespace RainScript.VirtualMachine
             }
             else
             {
-                TryResize();
+                if (TryResize()) bidx = (uint)value.GetHashCode() % buckets.Length;
                 if (slotTop == slots.Length)
                 {
                     var newSlots = new Slot[slotTop << 1];

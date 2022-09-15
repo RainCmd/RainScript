@@ -9,6 +9,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
 {
     internal struct GeneratorParameter
     {
+        public readonly CompilerCommand command;
         public readonly DeclarationManager manager;
         public readonly ReliedGenerator relied;
         public readonly Generator generator;
@@ -18,6 +19,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public readonly Variable[] results;
         public GeneratorParameter(StatementGeneratorParameter parameter, int resultCount)
         {
+            command=parameter.command;
             manager = parameter.manager;
             relied = parameter.relied;
             generator = parameter.generator;
@@ -29,6 +31,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public GeneratorParameter(GeneratorParameter parameter, int resultCount)
         {
+            command = parameter.command;
             manager = parameter.manager;
             relied = parameter.relied;
             generator = parameter.generator;

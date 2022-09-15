@@ -15,6 +15,10 @@ namespace RainScript.VirtualMachine
         internal readonly CoroutineAgency coroutineAgency;
         internal readonly LibraryAgency libraryAgency;
         /// <summary>
+        /// 携程非正常退出时触发
+        /// </summary>
+        public Action<StackFrame[], long> OnExit;
+        /// <summary>
         /// 核心
         /// </summary>
         /// <param name="library">启动程序集</param>

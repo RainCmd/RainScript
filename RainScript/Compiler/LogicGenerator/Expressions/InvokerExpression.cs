@@ -119,6 +119,7 @@
             parameter.generator.WriteCode(invokerParameter.results[0]);
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
+            if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
     }
     internal class InvokerNativeExpression : Expression
@@ -174,6 +175,7 @@
             parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
+            if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
     }
     internal class InvokerGlobalExpression : Expression
@@ -229,6 +231,7 @@
             parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
+            if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
     }
     internal class InvokerMemberExpression : Expression
@@ -282,6 +285,7 @@
             parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
+            if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
         private uint PushParameter(uint point, Variable variable, Generator generator)
         {
@@ -418,6 +422,7 @@
             parameter.generator.WriteCode(targetParameter.results[0]);
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
+            if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
         private uint PushParameter(uint point, Variable variable, Generator generator)
         {
@@ -471,6 +476,7 @@
             parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
+            if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
         private uint PushParameter(uint point, Variable variable, Generator generator)
         {
