@@ -594,7 +594,7 @@ namespace RainScript.Compiler.File
                                     {
                                         if (returns.Count > 0) exceptions.Add(functionName, CompilingExceptionCode.SYNTAX_CONSTRUCTOR_NO_RETURN_VALUE);
                                         returns.Dispose();
-                                        if (functionEnd + 1 < lineLexicals.Count) constructors.Add(new Definition.Constructor(functionName, memberVisibility, parameters, body, new Anchor(text, lineLexicals[functionEnd].anchor.start, lineLexicals[-1].anchor.end)));
+                                        if (functionEnd + 1 < lineLexicals.Count) constructors.Add(new Definition.Constructor(functionName, memberVisibility, parameters, body, new Anchor(text, lineLexicals[functionEnd + 1].anchor.start, lineLexicals[-1].anchor.end)));
                                         else constructors.Add(new Definition.Constructor(functionName, memberVisibility, parameters, body, default));
                                     }
                                     else

@@ -178,17 +178,16 @@ namespace RainScript.Compiler.LogicGenerator
                 if ((bool)logic.exprssion)
                 {
                     using (var lexicals = parameter.pool.GetList<Lexical>())
-                        if (Lexical.TryAnalysis(lexicals, logic.exprssion.textInfo, logic.exprssion.Segment, parameter.exceptions) && lexicals.Count > 1)
+                        if (Lexical.TryAnalysis(lexicals, logic.exprssion.textInfo, logic.exprssion.Segment, parameter.exceptions) && lexicals.Count > 0)
                         {
                             var lexical = lexicals[0];
-                            Declaration ctorMethod = default;
-                            if (lexical.anchor.Segment == KeyWorld.THIS) ParseCtorInvoker(parameter, function, lexicals, localContext, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Constructor, definition.constructors, 0, definition.declaration.index), thisExpression);
+                            if (lexical.anchor.Segment == KeyWorld.THIS) ParseCtorInvoker(parameter, function, lexical.anchor, lexicals, localContext, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Constructor, definition.constructors, 0, definition.declaration.index), thisExpression);
                             else if (lexical.anchor.Segment == KeyWorld.BASE)
                             {
                                 if (parameter.manager.TryGetDefinition(definition.parent, out var result))
                                 {
                                     if (result.Constructor == LIBRARY.ENTRY_INVALID) parameter.exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
-                                    else ParseCtorInvoker(parameter, function, lexicals, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
+                                    else ParseCtorInvoker(parameter, function, lexical.anchor, lexicals, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
                                     InitMemberVariable(parameter, thisExpression);
                                 }
                                 else throw ExceptionGeneratorCompiler.Unknown();
@@ -198,15 +197,20 @@ namespace RainScript.Compiler.LogicGenerator
                                 parameter.exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                                 return;
                             }
-                            var context = new Context(function.space, definition, function.body.compilings, function.body.references);
-                            var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
-                            if (parser.TryParseTuple(lexicals[1, -1], out var expressions))
-                                if (parser.TryGetFunction(parser.manager.GetMethod(ctorMethod), expressions, out var ctor, out var ctorParameter))
-                                    statements.statements.Add(new ExpressionStatement(new InvokerMemberExpression(lexical.anchor, ctor.Declaration, thisExpression, ctorParameter, returns)));
-                                else parameter.exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
+                        }
+                        else
+                        {
+                            if (parameter.manager.TryGetDefinition(definition.parent, out var result) && result.Declaration.library != LIBRARY.KERNEL)
+                                ParseCtorInvoker(parameter, function, logic.exprssion, null, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
+                            InitMemberVariable(parameter, thisExpression);
                         }
                 }
-                else InitMemberVariable(parameter, thisExpression);
+                else
+                {
+                    if (parameter.manager.TryGetDefinition(definition.parent, out var result) && result.Declaration.library != LIBRARY.KERNEL)
+                        ParseCtorInvoker(parameter, function, function.name, null, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
+                    InitMemberVariable(parameter, thisExpression);
+                }
             }
             else for (int i = 0; i < parameters.Length; i++) localContext.AddLocal(function.parameterNames[i], parameters[i]);
             if ((bool)function.body.body) Parse(parameter, function.space, function.body, localContext);
@@ -247,14 +251,15 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                         }
         }
-        private void ParseCtorInvoker(GeneratorParameter parameter, Compiling.Function function, ScopeList<Lexical> lexicals, LocalContext localContext, Declaration method, Expression thisExpression)
+        private void ParseCtorInvoker(GeneratorParameter parameter, Compiling.Function function, Anchor anchor, ScopeList<Lexical> lexicals, LocalContext localContext, Declaration method, Expression thisExpression)
         {
             var context = new Context(function.space, definition, function.body.compilings, function.body.references);
             var parser = new ExpressionParser(parameter.manager, context, localContext, parameter.pool, parameter.exceptions);
-            if (parser.TryParseTuple(lexicals[1, -1], out var expressions))
+            var expressions = new Expression[0];
+            if (lexicals == null || lexicals.Count < 2 || parser.TryParseTuple(lexicals[1, -1], out expressions))
                 if (parser.TryGetFunction(parser.manager.GetMethod(method), expressions, out var ctor, out var ctorParameter))
-                    statements.statements.Add(new ExpressionStatement(new InvokerMemberExpression(lexicals[0].anchor, ctor.Declaration, thisExpression, ctorParameter, returns)));
-                else parameter.exceptions.Add(lexicals[0].anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
+                    statements.statements.Add(new ExpressionStatement(new InvokerMemberExpression(anchor, ctor.Declaration, thisExpression, ctorParameter, returns)));
+                else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
         }
         private void ParseBranchStatement(GeneratorParameter parameter, ScopeList<Statement> statements, ScopeList<Lexical> lexicals, Anchor anchor, Context context, LocalContext localContext)
         {
