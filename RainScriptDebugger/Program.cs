@@ -64,7 +64,7 @@ namespace RainScriptDebugger
         }
         static void Main(string[] args)
         {
-            var path = Environment.CurrentDirectory + "\\generator.config";
+            var path = Environment.CurrentDirectory + "\\generator.cfg";
             if (!File.Exists(path))
             {
                 Console.WriteLine("配置文件未找到：" + path);
@@ -168,6 +168,18 @@ namespace RainScriptDebugger
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                if (builder.exceptions.Count > 0)
+                {
+                    Console.WriteLine("编译错误信息：");
+                    foreach (var item in builder.exceptions)
+                    {
+                        Console.WriteLine("错误码：{0} {1}", ((uint)item.code).ToString("X"), item.code);
+                        if (!string.IsNullOrEmpty(item.message))
+                            Console.WriteLine("额外信息：" + item.message);
+                        Console.WriteLine("位置：{0} [{1},{2}]", item.path, item.start, item.end);
+                        Console.WriteLine();
+                    }
+                }
                 return;
             }
             var librarys = new Dictionary<string, Library>
@@ -199,7 +211,8 @@ namespace RainScriptDebugger
                 var handle = kernel.GetFunctionHandle(config.entry, config.name);
                 if (handle == null)
                 {
-                    Console.WriteLine("入口函数 {0} 未找到");
+                    Console.WriteLine("入口函数 {0} 未找到", config.entry);
+                    return;
                 }
                 var invoker = kernel.Invoker(handle);
                 invoker.Start(true, false);
