@@ -1,6 +1,5 @@
 ﻿using RainScript.Compiler.LogicGenerator.Expressions;
 using RainScript.Vector;
-using System;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -3567,9 +3566,9 @@ namespace RainScript.Compiler.LogicGenerator
                                         value <<= 8;
                                         if (c == '\\')
                                         {
-                                            if (++index < segment.Length)
+                                            if (++i < segment.Length)
                                             {
-                                                c = segment[index];
+                                                c = segment[i];
                                                 if (c == 'a') c = '\a';
                                                 else if (c == 'b') c = '\b';
                                                 else if (c == 'f') c = '\f';
@@ -3601,9 +3600,9 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (c == '\\')
                                         {
-                                            if (++index < segment.Length)
+                                            if (++i < segment.Length)
                                             {
-                                                c = segment[index];
+                                                c = segment[i];
                                                 if (c == 'a') c = '\a';
                                                 else if (c == 'b') c = '\b';
                                                 else if (c == 'f') c = '\f';
@@ -3612,6 +3611,29 @@ namespace RainScript.Compiler.LogicGenerator
                                                 else if (c == 't') c = '\t';
                                                 else if (c == 'v') c = '\v';
                                                 else if (c == '0') c = '\0';
+                                                else if (c == 'x')
+                                                {
+                                                    if (++i < segment.Length && TryGetHexValue(segment[i], out var value))
+                                                    {
+                                                        if (++i < segment.Length && TryGetHexValue(segment[i], out var value2)) c = (char)(value * 16 + value2);
+                                                        else i -= 2;
+                                                    }
+                                                    else i--;
+                                                }
+                                                else if (c == 'u')
+                                                {
+                                                    if (i + 4 < segment.Length)
+                                                    {
+                                                        var resultChar = 0;
+                                                        var idx = i;
+                                                        while (idx - i < 4 && TryGetHexValue(segment[++idx], out var value)) resultChar = (resultChar << 4) + value;
+                                                        if (idx == i + 1)
+                                                        {
+                                                            i = idx;
+                                                            c = (char)resultChar;
+                                                        }
+                                                    }
+                                                }
                                                 builder.Append(c);
                                             }
                                         }
@@ -4231,6 +4253,21 @@ namespace RainScript.Compiler.LogicGenerator
         private static Anchor GetAnchor(ListSegment<Lexical> list)
         {
             return new Anchor(list[0].anchor.textInfo, list[0].anchor.start, list[-1].anchor.end);
+        }
+        private static bool TryGetHexValue(char c, out byte value)
+        {
+            if (c >= '0' && c <= '9')
+            {
+                value = (byte)(c - '0');
+                return true;
+            }
+            value = (byte)(c | 0x20);
+            if (value >= 'a' && value <= 'f')
+            {
+                value -= (byte)'a' - 10;
+                return true;
+            }
+            return false;
         }
     }
 }

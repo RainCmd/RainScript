@@ -200,11 +200,11 @@ namespace RainScriptDebugger
                     };
                     kernel.OnExit += (frames, code) =>
                     {
-                        Console.WriteLine("携程异常退出，退出代码:" + code.ToString("X"));
+                        Console.WriteLine("携程异常退出，退出代码:\x1b[31m0x{0}\x1b[0m", code.ToString("X"));
                         foreach (var frame in frames)
                         {
                             kernel.GetFrameDetail(frame, name => symbols[name], out var fileName, out var functionName, out var lineNumber);
-                            Console.WriteLine("{0} line:{1} func:{2}", fileName, functionName, lineNumber);
+                            Console.WriteLine("{0} \x1b[33m{1} \x1b[36m{2} line:\x1b[0m", fileName, functionName, lineNumber + 1);
                         }
                     };
                 }
