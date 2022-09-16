@@ -184,6 +184,8 @@ namespace RainScript.Compiler
                     case DeclarationCode.GlobalFunction: return library.methods[(int)declaration.index].space;
                     case DeclarationCode.NativeMethod:
                     case DeclarationCode.NativeFunction: return library.natives[(int)declaration.index].space;
+                    case DeclarationCode.Lambda: return library.methods[(int)declaration.index].space;
+                    case DeclarationCode.LambdaClosureValue: return library.definitions[(int)declaration.definitionIndex].space;
                     case DeclarationCode.LocalVariable:
                     default: return null;
                 }
@@ -210,6 +212,8 @@ namespace RainScript.Compiler
                     case DeclarationCode.GlobalFunction: return rely.methods[declaration.index].space;
                     case DeclarationCode.NativeMethod:
                     case DeclarationCode.NativeFunction: return rely.natives[declaration.index].space;
+                    case DeclarationCode.Lambda: return rely.methods[(int)declaration.index].space;
+                    case DeclarationCode.LambdaClosureValue: return rely.definitions[(int)declaration.definitionIndex].space;
                     case DeclarationCode.LocalVariable:
                     default: return null;
                 }
@@ -217,6 +221,7 @@ namespace RainScript.Compiler
         }
         public IMethod GetMethod(Declaration declaration)
         {
+            if (declaration.code == DeclarationCode.Constructor && declaration.index == LIBRARY.METHOD_INVALID) return null;
             if (declaration.library == LIBRARY.KERNEL)
             {
                 if (declaration.code == DeclarationCode.Constructor) return RelyKernel.methods[declaration.index];
@@ -293,8 +298,12 @@ namespace RainScript.Compiler
             {
                 if (type.definition.code == TypeCode.Handle)
                 {
-                    method = library.methods[(int)library.definitions[(int)type.definition.index].constructors];
-                    return true;
+                    var constructors = library.definitions[(int)type.definition.index].constructors;
+                    if (constructors != LIBRARY.METHOD_INVALID)
+                    {
+                        method = library.methods[(int)constructors];
+                        return true;
+                    }
                 }
             }
             else
@@ -302,8 +311,12 @@ namespace RainScript.Compiler
                 var rely = relies[type.definition.library];
                 if (type.definition.code == TypeCode.Handle)
                 {
-                    method = rely.methods[rely.definitions[type.definition.index].constructors];
-                    return true;
+                    var constructors = rely.definitions[type.definition.index].constructors;
+                    if (constructors != LIBRARY.METHOD_INVALID)
+                    {
+                        method = rely.methods[constructors];
+                        return true;
+                    }
                 }
             }
             method = default;
@@ -843,6 +856,7 @@ namespace RainScript.Compiler
                 {
                     switch (declaration.code)
                     {
+                        case DeclarationCode.Invalid: break;
                         case DeclarationCode.Definition:
                             {
                                 var definition = RelyKernel.definitions[declaration.index];
@@ -865,9 +879,15 @@ namespace RainScript.Compiler
                         case DeclarationCode.ConstructorFunction:
                             {
                                 var definition = RelyKernel.definitions[declaration.definitionIndex];
+                                if (definition.constructors == LIBRARY.METHOD_INVALID) break;
                                 var method = RelyKernel.methods[definition.constructors];
                                 return definition.space.GetFullName() + "." + definition.name + "." + method.name;
                             }
+                        case DeclarationCode.Delegate:
+                        case DeclarationCode.Coroutine:
+                        case DeclarationCode.Interface:
+                        case DeclarationCode.InterfaceMethod:
+                        case DeclarationCode.InterfaceFunction: break;
                         case DeclarationCode.GlobalVariable:
                             {
                                 var variable = RelyKernel.variables[declaration.index];
@@ -879,12 +899,18 @@ namespace RainScript.Compiler
                                 var method = RelyKernel.methods[declaration.index];
                                 return method.space.GetFullName() + "." + method.name;
                             }
+                        case DeclarationCode.NativeMethod:
+                        case DeclarationCode.NativeFunction:
+                        case DeclarationCode.Lambda:
+                        case DeclarationCode.LambdaClosureValue:
+                        case DeclarationCode.LocalVariable: break;
                     }
                 }
                 else if (declaration.library == LIBRARY.SELF)
                 {
                     switch (declaration.code)
                     {
+                        case DeclarationCode.Invalid: break;
                         case DeclarationCode.Definition:
                             {
                                 var definition = library.definitions[(int)declaration.index];
@@ -907,6 +933,7 @@ namespace RainScript.Compiler
                         case DeclarationCode.ConstructorFunction:
                             {
                                 var definition = library.definitions[(int)declaration.definitionIndex];
+                                if (definition.constructors == LIBRARY.METHOD_INVALID) break;
                                 var method = library.methods[(int)definition.constructors];
                                 return definition.space.GetFullName() + "." + definition.name.Segment + "." + method.name;
                             }
@@ -949,6 +976,9 @@ namespace RainScript.Compiler
                                 var method = library.natives[(int)declaration.index];
                                 return method.space.GetFullName() + "." + method.name;
                             }
+                        case DeclarationCode.Lambda:
+                        case DeclarationCode.LambdaClosureValue:
+                        case DeclarationCode.LocalVariable: break;
                     }
                 }
                 else
@@ -956,6 +986,7 @@ namespace RainScript.Compiler
                     var rely = relies[declaration.library];
                     switch (declaration.code)
                     {
+                        case DeclarationCode.Invalid: break;
                         case DeclarationCode.Definition:
                             {
                                 var definition = rely.definitions[(int)declaration.index];
@@ -978,6 +1009,7 @@ namespace RainScript.Compiler
                         case DeclarationCode.ConstructorFunction:
                             {
                                 var definition = rely.definitions[(int)declaration.definitionIndex];
+                                if (definition.constructors == LIBRARY.METHOD_INVALID) break;
                                 var method = rely.methods[(int)definition.constructors];
                                 return definition.space.GetFullName() + "." + definition.name + "." + method.name;
                             }
@@ -1020,6 +1052,9 @@ namespace RainScript.Compiler
                                 var method = rely.natives[(int)declaration.index];
                                 return method.space.GetFullName() + "." + method.name;
                             }
+                        case DeclarationCode.Lambda:
+                        case DeclarationCode.LambdaClosureValue:
+                        case DeclarationCode.LocalVariable: break;
                     }
                 }
             }

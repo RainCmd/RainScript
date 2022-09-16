@@ -67,6 +67,10 @@ namespace RainScript.Compiler
         /// 缺少配对的符号
         /// </summary>
         SYNTAX_MISSING_PAIRED_SYMBOL,
+        /// <summary>
+        /// 析构函数中申请托管内存
+        /// </summary>
+        SYNTAX_DESTRUCTOR_ALLOC,
         #endregion 语法
 
         #region 编译

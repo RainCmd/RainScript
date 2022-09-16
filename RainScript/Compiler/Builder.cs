@@ -253,9 +253,13 @@ namespace RainScript.Compiler
                 for (int index = 0; index < inherits.Length; index++) inherits[index] = relied.Convert(definition.inherits[index]).RuntimeDefinition;
                 var memberVariables = new Type[definition.variables.Length];
                 for (int index = 0; index < memberVariables.Length; index++) memberVariables[index] = relied.Convert(definition.variables[index].type).RuntimeType;
-                var memberMethods = new uint[definition.methods.Length + 1];
-                Array.Copy(definition.methods, memberMethods, definition.methods.Length);
-                memberMethods[definition.methods.Length] = definition.constructors;
+                var memberMethods = definition.methods;
+                if (definition.constructors != LIBRARY.METHOD_INVALID)
+                {
+                    memberMethods = new uint[definition.methods.Length + 1];
+                    Array.Copy(definition.methods, memberMethods, definition.methods.Length);
+                    memberMethods[definition.methods.Length] = definition.constructors;
+                }
                 var relocations = pool.GetList<Relocation>();
                 foreach (var method in definition.methods)
                     foreach (var function in library.methods[(int)method])
@@ -384,14 +388,15 @@ namespace RainScript.Compiler
                                         if (functions.Count > 0) methods.Add(new ExportMethod(method.name, memberMethodIndex, functions.ToArray()));
                                         memberMethodIndex++;
                                     }
-                                using (var functions = pool.GetList<uint>())
-                                {
-                                    var method = library.methods[(int)definition.constructors];
-                                    foreach (var function in method)
-                                        if (function.declaration.visibility.ContainAny(Visibility.Public) || function.declaration.visibility == Visibility.Protected)
-                                            functions.Add(function.declaration.overloadIndex);
-                                    if (functions.Count > 0) methods.Add(new ExportMethod(definition.name.Segment, (uint)definition.methods.Length, functions.ToArray()));
-                                }
+                                if (definition.constructors != LIBRARY.METHOD_INVALID)
+                                    using (var functions = pool.GetList<uint>())
+                                    {
+                                        var method = library.methods[(int)definition.constructors];
+                                        foreach (var function in method)
+                                            if (function.declaration.visibility.ContainAny(Visibility.Public) || function.declaration.visibility == Visibility.Protected)
+                                                functions.Add(function.declaration.overloadIndex);
+                                        if (functions.Count > 0) methods.Add(new ExportMethod(definition.name.Segment, (uint)definition.methods.Length, functions.ToArray()));
+                                    }
                                 definitionList.Add(new ExportDefinition(pair.Key, declaratioin.index, variables.ToArray(), methods.ToArray()));
                                 variables.Dispose();
                                 methods.Dispose();
@@ -456,6 +461,7 @@ namespace RainScript.Compiler
                             break;
                         case DeclarationCode.NativeFunction:
                         case DeclarationCode.Lambda:
+                        case DeclarationCode.LambdaClosureValue:
                         case DeclarationCode.LocalVariable:
                         default: throw ExceptionGeneratorCompiler.Unknown();
                     }
@@ -496,6 +502,11 @@ namespace RainScript.Compiler
         }
         private bool TryFindOverride(DeclarationManager manager, IFunction function, IDefinition definition, out Declaration overrideFunction)
         {
+            if (function.Declaration.code == DeclarationCode.Lambda)
+            {
+                overrideFunction = default;
+                return false;
+            }
             if (TryFindDefinitionOverride(manager, function, definition, out overrideFunction)) return true;
             if (manager.TryGetDefinition(definition.Parent, out definition)) return TryFindOverride(manager, function, definition, out overrideFunction);
             overrideFunction = default;

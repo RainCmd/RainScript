@@ -21,13 +21,17 @@
             foreach (var item in definition.variables)
                 if (item.declaration.visibility.ContainAll(Visibility.Public))
                     variables.Add(new ReferenceDefinition.Variable(item.name.Segment, item.declaration.visibility, library.CompilingToReference(manager, item.name, item.type, pool, exceptions)));
-            var constructorMethod = manager.library.methods[(int)definition.constructors];
             var constructorVisibility = Visibility.None;
-            foreach (var item in constructorMethod)
-                if (item.declaration.visibility == Visibility.Public || item.declaration.visibility == Visibility.Protected) constructorVisibility |= item.declaration.visibility;
+            if (definition.constructors != LIBRARY.METHOD_INVALID)
+            {
+                var constructorMethod = manager.library.methods[(int)definition.constructors];
+                foreach (var item in constructorMethod)
+                    if (item.declaration.visibility == Visibility.Public || item.declaration.visibility == Visibility.Protected) constructorVisibility |= item.declaration.visibility;
+            }
             if (constructorVisibility == Visibility.None) constructors = LIBRARY.METHOD_INVALID;
             else
             {
+                var constructorMethod = manager.library.methods[(int)definition.constructors];
                 var method = new Method(definition.name.Segment, constructorVisibility, pool);
                 foreach (var item in constructorMethod)
                     if (item.declaration.visibility == Visibility.Public || item.declaration.visibility == Visibility.Protected)
@@ -144,8 +148,7 @@
             {
                 switch (item.code)
                 {
-                    case DeclarationCode.Invalid:
-                        break;
+                    case DeclarationCode.Invalid: break;
                     case DeclarationCode.Definition:
                         definitionList.Add(item.index);
                         break;
@@ -153,8 +156,7 @@
                     case DeclarationCode.MemberMethod:
                     case DeclarationCode.MemberFunction:
                     case DeclarationCode.Constructor:
-                    case DeclarationCode.ConstructorFunction:
-                        break;
+                    case DeclarationCode.ConstructorFunction: break;
                     case DeclarationCode.Delegate:
                         delegateList.Add(item.index);
                         break;
@@ -172,17 +174,15 @@
                     case DeclarationCode.GlobalMethod:
                         methodList.Add(item.index);
                         break;
-                    case DeclarationCode.GlobalFunction:
-                        break;
+                    case DeclarationCode.GlobalFunction: break;
                     case DeclarationCode.NativeMethod:
                         nativeList.Add(item.index);
                         break;
                     case DeclarationCode.NativeFunction:
-                        break;
+                    case DeclarationCode.Lambda:
+                    case DeclarationCode.LambdaClosureValue:
                     case DeclarationCode.LocalVariable:
-                        break;
-                    default:
-                        break;
+                    default: break;
                 }
             }
             definitions = definitionList.ToArray();
@@ -463,6 +463,8 @@
                         case DeclarationCode.GlobalFunction:
                         case DeclarationCode.NativeMethod:
                         case DeclarationCode.NativeFunction:
+                        case DeclarationCode.Lambda:
+                        case DeclarationCode.LambdaClosureValue:
                         case DeclarationCode.LocalVariable:
                         default:
                             break;

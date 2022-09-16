@@ -55,6 +55,8 @@ namespace RainScript.Compiler
                     case DeclarationCode.NativeMethod:
                     case DeclarationCode.NativeFunction:
                         return manager.library.natives[(int)declaration.index].space.Contain(space);
+                    case DeclarationCode.Lambda:
+                    case DeclarationCode.LambdaClosureValue:
                     case DeclarationCode.LocalVariable:
                         return true;
                 }

@@ -71,4 +71,101 @@
             localDeclarations.Dispose();
         }
     }
+    internal class LambdaClosure : System.IDisposable
+    {
+        public readonly ExpressionParser environment;
+        private readonly ScopeDictionary<Declaration, Declaration> map;
+        private readonly ScopeList<Compiling.Definition.MemberVariableInfo> variables;
+        private Compiling.Definition definition;
+        public LambdaClosure(ExpressionParser environment)
+        {
+            this.environment = environment;
+            map = environment.pool.GetDictionary<Declaration, Declaration>();
+            variables = environment.pool.GetList<Compiling.Definition.MemberVariableInfo>();
+        }
+        private Compiling.Definition GetDefinition()
+        {
+            if (definition == null)
+            {
+                var declaration = new Declaration(LIBRARY.SELF, Visibility.Space, DeclarationCode.Definition, (uint)environment.manager.library.definitions.Count, 0, 0);
+                definition = new Compiling.Definition(default, declaration, environment.context.space, LIBRARY.METHOD_INVALID, null, null, null, default);
+                environment.manager.library.definitions.Add(definition);
+            }
+            return definition;
+        }
+        public bool TryGetClosureVariables(uint methodIndex, out Declaration definition, out Declaration[] sourceVariables, out CompilingType[] types)
+        {
+            if (map.Count > 0)
+            {
+                definition = this.definition.declaration;
+                this.definition = new Compiling.Definition(default, definition, this.definition.space, LIBRARY.METHOD_INVALID, null, variables.ToArray(), new uint[] { methodIndex }, default);
+                this.definition.parent = RelyKernel.HANDLE;
+                environment.manager.library.definitions[(int)definition.index] = this.definition;
+                sourceVariables = new Declaration[map.Count];
+                types = new CompilingType[map.Count];
+                foreach (var item in map)
+                {
+                    var index = (int)item.Value.index;
+                    sourceVariables[index] = item.Key;
+                    types[index] = variables[index].type;
+                }
+                return true;
+            }
+            else
+            {
+                definition = default;
+                sourceVariables = default;
+                types = default;
+                return false;
+            }
+        }
+        public bool TryGetVariableType(Declaration declaration, out CompilingType type)
+        {
+            if (declaration.code == DeclarationCode.LambdaClosureValue)
+            {
+                type = variables[(int)declaration.index].type;
+                return true;
+            }
+            type = default;
+            return false;
+        }
+        private Declaration Convert(Anchor name, Declaration declaration)
+        {
+            if (!map.TryGetValue(declaration, out var result))
+            {
+                var definition = GetDefinition();
+                result = new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.LambdaClosureValue, (uint)variables.Count, 0, definition.declaration.index);
+                var variable = new Compiling.Definition.MemberVariableInfo(name, result, environment.context.space, default);
+                variable.type = environment.GetVariableType(declaration);
+                variables.Add(variable);
+                map[declaration] = result;
+            }
+            return result;
+        }
+        public bool TryFindDeclaration(Anchor name, out Declaration declaration)
+        {
+            if (environment.TryFindDeclaration(name, out declaration))
+            {
+                if (declaration.code == DeclarationCode.LocalVariable || declaration.code == DeclarationCode.LambdaClosureValue)
+                    declaration = Convert(name, declaration);
+                return true;
+            }
+            declaration = default;
+            return false;
+        }
+        public bool TryGetThisValueDeclaration(out Declaration declaration)
+        {
+            if (environment.TryGetThisValueDeclaration(out declaration))
+            {
+                declaration = Convert(default, declaration);
+                return true;
+            }
+            return false;
+        }
+        public void Dispose()
+        {
+            map.Dispose();
+            variables.Dispose();
+        }
+    }
 }

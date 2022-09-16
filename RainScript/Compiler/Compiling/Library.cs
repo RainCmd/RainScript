@@ -44,7 +44,6 @@ namespace RainScript.Compiler.Compiling
         {
             public CompilingType type;
             public readonly LogicExpression expression;
-            public uint offset;
             public MemberVariableInfo(Anchor name, Compiler.Declaration declaration, Space space, LogicExpression expression) : base(name, declaration, space)
             {
                 this.expression = expression;
@@ -59,7 +58,6 @@ namespace RainScript.Compiler.Compiling
         public readonly uint constructors;
         public readonly LogicExpression[] constructorInvaokerExpressions;
         public readonly MemberVariableInfo[] variables;
-        public uint size;
         public readonly uint[] methods;
         public readonly LogicBody destructor;
         public uint destructorEntry;
@@ -361,13 +359,6 @@ namespace RainScript.Compiler.Compiling
         public Library(string name) : base(null, name) { }
         public void CalculatedVariableAddress()
         {
-            foreach (var item in definitions)
-                foreach (var variable in item.variables)
-                {
-                    variable.offset = item.size;
-                    if (variable.type.dimension > 0) item.size += TypeCode.Handle.FieldSize();
-                    else item.size += variable.type.definition.code.FieldSize();
-                }
             foreach (var item in variables)
                 if (item.constant)
                 {

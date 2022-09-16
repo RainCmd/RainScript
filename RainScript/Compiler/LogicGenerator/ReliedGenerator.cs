@@ -442,6 +442,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         break;
                     case DeclarationCode.Lambda:
+                    case DeclarationCode.LambdaClosureValue:
                     case DeclarationCode.LocalVariable:
                     default: throw ExceptionGeneratorCompiler.Unknown();
                 }

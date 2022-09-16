@@ -1,6 +1,6 @@
 ﻿using RainScript.Compiler.LogicGenerator.Expressions;
 using RainScript.Vector;
-using System.Data;
+using System;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -14,13 +14,18 @@ namespace RainScript.Compiler.LogicGenerator
         public readonly DeclarationManager manager;
         public readonly Context context;
         public readonly LocalContext localContext;
+        public readonly LambdaClosure closure;
+        public readonly bool destructor;
         public readonly CollectionPool pool;
         public readonly ExceptionCollector exceptions;
-        public ExpressionParser(DeclarationManager manager, Context context, LocalContext localContext, CollectionPool pool, ExceptionCollector exceptions)
+        public ExpressionParser(GeneratorParameter parameter, Context context, LocalContext localContext, bool destructor) : this(parameter.manager, context, localContext, null, destructor, parameter.pool, parameter.exceptions) { }
+        public ExpressionParser(DeclarationManager manager, Context context, LocalContext localContext, LambdaClosure closure, bool destructor, CollectionPool pool, ExceptionCollector exceptions)
         {
             this.manager = manager;
             this.context = context;
             this.localContext = localContext;
+            this.closure = closure;
+            this.destructor = destructor;
             this.pool = pool;
             this.exceptions = exceptions;
         }
@@ -31,15 +36,42 @@ namespace RainScript.Compiler.LogicGenerator
                 result = local.Declaration;
                 return true;
             }
+            else if (closure != null && closure.TryFindDeclaration(name, out result)) return true;
             else return context.TryFindDeclaration(manager, name, out result, pool, exceptions);
+        }
+        public bool TryGetThisValueDeclaration(out Declaration declaration)
+        {
+            if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+            {
+                declaration = local.Declaration;
+                return true;
+            }
+            if (closure != null && closure.TryGetThisValueDeclaration(out declaration)) return true;
+            declaration = default;
+            return false;
+        }
+        private bool TryGetThisValueExpression(out Expression expression)
+        {
+            if (TryGetThisValueDeclaration(out var declaration))
+            {
+                if (declaration.code == DeclarationCode.LocalVariable)
+                {
+                    expression = new VariableLocalExpression(default, declaration, TokenAttribute.Value, GetVariableType(declaration));
+                    return true;
+                }
+                else if (declaration.code == DeclarationCode.LambdaClosureValue)
+                {
+                    var local = new Local(default, 0, new CompilingType(LIBRARY.SELF, Visibility.Space, TypeCode.Handle, declaration.definitionIndex, 0));
+                    expression = new VariableMemberExpression(default, declaration, new VariableLocalExpression(local, TokenAttribute.Value), GetVariableType(declaration));
+                    return true;
+                }
+            }
+            expression = default;
+            return false;
         }
         public CompilingType GetVariableType(Declaration declaration)
         {
-            if (declaration.code == DeclarationCode.LocalVariable)
-            {
-                if (localContext.TryGetLocal(declaration, out var local)) return local.type;
-            }
-            else if (declaration.code == DeclarationCode.MemberVariable)
+            if (declaration.code == DeclarationCode.MemberVariable)
             {
                 if (declaration.library == LIBRARY.SELF) return manager.library.definitions[(int)declaration.definitionIndex].variables[declaration.index].type;
                 else if (declaration.library != LIBRARY.KERNEL) return manager.relies[declaration.library].definitions[declaration.definitionIndex].variables[declaration.index].type;
@@ -49,6 +81,14 @@ namespace RainScript.Compiler.LogicGenerator
                 if (declaration.library == LIBRARY.KERNEL) return RelyKernel.variables[declaration.index].type;
                 else if (declaration.library == LIBRARY.SELF) return manager.library.variables[(int)declaration.index].type;
                 else return manager.relies[declaration.library].variables[declaration.index].type;
+            }
+            else if (declaration.code == DeclarationCode.LambdaClosureValue)
+            {
+                if (closure != null && closure.TryGetVariableType(declaration, out var type)) return type;
+            }
+            else if (declaration.code == DeclarationCode.LocalVariable)
+            {
+                if (localContext.TryGetLocal(declaration, out var local)) return local.type;
             }
             throw ExceptionGeneratorCompiler.InvalidDeclaration(declaration);
         }
@@ -62,16 +102,17 @@ namespace RainScript.Compiler.LogicGenerator
             }
             return false;
         }
-        public void BuildLambda(CompilingType functionType, CompilingType[] returns, CompilingType[] parameters, Anchor[] parameterNames, out Expression expression, out LambdaFunction lambda)
+        public void BuildLambda(Anchor anchor, LambdaClosure closure, CompilingType functionType, CompilingType[] returns, CompilingType[] parameters, Anchor[] parameterNames, out Expression expression, out LambdaFunction lambda)
         {
             var declaration = new Declaration(LIBRARY.SELF, Visibility.Space, DeclarationCode.Lambda, (uint)manager.library.methods.Count, 0, (uint)manager.lambdas.Count);
             var function = new Compiling.Function(declaration, context.space, returns, parameters, parameterNames, pool);
-            expression = new DelegateCreateLambdaFunctionExpression(default, declaration, functionType);
             lambda = new LambdaFunction(function.entry, parameters, pool);
             manager.lambdas.Add(lambda);
             var method = new Compiling.Method((uint)manager.library.methods.Count, DeclarationCode.Lambda, "", context.space);
             method.AddFunction(function);
             manager.library.methods.Add(method);
+            if (closure.TryGetClosureVariables(declaration.index, out var definition, out var sourceVariables, out var sourceTypes)) expression = new DelegateCreateLambdaClosureFunctionExpression(anchor, declaration, definition, sourceVariables, sourceTypes, functionType);
+            else expression = new DelegateCreateLambdaFunctionExpression(default, declaration, functionType);
         }
         private bool IsDecidedTypes(CompilingType[] types)
         {
@@ -307,35 +348,37 @@ namespace RainScript.Compiler.LogicGenerator
                                             localContext.PushBlock(pool);
                                             for (int i = 0; i < parameters.Length; i++)
                                                 localContext.AddLocal(lambda.parameters[i], parameters[i]);
-                                            var parser = new ExpressionParser(manager, context, localContext, pool, exceptions);
-                                            if (parser.TryParseTuple(lambda.body, out var expressions))
+                                            using (var closure = new LambdaClosure(this))
                                             {
-                                                BuildLambda(type, returns, parameters, lambda.parameters, out result, out var lambdaFunction);
-                                                if (parser.TryAssignmentConvert(expressions, returns, out var expression, out _))
+                                                var parser = new ExpressionParser(manager, context, localContext, closure, destructor, pool, exceptions);
+                                                if (parser.TryParseTuple(lambda.body, out var expressions))
                                                 {
-                                                    lambdaFunction.statements.Add(new ReturnStatement(expression.anchor, expression));
-                                                    lambdaFunction.SetReturnCount((uint)returns.Length);
-                                                    measure = 0;
-                                                    return true;
+                                                    if (parser.TryAssignmentConvert(expressions, returns, out var expression, out _))
+                                                    {
+                                                        BuildLambda(lambda.anchor, closure, type, returns, parameters, lambda.parameters, out result, out var lambdaFunction);
+                                                        lambdaFunction.statements.Add(new ReturnStatement(expression.anchor, expression));
+                                                        lambdaFunction.SetReturnCount((uint)returns.Length);
+                                                        measure = 0;
+                                                        return true;
+                                                    }
+                                                    else if (returns.Length == 0)
+                                                    {
+                                                        foreach (var item in expressions)
+                                                            if (!IsDecidedTypes(item.returns))
+                                                            {
+                                                                result = default;
+                                                                exceptions.Add(item.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
+                                                                measure = 0;
+                                                                return false;
+                                                            }
+                                                        BuildLambda(lambda.anchor, closure, type, returns, parameters, lambda.parameters, out result, out var lambdaFunction);
+                                                        foreach (var item in expressions)
+                                                            lambdaFunction.statements.Add(new ExpressionStatement(item));
+                                                        lambdaFunction.SetReturnCount(0);
+                                                        measure = 0;
+                                                        return true;
+                                                    }
                                                 }
-                                                else if (returns.Length == 0)
-                                                {
-                                                    foreach (var item in expressions)
-                                                        if (!IsDecidedTypes(item.returns))
-                                                        {
-                                                            result = default;
-                                                            lambdaFunction.Dispose();
-                                                            exceptions.Add(item.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
-                                                            measure = 0;
-                                                            return false;
-                                                        }
-                                                    foreach (var item in expressions)
-                                                        lambdaFunction.statements.Add(new ExpressionStatement(item));
-                                                    lambdaFunction.SetReturnCount(0);
-                                                    measure = 0;
-                                                    return true;
-                                                }
-                                                lambdaFunction.Dispose();
                                             }
                                         }
                                     }
@@ -606,6 +649,7 @@ namespace RainScript.Compiler.LogicGenerator
         {
             if (lambdaIndex < lexicals.Count)
             {
+                if (destructor) exceptions.Add(lexicals, CompilingExceptionCode.SYNTAX_DESTRUCTOR_ALLOC);
                 using (var parameters = pool.GetList<Anchor>())
                 {
                     var index = 0;
@@ -2973,6 +3017,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             else if (manager.TryGetConstructor(type, out var constructor) && TryGetFunction(constructor, expressions, out var constructorFunction, out var constructorParameter))
                                             {
+                                                if (destructor) exceptions.Add(typeExpression.anchor, CompilingExceptionCode.SYNTAX_DESTRUCTOR_ALLOC);
                                                 var expression = new InvokerConstructorExpression(typeExpression.anchor, constructorFunction.Declaration, constructorParameter, type);
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
@@ -3131,6 +3176,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             tokenStack.Pop();
                                             if (typeExpression.type.dimension == 0 && TryCombineExpressions(out var expression, expressions) && expression.returns.Length == 1)
                                             {
+                                                if (destructor) exceptions.Add(typeExpression.anchor, CompilingExceptionCode.SYNTAX_DESTRUCTOR_ALLOC);
                                                 var dimension = Lexical.ExtractDimension(lexicals, ref index);
                                                 expression = new ArrayCreateExpression(typeExpression.anchor, expression, new CompilingType(typeExpression.type.definition, dimension + 1));
                                                 expressionStack.Push(expression);
@@ -3592,7 +3638,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.BASE)
                                 {
-                                    if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+                                    if (TryGetThisValueExpression(out var thisValueExpression))
                                     {
                                         if (CheckNext(lexicals, ref index, LexicalType.Dot))
                                         {
@@ -3606,7 +3652,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     {
                                                         if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                                         {
-                                                            var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Value, local.type), GetVariableType(declaration));
+                                                            var expression = new VariableMemberExpression(lexical.anchor, declaration, thisValueExpression, GetVariableType(declaration));
                                                             expressionStack.Push(expression);
                                                             attribute = expression.Attribute;
                                                             break;
@@ -3617,7 +3663,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     {
                                                         if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                                         {
-                                                            var expression = new MethodMemberExpression(lexical.anchor, new VariableLocalExpression(baseAnchor, local.Declaration, TokenAttribute.Value, local.type), declaration);
+                                                            var expression = new MethodMemberExpression(lexical.anchor, thisValueExpression, declaration);
                                                             expressionStack.Push(expression);
                                                             attribute = expression.Attribute;
                                                             break;
@@ -3647,9 +3693,8 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else if (lexical.anchor.Segment == KeyWorld.THIS)
                                 {
-                                    if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+                                    if (TryGetThisValueExpression(out var thisValueExpression))
                                     {
-                                        var thisExpression = new VariableLocalExpression(lexical.anchor, local.Declaration, TokenAttribute.Value, local.type);
                                         if (CheckNext(lexicals, ref index, LexicalType.Dot))
                                         {
                                             if (CheckNext(lexicals, ref index, LexicalType.Word))
@@ -3662,7 +3707,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     {
                                                         if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                                         {
-                                                            var expression = new VariableMemberExpression(lexical.anchor, declaration, thisExpression, GetVariableType(declaration));
+                                                            var expression = new VariableMemberExpression(lexical.anchor, declaration, thisValueExpression, GetVariableType(declaration));
                                                             expressionStack.Push(expression);
                                                             attribute = expression.Attribute;
                                                             break;
@@ -3673,7 +3718,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     {
                                                         if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                                         {
-                                                            var expression = new MethodVirtualExpression(lexical.anchor, thisExpression, declaration);
+                                                            var expression = new MethodVirtualExpression(lexical.anchor, thisValueExpression, declaration);
                                                             expressionStack.Push(expression);
                                                             attribute = expression.Attribute;
                                                             break;
@@ -3691,8 +3736,8 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                         {
-                                            expressionStack.Push(thisExpression);
-                                            attribute = thisExpression.Attribute;
+                                            expressionStack.Push(thisValueExpression);
+                                            attribute = thisValueExpression.Attribute;
                                             break;
                                         }
                                         else goto default;
@@ -4015,11 +4060,11 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             else goto default;
                                         case DeclarationCode.MemberVariable:
-                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
+                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
-                                                if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+                                                if (TryGetThisValueExpression(out var thisValueExpression))
                                                 {
-                                                    var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(default, local.Declaration, TokenAttribute.Value, local.type), GetVariableType(declaration));
+                                                    var expression = new VariableMemberExpression(lexical.anchor, declaration, thisValueExpression, GetVariableType(declaration));
                                                     expressionStack.Push(expression);
                                                     attribute = expression.Attribute;
                                                     break;
@@ -4029,9 +4074,9 @@ namespace RainScript.Compiler.LogicGenerator
                                         case DeclarationCode.MemberMethod:
                                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                             {
-                                                if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+                                                if (TryGetThisValueExpression(out var thisValueExpression))
                                                 {
-                                                    var expression = new MethodVirtualExpression(lexical.anchor, new VariableLocalExpression(default, local.Declaration, TokenAttribute.Value, local.type), declaration);
+                                                    var expression = new MethodVirtualExpression(lexical.anchor, thisValueExpression, declaration);
                                                     expressionStack.Push(expression);
                                                     attribute = expression.Attribute;
                                                     break;
@@ -4076,6 +4121,16 @@ namespace RainScript.Compiler.LogicGenerator
                                             else goto default;
                                         case DeclarationCode.NativeFunction:
                                         case DeclarationCode.Lambda: goto default;
+                                        case DeclarationCode.LambdaClosureValue:
+                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
+                                            {
+                                                var local = new Local(lexical.anchor, 0, new CompilingType(LIBRARY.SELF, Visibility.Space, TypeCode.Handle, declaration.definitionIndex, 0));
+                                                var expression = new VariableMemberExpression(lexical.anchor, declaration, new VariableLocalExpression(local, TokenAttribute.Value), GetVariableType(declaration));
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                break;
+                                            }
+                                            break;
                                         case DeclarationCode.LocalVariable:
                                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
