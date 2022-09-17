@@ -46,7 +46,11 @@
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
             parameter.generator.WriteCode(address);
-            right.Generator(parameter);
+            var rightParameter = new GeneratorParameter(parameter, 1);
+            right.Generator(rightParameter);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_1);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(rightParameter.results[0]);
             parameter.generator.SetCodeAddress(address);
             address.Dispose();
         }
