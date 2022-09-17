@@ -51,7 +51,7 @@
         }
         public static explicit operator bool(Anchor anchor)
         {
-            return anchor.textInfo != null && anchor.start < anchor.end;
+            return anchor.textInfo != null && anchor.start <= anchor.end;
         }
     }
 }
