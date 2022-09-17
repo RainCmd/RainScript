@@ -8,9 +8,13 @@ namespace RainScript.VirtualMachine
     public interface IEntity
     {
         /// <summary>
+        /// 当实体对象被添加到虚拟机时调用
+        /// </summary>
+        void OnReference();
+        /// <summary>
         /// 当实体对象在虚拟机中引用数量归零时调用
         /// </summary>
-        void OnRecycle();
+        void OnRelease();
     }
     internal class EntityManipulator
     {
@@ -53,6 +57,7 @@ namespace RainScript.VirtualMachine
                     slots[entity].value = value;
                     slots[entity].reference = 0;
                 }
+                value.OnReference();
             }
             return (Entity)entity;
         }
@@ -63,7 +68,7 @@ namespace RainScript.VirtualMachine
         }
         private void Remove(Entity entity)
         {
-            slots[entity.entity].value.OnRecycle();
+            slots[entity.entity].value.OnRelease();
             slots[entity.entity].value = null;
             slots[entity.entity].next = free;
             free = (uint)entity.entity;
