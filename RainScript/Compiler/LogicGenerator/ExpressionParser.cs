@@ -420,7 +420,7 @@ namespace RainScript.Compiler.LogicGenerator
                 {
                     if (st == RelyKernel.INTEGER_TYPE)
                     {
-                        if(source.TryEvaluation(out long value))
+                        if (source.TryEvaluation(out long value))
                         {
                             result = new ConstantRealExpression(source.anchor, value);
                             measure = 0;
@@ -1495,7 +1495,36 @@ namespace RainScript.Compiler.LogicGenerator
                             return true;
                         }
                     }
-                    else if (leftType.IsHandle && rightType.IsHandle) return true;
+                    else if (leftType == RelyKernel.ENTITY_TYPE)
+                    {
+                        if (right.TryEvaluationNull())
+                        {
+                            right = new ConstantEntityNullExpression(right.anchor);
+                            return true;
+                        }
+                    }
+                    else if (leftType.IsHandle)
+                    {
+                        if (rightType.IsHandle) return true;
+                        else if (right.TryEvaluationNull())
+                        {
+                            right = new ConstantHandleNullExpression(right.anchor, leftType);
+                            return true;
+                        }
+                    }
+                    else if (left.TryEvaluationNull())
+                    {
+                        if (rightType == RelyKernel.ENTITY_TYPE)
+                        {
+                            left = new ConstantEntityNullExpression(left.anchor);
+                            return true;
+                        }
+                        else if (rightType.IsHandle)
+                        {
+                            left = new ConstantHandleNullExpression(left.anchor, rightType);
+                            return true;
+                        }
+                    }
                 }
                 exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
             }
