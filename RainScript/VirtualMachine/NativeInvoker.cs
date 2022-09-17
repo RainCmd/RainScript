@@ -51,7 +51,7 @@ namespace RainScript.VirtualMachine
             else if (type == typeof(Real3)) return returns[0] == KERNEL_TYPE.REAL3;
             else if (type == typeof(Real4)) return returns[0] == KERNEL_TYPE.REAL4;
             else if (type == typeof(string)) return returns[0] == KERNEL_TYPE.STRING;
-            else if (type == typeof(object)) return returns[0] == KERNEL_TYPE.ENTITY;
+            else if (type == typeof(IEntity)) return returns[0] == KERNEL_TYPE.ENTITY;
             return false;
         }
         private static bool TryGetType(Type type, out System.Type result)
@@ -89,7 +89,7 @@ namespace RainScript.VirtualMachine
                     case TypeCode.Coroutine:
                         break;
                     case TypeCode.Entity:
-                        result = typeof(object);
+                        result = typeof(IEntity);
                         return true;
                     default:
                         break;
@@ -135,7 +135,7 @@ namespace RainScript.VirtualMachine
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_Kernel_stringAgency);
                 }
-                else if (retType == typeof(object))
+                else if (retType == typeof(IEntity))
                 {
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_kernel_manipulator);
@@ -222,7 +222,7 @@ namespace RainScript.VirtualMachine
                     generator.Emit(Callvirt, method_StringAgency_Release);
                     pidx += (int)TypeCode.String.FieldSize();
                 }
-                else if (type == typeof(object))
+                else if (type == typeof(IEntity))
                 {
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_kernel_manipulator);
@@ -264,187 +264,7 @@ namespace RainScript.VirtualMachine
                 generator.Emit(Ldind_U4);
                 generator.Emit(Callvirt, method_StringAgency_Reference);
             }
-            else if (retType == typeof(object))
-            {
-                generator.Emit(Callvirt, method_EntityManipulator_Add);
-                generator.Emit(Stobj, typeof(Entity));
-
-                generator.Emit(Ldarg_0);
-                generator.Emit(Ldfld, field_kernel_manipulator);
-                generator.Emit(Ldloc, returnPoint);
-                generator.Emit(Ldobj, typeof(Entity));
-                generator.Emit(Callvirt, method_EntityManipulator_Reference);
-            }
-            else if (retType != typeof(void)) throw ExceptionGeneratorVM.CommunicationNotSupportedType(method.Name, retType.Name);
-            generator.Emit(Ret);
-        }
-        private static void GenerateNative2(ILGenerator generator, System.Reflection.MethodInfo method)
-        {
-            int pidx = Frame.SIZE;
-            var topPoint = generator.DeclareLocal(typeof(byte*));
-            generator.Emit(Ldarg_2);
-            generator.Emit(Ldarg_3);
-            generator.Emit(Conv_U);
-            generator.Emit(Add);
-            generator.Emit(Stloc, topPoint);//stack+top
-            var retType = method.ReturnType;
-            LocalBuilder returnPoint = null;
-            if (retType != typeof(void))
-            {
-                pidx += 4;
-                returnPoint = generator.DeclareLocal(typeof(byte*));
-                generator.Emit(Ldarg_2);
-                generator.Emit(Ldarg_2);
-                generator.Emit(Ldarg_3);
-                generator.Emit(Conv_U);
-                generator.Emit(Add);
-                generator.Emit(Ldc_I4_S, Frame.SIZE);
-                generator.Emit(Add);
-                generator.Emit(Ldind_U4);
-                generator.Emit(Conv_U);
-                generator.Emit(Add);
-                generator.Emit(Stloc, returnPoint);//stack+*(uint*)(stack+top+Frame.SIZE)
-                generator.Emit(Ldloc, returnPoint);
-                if (retType == typeof(string))
-                {
-                    generator.Emit(Ldarg_0);
-                    generator.Emit(Ldfld, field_Kernel_stringAgency);
-                    generator.Emit(Ldloc, returnPoint);
-                    generator.Emit(Ldind_U4);
-                    generator.Emit(Callvirt, method_StringAgency_Release);
-                    generator.Emit(Ldarg_0);
-                    generator.Emit(Ldfld, field_Kernel_stringAgency);
-                }
-                else if (retType == typeof(object))
-                {
-                    generator.Emit(Ldarg_0);
-                    generator.Emit(Ldfld, field_kernel_manipulator);
-                    generator.Emit(Ldloc, returnPoint);
-                    generator.Emit(Ldobj, typeof(Entity));
-                    generator.Emit(Callvirt, method_EntityManipulator_Release);
-                    generator.Emit(Ldarg_0);
-                    generator.Emit(Ldfld, field_kernel_manipulator);
-                }
-            }
-            generator.Emit(Ldarg_1);
-            generator.Emit(Castclass, method.DeclaringType);
-            foreach (var parameter in method.GetParameters())
-            {
-                var type = parameter.ParameterType;
-                if (type == typeof(bool))
-                {
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldind_U1);
-                    pidx += (int)TypeCode.Bool.FieldSize();
-                }
-                else if (type == typeof(long))
-                {
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldind_I8);
-                    pidx += (int)TypeCode.Integer.FieldSize();
-                }
-                else if (type == typeof(real))
-                {
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-#if FIXED
-                    generator.Emit(Ldobj, typeof(real));
-#else
-                    generator.Emit(Ldind_R8);
-#endif
-                    pidx += (int)TypeCode.Real.FieldSize();
-                }
-                else if (type == typeof(Real2))
-                {
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldobj, type);
-                    pidx += (int)TypeCode.Real2.FieldSize();
-                }
-                else if (type == typeof(Real3))
-                {
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldobj, type);
-                    pidx += (int)TypeCode.Real3.FieldSize();
-                }
-                else if (type == typeof(Real4))
-                {
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldobj, type);
-                    pidx += (int)TypeCode.Real4.FieldSize();
-                }
-                else if (type == typeof(string))
-                {
-                    generator.Emit(Ldarg_0);
-                    generator.Emit(Ldfld, field_Kernel_stringAgency);
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldind_U4);
-                    generator.Emit(Callvirt, method_StringAgency_Get);
-
-                    generator.Emit(Ldarg_0);
-                    generator.Emit(Ldfld, field_Kernel_stringAgency);
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldind_U4);
-                    generator.Emit(Callvirt, method_StringAgency_Release);
-                    pidx += (int)TypeCode.String.FieldSize();
-                }
-                else if (type == typeof(object))
-                {
-                    generator.Emit(Ldarg_0);
-                    generator.Emit(Ldfld, field_kernel_manipulator);
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldobj, typeof(Entity));
-                    generator.Emit(Callvirt, method_EntityManipulator_Get);
-
-                    generator.Emit(Ldarg_0);
-                    generator.Emit(Ldfld, field_kernel_manipulator);
-                    generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
-                    generator.Emit(Add);
-                    generator.Emit(Ldobj, typeof(Entity));
-                    generator.Emit(Callvirt, method_EntityManipulator_Release);
-                    pidx += (int)TypeCode.Entity.FieldSize();
-                }
-                else throw ExceptionGeneratorVM.CommunicationNotSupportedType(method.Name, type.Name);
-            }
-            generator.Emit(Callvirt, method);
-            if (retType == typeof(bool)) generator.Emit(Stind_I1);
-            else if (retType == typeof(long)) generator.Emit(Stind_I8);
-            else if (retType == typeof(real))
-#if FIXED 
-                generator.Emit(Stobj, typeof(real));
-#else
-                generator.Emit(Stind_R8);
-#endif
-            else if (retType == typeof(Real2) || retType == typeof(Real3) || retType == typeof(Real4)) generator.Emit(Stobj, retType);
-            else if (retType == typeof(string))
-            {
-                generator.Emit(Callvirt, method_StringAgency_Add);
-                generator.Emit(Stind_I4);
-
-                generator.Emit(Ldarg_0);
-                generator.Emit(Ldfld, field_Kernel_stringAgency);
-                generator.Emit(Ldloc, returnPoint);
-                generator.Emit(Ldind_U4);
-                generator.Emit(Callvirt, method_StringAgency_Reference);
-            }
-            else if (retType == typeof(object))
+            else if (retType == typeof(IEntity))
             {
                 generator.Emit(Callvirt, method_EntityManipulator_Add);
                 generator.Emit(Stobj, typeof(Entity));
