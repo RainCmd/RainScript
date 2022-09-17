@@ -335,14 +335,16 @@ namespace RainScript.Compiler.LogicGenerator
                                 parameter.exceptions.Add(new Anchor(logicBody.body.text, line.segment), CompilingExceptionCode.SYNTAX_INDENT);
                                 break;
                             }
-                            else
+                            else if (Lexical.TryAnalysisFirst(logicBody.body.text, line.segment, 0, out var lexical, parameter.exceptions) && lexical.anchor.Segment != KeyWorld.ELIF && lexical.anchor.Segment != KeyWorld.ELSE)
                             {
                                 statement = statementStack.Pop();
                                 while (statementStack.Count > 0 && statementStack.Peek().indent == line.indent)
                                     statement = statementStack.Pop();
+
                                 statementStack.Push(statement);
                                 break;
                             }
+                            else break;
                         }
                     using (var lexicals = parameter.pool.GetList<Lexical>())
                         if (Lexical.TryAnalysis(lexicals, logicBody.body.text, line.segment, parameter.exceptions) && lexicals.Count > 0)
