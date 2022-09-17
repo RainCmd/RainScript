@@ -834,12 +834,13 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                right = new IntegerToRealExpression(right.anchor, right);
-                                                rrt = RelyKernel.REAL2_TYPE;
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
                                             }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.INTEGER_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Plus, left, right, RelyKernel.REAL_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                         }
@@ -914,12 +915,13 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                right = new IntegerToRealExpression(right.anchor, right);
-                                                rrt = RelyKernel.REAL2_TYPE;
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
                                             }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.INTEGER_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Minus, left, right, RelyKernel.REAL_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                         }
@@ -989,17 +991,24 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                right = new IntegerToRealExpression(right.anchor, right);
-                                                rrt = RelyKernel.REAL2_TYPE;
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
                                             }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Multiply, left, right, RelyKernel.REAL_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                         }
                                         else if (lrt == RelyKernel.REAL2_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
                                                 right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
@@ -1023,9 +1032,15 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL3_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Multiply_vr, left, right, RelyKernel.REAL3_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                             if (rrt == RelyKernel.REAL2_TYPE)
@@ -1046,9 +1061,15 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL4_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Multiply_vr, left, right, RelyKernel.REAL4_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                             if (rrt == RelyKernel.REAL2_TYPE)
@@ -1079,17 +1100,24 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                right = new IntegerToRealExpression(right.anchor, right);
-                                                rrt = RelyKernel.REAL2_TYPE;
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
                                             }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Divide, left, right, RelyKernel.REAL_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                         }
                                         else if (lrt == RelyKernel.REAL2_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
                                                 right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
@@ -1113,9 +1141,15 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL3_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Divide_vr, left, right, RelyKernel.REAL3_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                             else if (rrt == RelyKernel.REAL4_TYPE)
@@ -1131,9 +1165,15 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL4_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Divide_vr, left, right, RelyKernel.REAL4_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                             if (rrt == RelyKernel.REAL4_TYPE)
@@ -1154,17 +1194,24 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                right = new IntegerToRealExpression(right.anchor, right);
-                                                rrt = RelyKernel.REAL2_TYPE;
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
                                             }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL_Mod, left, right, RelyKernel.REAL_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                         }
                                         else if (lrt == RelyKernel.REAL2_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
                                                 right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL2_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
@@ -1188,9 +1235,15 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL3_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL3_Mod_vr, left, right, RelyKernel.REAL3_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                             else if (rrt == RelyKernel.REAL4_TYPE)
@@ -1206,9 +1259,15 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL4_TYPE)
                                         {
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new IntegerToRealExpression(right.anchor, right);
+                                                rrt = RelyKernel.REAL_TYPE;
+                                            }
                                             if (rrt == RelyKernel.REAL_TYPE)
                                             {
-                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL2_TYPE);
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.REAL4_Mod_vr, left, right, RelyKernel.REAL4_TYPE);
                                                 goto case LexicalType.Assignment;
                                             }
                                             if (rrt == RelyKernel.REAL4_TYPE)
