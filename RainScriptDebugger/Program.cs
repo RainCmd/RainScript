@@ -111,20 +111,24 @@ namespace RainScriptDebugger
             var index = 0;
             while (index < args.Length)
             {
-                var arg = args[index].ToLower();
+                var arg = args[index++].ToLower();
                 switch (arg)
                 {
                     case "-n":
-                        if (++index < arg.Length) config.name = args[index];
+                        if (index < arg.Length) config.name = args[index++];
+                        else Console.WriteLine("-n 指令缺少参数");
                         break;
                     case "-entry":
-                        if (++index < arg.Length) config.entry = args[index];
+                        if (index < arg.Length) config.entry = args[index++];
+                        else Console.WriteLine("-entry 指令缺少参数");
                         break;
                     case "-path":
-                        if (++index < arg.Length) config.dirs.Add(args[index]);
+                        if (index < arg.Length) config.dirs.Add(args[index++]);
+                        else Console.WriteLine("-path 指令缺少参数");
                         break;
                     case "-p":
-                        if (++index < arg.Length) config.pattern = args[index];
+                        if (index < arg.Length) config.pattern = args[index++];
+                        else Console.WriteLine("-p/-pattern 指令缺少参数");
                         break;
                     case "-s":
                         config.symbol = true;
@@ -133,10 +137,8 @@ namespace RainScriptDebugger
                         config.ignoreExit = true;
                         break;
                     case "-f":
-                        if (!(++index < arg.Length && int.TryParse(args[index], out config.frame)))
-                        {
-                            Console.WriteLine("帧命令解析失败");
-                        }
+                        if (index < arg.Length && int.TryParse(args[index], out config.frame)) index++;
+                        else Console.WriteLine("帧命令解析失败");
                         break;
                     default:
                         Console.WriteLine("未知的命令：" + args[index]);
