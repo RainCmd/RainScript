@@ -1533,8 +1533,65 @@ namespace RainScript.Compiler.LogicGenerator
             var anchor = token.lexical.anchor;
             switch (token.type)
             {
-                case TokenType.Less:
+                case TokenType.LogicAnd:
                     if (TryPopExpression(expressionStack, anchor, out var left, out var right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            if (left.TryEvaluation(out bool leftValue))
+                            {
+                                if (!leftValue)
+                                {
+                                    var constant = new ConstantBooleanExpression(anchor, false);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else
+                                {
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                            }
+                            else
+                            {
+                                var logicExpression = new LogicAndExpression(anchor, left, right);
+                                expressionStack.Push(logicExpression);
+                                return logicExpression.Attribute;
+                            }
+                        }
+                    }
+                    break;
+                case TokenType.LogicOr:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
+                    {
+                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
+                        {
+                            if (left.TryEvaluation(out bool leftValue))
+                            {
+                                if (leftValue)
+                                {
+                                    var constant = new ConstantBooleanExpression(anchor, true);
+                                    expressionStack.Push(constant);
+                                    return constant.Attribute;
+                                }
+                                else
+                                {
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                            }
+                            else
+                            {
+                                var logicExpression = new LogicOrExpression(anchor, left, right);
+                                expressionStack.Push(logicExpression);
+                                return logicExpression.Attribute;
+                            }
+                        }
+                        else goto default;
+                    }
+                    break;
+                case TokenType.Less:
+                    if (TryPopExpression(expressionStack, anchor, out left, out right))
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
@@ -1829,63 +1886,6 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (left.returns[0].dimension == 0 && left.returns[0].definition.code == TypeCode.Function && right.returns[0].dimension == 0 && right.returns[0].definition.code == TypeCode.Function) return PushOperationExpression(expressionStack, anchor, CommandMacro.DELEGATE_NotEquals, left, right, RelyKernel.BOOL_TYPE);
                             else return PushOperationExpression(expressionStack, anchor, CommandMacro.HANDLE_NotEquals, left, right, RelyKernel.BOOL_TYPE);
-                        }
-                        else goto default;
-                    }
-                    break;
-                case TokenType.LogicAnd:
-                    if (TryPopExpression(expressionStack, anchor, out left, out right))
-                    {
-                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
-                        {
-                            if (left.TryEvaluation(out bool leftValue))
-                            {
-                                if (!leftValue)
-                                {
-                                    var constant = new ConstantBooleanExpression(anchor, false);
-                                    expressionStack.Push(constant);
-                                    return constant.Attribute;
-                                }
-                                else
-                                {
-                                    expressionStack.Push(right);
-                                    return right.Attribute;
-                                }
-                            }
-                            else
-                            {
-                                var logicExpression = new LogicAndExpression(anchor, left, right);
-                                expressionStack.Push(logicExpression);
-                                return logicExpression.Attribute;
-                            }
-                        }
-                    }
-                    break;
-                case TokenType.LogicOr:
-                    if (TryPopExpression(expressionStack, anchor, out left, out right))
-                    {
-                        if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
-                        {
-                            if (left.TryEvaluation(out bool leftValue))
-                            {
-                                if (leftValue)
-                                {
-                                    var constant = new ConstantBooleanExpression(anchor, true);
-                                    expressionStack.Push(constant);
-                                    return constant.Attribute;
-                                }
-                                else
-                                {
-                                    expressionStack.Push(right);
-                                    return right.Attribute;
-                                }
-                            }
-                            else
-                            {
-                                var logicExpression = new LogicOrExpression(anchor, left, right);
-                                expressionStack.Push(logicExpression);
-                                return logicExpression.Attribute;
-                            }
                         }
                         else goto default;
                     }

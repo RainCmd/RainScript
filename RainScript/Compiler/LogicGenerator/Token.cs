@@ -2,15 +2,15 @@
 {
     enum TokenType
     {
+        LogicAnd,               // &&
+        LogicOr,                // ||
+
         Less,                   // <
         Greater,                // >
         LessEquals,             // <=
         GreaterEquals,          // >=
         Equals,                 // ==
         NotEquals,              // !=
-
-        LogicAnd,               // &&
-        LogicOr,                // ||
 
         BitAnd,                 // &
         BitOr,                  // |
@@ -37,8 +37,8 @@
     internal enum TokenPriority : byte
     {
         None,                       // 无
-        Compare,                    // 比较运算
         LogicOperation,             // 逻辑运算
+        Compare,                    // 比较运算
         BitOperation,               // 位运算
         ElementaryOperation,        // 初级运算
         IntermediateOperation,      // 中级运算
@@ -80,14 +80,14 @@
         {
             switch (type)
             {
+                case TokenType.LogicAnd:
+                case TokenType.LogicOr: return TokenPriority.LogicOperation;
                 case TokenType.Less:
                 case TokenType.Greater:
                 case TokenType.LessEquals:
                 case TokenType.GreaterEquals:
                 case TokenType.Equals:
                 case TokenType.NotEquals: return TokenPriority.Compare;
-                case TokenType.LogicAnd:
-                case TokenType.LogicOr: return TokenPriority.LogicOperation;
                 case TokenType.BitAnd:
                 case TokenType.BitOr:
                 case TokenType.BitXor:
@@ -112,14 +112,14 @@
         {
             switch (type)
             {
+                case TokenType.LogicAnd:
+                case TokenType.LogicOr:
                 case TokenType.Less:
                 case TokenType.Greater:
                 case TokenType.LessEquals:
                 case TokenType.GreaterEquals:
                 case TokenType.Equals:
                 case TokenType.NotEquals:
-                case TokenType.LogicAnd:
-                case TokenType.LogicOr:
                 case TokenType.BitAnd:
                 case TokenType.BitOr:
                 case TokenType.BitXor:
