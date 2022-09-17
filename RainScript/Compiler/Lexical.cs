@@ -300,7 +300,12 @@
                                         lexical = new Lexical(LexicalType.ConstReal, text, segment[index, idx - 1]);
                                         return true;
                                     }
-                                    else dot = true;
+                                    else if (idx + 1 < segment.Length && char.IsDigit(segment[idx + 1])) dot = true;
+                                    else
+                                    {
+                                        lexical = new Lexical(LexicalType.ConstNumber, text, segment[index, idx - 1]);
+                                        return true;
+                                    }
                                     idx++;
                                 }
                                 else break;

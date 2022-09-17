@@ -2336,6 +2336,7 @@ namespace RainScript.VirtualMachine
                             var b = *(uint*)(stack + bottom + *(uint*)(library.code + point + 9));
                             *result = kernel.stringAgency.IsEquals(a, b);
                         }
+                        point += 13;
                         break;
                     case CommandMacro.STRING_NotEquals:
                         {
@@ -2344,6 +2345,7 @@ namespace RainScript.VirtualMachine
                             var b = *(uint*)(stack + bottom + *(uint*)(library.code + point + 9));
                             *result = !kernel.stringAgency.IsEquals(a, b);
                         }
+                        point += 13;
                         break;
                     #endregion String
                     #region Handle
