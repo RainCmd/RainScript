@@ -173,10 +173,10 @@ namespace RainScriptDebugger
                     Console.WriteLine("编译错误信息：");
                     foreach (var item in builder.exceptions)
                     {
-                        Console.WriteLine("错误码：{0} {1}", ((uint)item.code).ToString("X"), item.code);
+                        Console.WriteLine("错误码：\x1b[31m{0}\x1b[0m {1}", ((uint)item.code).ToString("X"), item.code);
                         if (!string.IsNullOrEmpty(item.message))
                             Console.WriteLine("额外信息：" + item.message);
-                        Console.WriteLine("位置：{0} [{1},{2}]", item.path, item.start, item.end);
+                        Console.WriteLine("位置：{0} \x1b[36m[{1},{2}]\x1b[0m", item.path, item.start, item.end);
                         Console.WriteLine();
                     }
                 }
@@ -204,14 +204,14 @@ namespace RainScriptDebugger
                         foreach (var frame in frames)
                         {
                             kernel.GetFrameDetail(frame, name => symbols[name], out var fileName, out var functionName, out var lineNumber);
-                            Console.WriteLine("{0} \x1b[33m{1} \x1b[36m{2} line:\x1b[0m", fileName, functionName, lineNumber + 1);
+                            Console.WriteLine("{0} \x1b[33m{1}\x1b[0m line:\x1b[36m{2}\x1b[0m", fileName, functionName, lineNumber + 1);
                         }
                     };
                 }
                 var handle = kernel.GetFunctionHandle(config.entry, config.name);
                 if (handle == null)
                 {
-                    Console.WriteLine("入口函数 {0} 未找到", config.entry);
+                    Console.WriteLine("入口函数 \x1b[33m{0}\x1b[0m 未找到", config.entry);
                     return;
                 }
                 var invoker = kernel.Invoker(handle);
@@ -222,7 +222,7 @@ namespace RainScriptDebugger
                     Thread.Sleep(config.frame);
                 }
             }
-            Console.WriteLine("携程 {0} 已退出。", config.entry);
+            Console.WriteLine("携程 \x1b[33m{0}\x1b[0m 已退出。", config.entry);
         }
     }
 }

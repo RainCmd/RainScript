@@ -2190,6 +2190,12 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
                             {
+                                if (rightValue == 0)
+                                {
+                                    exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                    expressionStack.Push(left);
+                                    return left.Attribute;
+                                }
                                 var constant = new ConstantIntegerExpression(anchor, leftValue / rightValue);
                                 expressionStack.Push(constant);
                                 return constant.Attribute;
@@ -2202,6 +2208,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
                                 {
+                                    if (rightValue == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantRealExpression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2212,6 +2224,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real2 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal2Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2222,6 +2240,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real3 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y * rightValue.z == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal3Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2232,6 +2256,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real4 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y * rightValue.z * rightValue.w == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal4Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2245,6 +2275,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out real rightValue))
                                 {
+                                    if (rightValue == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal2Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2255,6 +2291,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal2Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2268,6 +2310,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out real rightValue))
                                 {
+                                    if (rightValue == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal3Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2278,6 +2326,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y * rightValue.z == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal3Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2291,6 +2345,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out real rightValue))
                                 {
+                                    if (rightValue == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal4Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2301,6 +2361,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y * rightValue.z * rightValue.w == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal4Expression(anchor, leftValue / rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2318,6 +2384,12 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
                             {
+                                if (rightValue == 0)
+                                {
+                                    exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                    expressionStack.Push(left);
+                                    return left.Attribute;
+                                }
                                 var constant = new ConstantIntegerExpression(anchor, leftValue % rightValue);
                                 expressionStack.Push(constant);
                                 return constant.Attribute;
@@ -2330,6 +2402,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
                                 {
+                                    if (rightValue == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantRealExpression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2340,6 +2418,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real2 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal2Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2350,6 +2434,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real3 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y * rightValue.z == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal3Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2360,6 +2450,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real4 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y * rightValue.z * rightValue.w == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal4Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2373,6 +2469,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out real rightValue))
                                 {
+                                    if (rightValue == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal2Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2383,6 +2485,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal2Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2396,6 +2504,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out real rightValue))
                                 {
+                                    if (rightValue == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal3Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2406,6 +2520,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y * rightValue.z == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal3Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2419,6 +2539,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out real rightValue))
                                 {
+                                    if (rightValue == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal4Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -2429,6 +2555,12 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
                                 {
+                                    if (rightValue.x * rightValue.y * rightValue.z * rightValue.w == 0)
+                                    {
+                                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                        expressionStack.Push(left);
+                                        return left.Attribute;
+                                    }
                                     var constant = new ConstantReal4Expression(anchor, leftValue % rightValue);
                                     expressionStack.Push(constant);
                                     return constant.Attribute;
@@ -3519,7 +3651,7 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 var value = 0;
                                 var segment = lexical.anchor.Segment.ToString();
-                                for (int i = 0; i < segment.Length; i++)
+                                for (int i = 2; i < segment.Length; i++)
                                 {
                                     var c = segment[i];
                                     if (c != '_')
@@ -3538,7 +3670,7 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 var value = 0;
                                 var segment = lexical.anchor.Segment.ToString();
-                                for (int i = 0; i < segment.Length; i++)
+                                for (int i = 2; i < segment.Length; i++)
                                 {
                                     var c = segment[i];
                                     if (c != '_')

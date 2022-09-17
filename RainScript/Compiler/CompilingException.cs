@@ -193,6 +193,10 @@ namespace RainScript.Compiler
         /// 内部函数不能用携程调用
         /// </summary>
         GENERATOR_NATIVE_COROUTINE,
+        /// <summary>
+        /// 除零
+        /// </summary>
+        GENERATOR_DIVIDE_BY_ZERO,
         #endregion
     }
     /// <summary>
