@@ -420,8 +420,16 @@ namespace RainScript.Compiler.LogicGenerator
                 {
                     if (st == RelyKernel.INTEGER_TYPE)
                     {
-                        result = new IntegerToRealExpression(source.anchor, source);
-                        measure = 0xff;
+                        if(source.TryEvaluation(out long value))
+                        {
+                            result = new ConstantRealExpression(source.anchor, value);
+                            measure = 0;
+                        }
+                        else
+                        {
+                            result = new IntegerToRealExpression(source.anchor, source);
+                            measure = 0xff;
+                        }
                         return true;
                     }
                 }
