@@ -339,8 +339,10 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 statement = statementStack.Pop();
                                 while (statementStack.Count > 0 && statementStack.Peek().indent == line.indent)
+                                {
                                     statement = statementStack.Pop();
-
+                                    localContext.PopBlock();
+                                }
                                 statementStack.Push(statement);
                                 break;
                             }
@@ -360,12 +362,14 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         branchStatement.falseBranch.indent = line.indent;
                                         statementStack.Push(branchStatement.falseBranch);
+                                        localContext.PushBlock(parameter.pool);
                                         ParseBranchStatement(parameter, branchStatement.falseBranch.statements, lexicals, anchor, context, localContext, destructor);
                                     }
                                     else if (statements[-1] is LoopStatement loopStatement)
                                     {
                                         loopStatement.elseBlock.indent = line.indent;
                                         statementStack.Push(loopStatement.elseBlock);
+                                        localContext.PushBlock(parameter.pool);
                                         ParseBranchStatement(parameter, loopStatement.elseBlock.statements, lexicals, anchor, context, localContext, destructor);
                                     }
                                     else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
