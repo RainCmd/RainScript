@@ -3756,10 +3756,10 @@ namespace RainScript.Compiler.LogicGenerator
                                                 {
                                                     if (i + 4 < segment.Length)
                                                     {
-                                                        var resultChar = 0;
+                                                        var resultChar = 0u;
                                                         var idx = i;
                                                         while (idx - i < 4 && TryGetHexValue(segment[++idx], out var value)) resultChar = (resultChar << 4) + value;
-                                                        if (idx == i + 1)
+                                                        if (idx == i + 4)
                                                         {
                                                             i = idx;
                                                             c = (char)resultChar;
