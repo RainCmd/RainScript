@@ -40,12 +40,12 @@ namespace RainScript.VirtualMachine
                 free = free.next;
             }
             coroutine.Initialize(invoker, ignoreWait);
+            count++;
             if (immediately && !coroutine.Update()) Recycle(coroutine);
             else
             {
                 coroutine.next = head;
                 head = coroutine;
-                count++;
             }
         }
         private bool Remove(Invoker invoker, ref Coroutine head, out Coroutine coroutine)
@@ -67,7 +67,6 @@ namespace RainScript.VirtualMachine
             {
                 if (Remove(invoker, ref head, out var coroutine))
                 {
-                    count--;
                     coroutine.exit = code;
                     coroutine.next = abort;
                     abort = coroutine;
@@ -123,6 +122,7 @@ namespace RainScript.VirtualMachine
             coroutine.next = free;
             free = coroutine;
             free.Recycle();
+            count--;
         }
         internal void Recycle(Invoker invoker)
         {

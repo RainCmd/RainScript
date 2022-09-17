@@ -534,6 +534,58 @@ namespace RainScript.VirtualMachine
             }
             throw ExceptionGeneratorVM.InvalidOperation(state);
         }
+        internal void ClearParameters()
+        {
+            var kernel = handle.library.kernel;
+            var parameters = handle.function.parameters;
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].dimension > 0) kernel.heapAgency.Release(*(uint*)(data + handle.parameterPoints[i]));
+                else switch (parameters[i].definition.code)
+                    {
+                        case TypeCode.String:
+                            kernel.stringAgency.Release(*(uint*)(data + handle.parameterPoints[i]));
+                            break;
+                        case TypeCode.Handle:
+                        case TypeCode.Interface:
+                        case TypeCode.Function:
+                        case TypeCode.Coroutine:
+                            kernel.heapAgency.Release(*(uint*)(data + handle.parameterPoints[i]));
+                            break;
+                        case TypeCode.Entity:
+                            kernel.manipulator.Release(*(Entity*)(data + handle.parameterPoints[i]));
+                            break;
+                    }
+            }
+            var size = handle.parameterSize;
+            while (size-- > 0) data[size] = 0;
+        }
+        internal void ClearReturns()
+        {
+            var kernel = handle.library.kernel;
+            var returns = handle.function.returns;
+            for (int i = 0; i < returns.Length; i++)
+            {
+                if (returns[i].dimension > 0) kernel.heapAgency.Release(*(uint*)(data + handle.returnPoints[i]));
+                else switch (returns[i].definition.code)
+                    {
+                        case TypeCode.String:
+                            kernel.stringAgency.Release(*(uint*)(data + handle.returnPoints[i]));
+                            break;
+                        case TypeCode.Handle:
+                        case TypeCode.Interface:
+                        case TypeCode.Function:
+                        case TypeCode.Coroutine:
+                            kernel.heapAgency.Release(*(uint*)(data + handle.returnPoints[i]));
+                            break;
+                        case TypeCode.Entity:
+                            kernel.manipulator.Release(*(Entity*)(data + handle.returnPoints[i]));
+                            break;
+                    }
+            }
+            var size = handle.returnSize;
+            while (size-- > 0) data[size] = 0;
+        }
         public void Recycle()
         {
             switch (state)
@@ -541,54 +593,14 @@ namespace RainScript.VirtualMachine
                 case InvokerState.Unstarted:
                 case InvokerState.Running:
                     {
-                        var kernel = handle.library.kernel;
-                        var parameters = handle.function.parameters;
-                        for (int i = 0; i < parameters.Length; i++)
-                        {
-                            if (parameters[i].dimension > 0) kernel.heapAgency.Release(*(uint*)(data + handle.parameterPoints[i]));
-                            else switch (parameters[i].definition.code)
-                                {
-                                    case TypeCode.String:
-                                        kernel.stringAgency.Release(*(uint*)(data + handle.parameterPoints[i]));
-                                        break;
-                                    case TypeCode.Handle:
-                                    case TypeCode.Interface:
-                                    case TypeCode.Function:
-                                    case TypeCode.Coroutine:
-                                        kernel.heapAgency.Release(*(uint*)(data + handle.parameterPoints[i]));
-                                        break;
-                                    case TypeCode.Entity:
-                                        kernel.manipulator.Release(*(Entity*)(data + handle.parameterPoints[i]));
-                                        break;
-                                }
-                        }
+                        ClearParameters();
                         handle.library.kernel.coroutineAgency.Recycle(this);
                     }
                     break;
                 case InvokerState.Completed:
                 case InvokerState.Aborted:
                     {
-                        var kernel = handle.library.kernel;
-                        var returns = handle.function.returns;
-                        for (int i = 0; i < returns.Length; i++)
-                        {
-                            if (returns[i].dimension > 0) kernel.heapAgency.Release(*(uint*)(data + handle.returnPoints[i]));
-                            else switch (returns[i].definition.code)
-                                {
-                                    case TypeCode.String:
-                                        kernel.stringAgency.Release(*(uint*)(data + handle.returnPoints[i]));
-                                        break;
-                                    case TypeCode.Handle:
-                                    case TypeCode.Interface:
-                                    case TypeCode.Function:
-                                    case TypeCode.Coroutine:
-                                        kernel.heapAgency.Release(*(uint*)(data + handle.returnPoints[i]));
-                                        break;
-                                    case TypeCode.Entity:
-                                        kernel.manipulator.Release(*(Entity*)(data + handle.returnPoints[i]));
-                                        break;
-                                }
-                        }
+                        ClearReturns();
                         handle.library.kernel.coroutineAgency.Recycle(this);
                     }
                     break;

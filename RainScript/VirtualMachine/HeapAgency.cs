@@ -64,7 +64,7 @@ namespace RainScript.VirtualMachine
                 GC();
                 if (heapSize < heapTop + size)
                 {
-                    heapSize <<= 1;
+                    while (heapSize < heapTop + size) heapSize <<= 1;
                     var nhs = Tools.MAlloc((int)heapSize);
                     Tools.Copy(heap, nhs, heapTop);
                     Tools.Free(heap);
@@ -220,8 +220,8 @@ namespace RainScript.VirtualMachine
                         heads[index].point = heapTop;
                         var size = heads[index].size;
                         while (size-- > 0) heap[heapTop++] = heap[point++];
-                        index = heads[index].next;
                     }
+                    index = heads[index].next;
                 }
                 else
                 {

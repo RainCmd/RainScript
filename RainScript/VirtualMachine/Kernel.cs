@@ -25,7 +25,7 @@ namespace RainScript.VirtualMachine
         /// <param name="libraryLoader">程序集加载器</param>
         /// <param name="performerLoader">程序集交互对象加载器</param>
         /// <param name="entityCapacity">实体容器初始大小</param>
-        public Kernel(Library library, Func<string, Library> libraryLoader, Func<string, IPerformer> performerLoader, int entityCapacity = 1024)
+        public Kernel(Library library, Func<string, Library> libraryLoader, Func<string, IPerformer> performerLoader, int entityCapacity = 128)
         {
             this.performerLoader = performerLoader;
             manipulator = new EntityManipulator(entityCapacity);

@@ -45,19 +45,20 @@ namespace RainScript.VirtualMachine
                 else
                 {
                     entity = top++;
-                    if (top >= slots.Length)
+                    if (top == slots.Length)
                     {
                         var size = 1;
-                        while (size < top) size <<= 1;
+                        while (size <= top) size <<= 1;
                         var temp = new Slot[size];
                         System.Array.Copy(slots, temp, slots.Length);
                         slots = temp;
                     }
-                    slots[entity].next = 0;
-                    slots[entity].value = value;
-                    slots[entity].reference = 0;
                 }
+                slots[entity].next = 0;
+                slots[entity].value = value;
+                slots[entity].reference = 0;
                 value.OnReference();
+                map.Add(value, entity);
             }
             return (Entity)entity;
         }
@@ -68,6 +69,7 @@ namespace RainScript.VirtualMachine
         }
         private void Remove(Entity entity)
         {
+            map.Remove(slots[entity.entity].value);
             slots[entity.entity].value.OnRelease();
             slots[entity.entity].value = null;
             slots[entity.entity].next = free;
@@ -87,7 +89,7 @@ namespace RainScript.VirtualMachine
         }
         public bool Valid(Entity entity)
         {
-            return entity.entity > 0 && entity.entity < top && slots[entity.entity].next == 0;
+            return entity.entity > 0 && entity.entity < top && slots[entity.entity].value != null;
         }
         internal bool IsEquals(Entity a, Entity b)
         {
