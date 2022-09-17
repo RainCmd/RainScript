@@ -316,7 +316,7 @@ namespace RainScript.Compiler
                         if (item.TryFindDeclaration(name, out var result))
                             declarations.Add(result);
                     foreach (var item in relyReferences)
-                        if (item.TryFindDeclaration(name, out var result))
+                        if (item != RelyKernel.kernel && item.TryFindDeclaration(name, out var result))
                             declarations.Add(result);
 
                     if (declarations.Count > 0)
