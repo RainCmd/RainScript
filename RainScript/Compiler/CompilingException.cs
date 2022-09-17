@@ -272,10 +272,11 @@ namespace RainScript.Compiler
         }
         internal void Add(Anchor anchor, CompilingExceptionCode code)
         {
-            Add(anchor.textInfo.path, anchor.start, anchor.end, code, "");
+            Add(anchor.textInfo.path, anchor.start, anchor.end, code, anchor.Segment);
         }
         internal void Add(Anchor anchor, CompilingExceptionCode code, string message)
         {
+            if (string.IsNullOrEmpty(message)) message = anchor.Segment;
             Add(anchor.textInfo.path, anchor.start, anchor.end, code, message);
         }
         internal void Add(TextInfo text, int line, CompilingExceptionCode code)
@@ -288,6 +289,7 @@ namespace RainScript.Compiler
         }
         internal void Add(string path, StringSegment segment, CompilingExceptionCode code, string message)
         {
+            if (string.IsNullOrEmpty(message)) message = segment;
             Add(path, segment.start, segment.end, code, message);
         }
         internal void Add(string path, int start, int end, CompilingExceptionCode code, string message)

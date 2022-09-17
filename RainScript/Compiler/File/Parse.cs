@@ -742,7 +742,8 @@ namespace RainScript.Compiler.File
                                 }
                                 else break;
                             }
-                            else if (lexical.type != LexicalType.Comma)
+                            else if (lexical.type == LexicalType.Comma) parameters.Add(new Parameter(default, type));
+                            else
                             {
                                 type.Dispose();
                                 break;
