@@ -1309,7 +1309,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         private bool TryParseQuestion(ListSegment<Lexical> lexicals, int questionIndex, out Expression result)
         {
-            if (questionIndex == 0 || questionIndex + 4 >= lexicals.Count) exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+            if (questionIndex == 0 || questionIndex + 3 >= lexicals.Count) exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
             else if (TryParse(lexicals[0, questionIndex - 1], out var condition))
             {
                 lexicals = lexicals[questionIndex + 1, -1];
