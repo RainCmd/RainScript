@@ -4313,7 +4313,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
-                                            else goto default;
+                                            else goto unexpected_lexical;
                                         case DeclarationCode.MemberVariable:
                                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
@@ -4325,7 +4325,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     break;
                                                 }
                                             }
-                                            goto default;
+                                            goto unexpected_lexical;
                                         case DeclarationCode.MemberMethod:
                                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                             {
@@ -4337,7 +4337,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     break;
                                                 }
                                             }
-                                            goto default;
+                                            goto unexpected_lexical;
                                         case DeclarationCode.MemberFunction:
                                         case DeclarationCode.Constructor:
                                         case DeclarationCode.ConstructorFunction: goto default;
@@ -4354,7 +4354,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
-                                            else goto default;
+                                            else goto unexpected_lexical;
                                         case DeclarationCode.GlobalMethod:
                                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                             {
@@ -4363,7 +4363,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
-                                            else goto default;
+                                            else goto unexpected_lexical;
                                         case DeclarationCode.GlobalFunction: goto default;
                                         case DeclarationCode.NativeMethod:
                                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
@@ -4373,7 +4373,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
-                                            else goto default;
+                                            else goto unexpected_lexical;
                                         case DeclarationCode.NativeFunction:
                                         case DeclarationCode.Lambda: goto default;
                                         case DeclarationCode.LambdaClosureValue:
@@ -4385,7 +4385,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
-                                            break;
+                                            else goto unexpected_lexical;
                                         case DeclarationCode.LocalVariable:
                                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
@@ -4394,8 +4394,12 @@ namespace RainScript.Compiler.LogicGenerator
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
-                                            else goto default;
-                                        default: throw ExceptionGeneratorCompiler.Unknown();
+                                            else goto unexpected_lexical;
+                                        default:
+                                            throw ExceptionGeneratorCompiler.Unknown();
+                                        unexpected_lexical:
+                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                                            goto parse_fail;
                                     }
                                 }
                                 else if (context.TryFindSpace(manager, lexical.anchor, out var space, pool, exceptions))
