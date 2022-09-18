@@ -449,6 +449,7 @@ namespace RainScript.VirtualMachine
                 new KernelMethodInvoker(real_Round),
                 new KernelMethodInvoker(real_Sign),
                 new KernelMethodInvoker(real_Sin),
+                new KernelMethodInvoker(real_SinCos),
                 new KernelMethodInvoker(real_Sqrt),
             };
         }
@@ -608,6 +609,13 @@ namespace RainScript.VirtualMachine
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Sin(value);
+        }
+        private static void real_SinCos(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = (uint*)(stack + top + Frame.SIZE);
+            var value = *(real*)(stack + top + Frame.SIZE + 8);
+            *(real*)(stack + returnPoint[0]) = Math.Sin(value);
+            *(real*)(stack + returnPoint[1]) = Math.Cos(value);
         }
         private static void real_Sqrt(Kernel kernel, byte* stack, uint top)
         {

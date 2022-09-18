@@ -91,6 +91,7 @@ namespace RainScript
             for (int definitionIndex = 0, index = 0; definitionIndex < definitions.Length; definitionIndex++)
                 for (int i = 0, length = definitions[definitionIndex].methods.Length; i < length; i++, index++)
                     methodInfos[methodIndex++] = KernelMemberMethodInvoker.methods[index].CreateMethodInfo(code, KERNEL_TYPE.GetType(definitionIndex), (uint)index);
+
             for (var i = 0u; i < KernelMethod.methods.Length; i++) methodInfos[methodIndex++] = KernelMethodInvoker.methods[i].CreateMethodInfo(code, i);
 
             var exportDefinitions = new ExportDefinition[definitions.Length];

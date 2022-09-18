@@ -47,6 +47,7 @@
                 new KernelMethod("Round", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.INTEGER)),
                 new KernelMethod("Sign", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.INTEGER)),
                 new KernelMethod("Sin", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
+                new KernelMethod("SinCos", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL, KERNEL_TYPE.REAL)),
                 new KernelMethod("Sqrt", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
             };
             memberMethods = new KernelMethod[]
