@@ -319,6 +319,7 @@ namespace RainScript.VirtualMachine
             name = library.name;
             code = Tools.A2P(library.code);
             data = Tools.MAlloc((int)library.dataSize);
+            for (int i = library.constantData.Length; i < library.dataSize; i++) data[i] = 0;
             fixed (byte* constantData = library.constantData)
                 Tools.Copy(constantData, data, (uint)library.constantData.Length);
             imports = new ImportLibrary[library.imports.Length];

@@ -73,6 +73,14 @@ namespace RainScript.VirtualMachine
             coroutineAgency.Update();
         }
         /// <summary>
+        /// 获取当前正在执行的携程的栈帧
+        /// </summary>
+        /// <returns></returns>
+        public StackFrame[] GetInvokingStackFrames()
+        {
+            return coroutineAgency.GetInvokingStackFrames();
+        }
+        /// <summary>
         /// 获取栈帧详细数据，需要有
         /// </summary>
         /// <param name="frame">帧数据</param>

@@ -6,7 +6,7 @@ namespace RainScript.VirtualMachine
     internal class CoroutineAgency : IDisposable
     {
         private readonly Kernel kernel;
-        private Coroutine head, abort;
+        private Coroutine head, abort, invoking;
         private int count;
         [NonSerialized]
         private Coroutine[] coroutines;
@@ -29,24 +29,29 @@ namespace RainScript.VirtualMachine
             invoker.Initialize(handle);
             return invoker;
         }
+        internal StackFrame[] GetInvokingStackFrames()
+        {
+            if (invoking == null) return new StackFrame[0];
+            return invoking.GetStackFrames();
+        }
 
         internal void Start(Invoker invoker, bool immediately, bool ignoreWait)
         {
-            Coroutine coroutine;
-            if (free == null) coroutine = new Coroutine(kernel);
+            if (free == null) invoking = new Coroutine(kernel);
             else
             {
-                coroutine = free;
+                invoking = free;
                 free = free.next;
             }
-            coroutine.Initialize(invoker, ignoreWait);
+            invoking.Initialize(invoker, ignoreWait);
             count++;
-            if (immediately && !coroutine.Update()) Recycle(coroutine);
+            if (immediately && !invoking.Update()) Recycle(invoking);
             else
             {
-                coroutine.next = head;
-                head = coroutine;
+                invoking.next = head;
+                head = invoking;
             }
+            invoking = null;
         }
         private bool Remove(Invoker invoker, ref Coroutine head, out Coroutine coroutine)
         {
@@ -97,18 +102,19 @@ namespace RainScript.VirtualMachine
                 if (!index.pause) coroutines[count++] = index;
             for (var i = 0; i < count; i++)
             {
-                var coroutine = coroutines[i];
-                if (!coroutine.pause && coroutine.exit == 0 && !coroutine.Update())
+                invoking = coroutines[i];
+                if (!invoking.pause && invoking.exit == 0 && !invoking.Update())
                     for (Coroutine index = head, prev = null; index != null; prev = index, index = index.next)
-                        if (index == coroutine)
+                        if (index == invoking)
                         {
                             if (prev == null) head = index.next;
                             else prev.next = index.next;
                             count--;
-                            Recycle(coroutine);
+                            Recycle(invoking);
                             break;
                         }
             }
+            invoking = null;
 
             for (var index = abort; abort != null; index = abort)
             {
