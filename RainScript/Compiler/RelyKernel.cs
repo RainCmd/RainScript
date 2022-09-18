@@ -72,7 +72,7 @@
 
             variables = new RelyVariable[KernelConstant.constants.Length];
             for (int i = 0; i < KernelConstant.constants.Length; i++)
-                variables[i] = new RelyVariable(KernelConstant.constants[i].name, new Declaration(LIBRARY.KERNEL, Visibility.Public, DeclarationCode.GlobalVariable, 0, 0, 0), kernel, true, new CompilingType(KernelConstant.constants[i].type, Visibility.Public));
+                variables[i] = new RelyVariable(KernelConstant.constants[i].name, new Declaration(LIBRARY.KERNEL, Visibility.Public, DeclarationCode.GlobalVariable, (uint)i, 0, 0), kernel, true, new CompilingType(KernelConstant.constants[i].type, Visibility.Public));
             foreach (var item in variables) kernel.declarations.Add(item.name, item.declaration);
 
             methods = new RelyMethod[KernelMethod.memberMethods.Length + KernelMethod.methods.Length];
