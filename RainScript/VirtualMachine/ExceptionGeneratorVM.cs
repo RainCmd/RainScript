@@ -58,9 +58,9 @@ namespace RainScript.VirtualMachine
         {
             return new Exception("程序集[{0}]的函数[{1},{2}]入口查找失败".Format(name, function.method, function.index));
         }
-        internal static Exception EntryNotFound(string name, DefinitionFunction function)
+        internal static Exception EntryNotFound(string name, DefinitionFunction function, Type type)
         {
-            return new Exception("程序集[{0}]的函数[{1},{2},{3},{4}]查找失败".Format(name, function.definition.code, function.definition.index, function.funtion.method, function.funtion.index));
+            return new Exception("程序集[{0}]的函数[{1},{2},{3},{4}]查找失败,目标对象类型:{5}".Format(name, function.definition.code, function.definition.index, function.funtion.method, function.funtion.index, type));
         }
 
         internal static Exception ObjectDisposed()

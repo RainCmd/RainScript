@@ -438,8 +438,9 @@ namespace RainScript.VirtualMachine
                 new KernelMethodInvoker(real_Clamp01),
                 new KernelMethodInvoker(real_Cos),
                 new KernelMethodInvoker(Collect),
-                new KernelMethodInvoker(CountCoroutines),
-                new KernelMethodInvoker(CountHandles),
+                new KernelMethodInvoker(CountCoroutine),
+                new KernelMethodInvoker(CountEntity),
+                new KernelMethodInvoker(CountHandle),
                 new KernelMethodInvoker(real2_Cross, real3_Cross),
                 new KernelMethodInvoker(real2_Dot, real3_Dot),
                 new KernelMethodInvoker(real_Floor),
@@ -750,12 +751,17 @@ namespace RainScript.VirtualMachine
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.heapAgency.GetHeapTop();
         }
-        private static void CountCoroutines(Kernel kernel, byte* stack, uint top)
+        private static void CountCoroutine(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.coroutineAgency.GetCoroutineCount();
         }
-        private static void CountHandles(Kernel kernel, byte* stack, uint top)
+        private static void CountEntity(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            *(long*)(stack + returnPoint) = kernel.manipulator.GetEntityCount();
+        }
+        private static void CountHandle(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.heapAgency.GetHandleCount();

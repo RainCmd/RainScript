@@ -7,6 +7,7 @@ namespace RainScript.Compiler.LogicGenerator
         private readonly bool ignoreExit;
         private readonly Generator generator;
         private readonly VariableGenerator variable;
+        private readonly Referencable<uint> temporaryAddress;
         private readonly Referencable<CodeAddress> exitPoint;
         private readonly Referencable<CodeAddress> endPoint;
         public LogicBlockGenerator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
@@ -14,8 +15,12 @@ namespace RainScript.Compiler.LogicGenerator
             ignoreExit = parameter.command.ignoreExit;
             generator = parameter.generator;
             variable = parameter.variable;
+            temporaryAddress = new Referencable<uint>(parameter.pool);
             this.exitPoint = exitPoint;
             endPoint = new Referencable<CodeAddress>(parameter.pool);
+            generator.WriteCode(CommandMacro.BASE_Stackzero);
+            generator.WriteCode(variable.localTop);
+            generator.WriteCode(temporaryAddress);
             generator.WriteCode(CommandMacro.BASE_Finally);
             generator.WriteCode(endPoint);
         }
@@ -25,7 +30,7 @@ namespace RainScript.Compiler.LogicGenerator
             generator.SetCodeAddress(endPoint);
             generator.WriteCode(CommandMacro.BASE_Finally);
             generator.WriteCode(exitPoint);
-            variable.GeneratorTemporaryClear(generator);
+            temporaryAddress.SetValue(generator, variable.GeneratorTemporaryClear(generator));
             if (!ignoreExit) generator.WriteCode(CommandMacro.BASE_ExitJump);
             endPoint.Dispose();
         }

@@ -44,6 +44,16 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>bin\Fixed\RainScript.xml</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugFixed|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugFixed\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;FIXED</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -138,4 +148,7 @@
     <Compile Include="VirtualMachine\StringAgency.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"D:\Soft\Unity2018.3.5f1\Unity\Editor\Data\MonoBleedingEdge\bin\mono.exe" "D:\Soft\Unity2018.3.5f1\Unity\Editor\Data\MonoBleedingEdge\lib\mono\4.5\pdb2mdb.exe" $(TargetPath)</PostBuildEvent>
+  </PropertyGroup>
 </Project>

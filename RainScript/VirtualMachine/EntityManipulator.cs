@@ -28,6 +28,10 @@ namespace RainScript.VirtualMachine
         private uint top = 1;
         private uint free = 0;
         private readonly Dictionary<IEntity, ulong> map = new Dictionary<IEntity, ulong>();
+        public int GetEntityCount()
+        {
+            return map.Count;
+        }
         public EntityManipulator(int capacity)
         {
             slots = new Slot[capacity];

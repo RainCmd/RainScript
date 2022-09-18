@@ -235,7 +235,7 @@ namespace RainScript.VirtualMachine
             depth = default;
             return false;
         }
-        internal bool TryGetFunction(DefinitionFunction function, Type type, out DefinitionFunction targetFunction)
+        internal bool GetFunction(DefinitionFunction function, Type type, out DefinitionFunction targetFunction)
         {
             if (type.dimension > 0) type = KERNEL_TYPE.ARRAY;
             if (TryGetInheritDepth(new Type(function.definition, 0), type, out _))
@@ -253,8 +253,7 @@ namespace RainScript.VirtualMachine
                         }
                 }
             }
-            targetFunction = default;
-            return false;
+            throw ExceptionGeneratorVM.EntryNotFound(this[function.definition.library].name, function, type);
         }
         internal FunctionHandle GetFunctionHandle(DefinitionFunction function)
         {

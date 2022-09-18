@@ -8,7 +8,6 @@
         BASE_ExitJump,
         BASE_Wait,
         BASE_WaitFrame,
-        BASE_EnsureStackeSize,
         BASE_Stackzero,
         BASE_Jump,
         BASE_ConditionJump,

@@ -17,24 +17,31 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		DebugFixed|Any CPU = DebugFixed|Any CPU
 		Fixed|Any CPU = Fixed|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{16709272-B08B-4975-B5C3-310166424A4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{16709272-B08B-4975-B5C3-310166424A4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16709272-B08B-4975-B5C3-310166424A4E}.DebugFixed|Any CPU.ActiveCfg = DebugFixed|Any CPU
+		{16709272-B08B-4975-B5C3-310166424A4E}.DebugFixed|Any CPU.Build.0 = DebugFixed|Any CPU
 		{16709272-B08B-4975-B5C3-310166424A4E}.Fixed|Any CPU.ActiveCfg = Fixed|Any CPU
 		{16709272-B08B-4975-B5C3-310166424A4E}.Fixed|Any CPU.Build.0 = Fixed|Any CPU
 		{16709272-B08B-4975-B5C3-310166424A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16709272-B08B-4975-B5C3-310166424A4E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.DebugFixed|Any CPU.ActiveCfg = DebugFixed|Any CPU
+		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.DebugFixed|Any CPU.Build.0 = DebugFixed|Any CPU
 		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Fixed|Any CPU.ActiveCfg = Debug|Any CPU
 		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Fixed|Any CPU.Build.0 = Debug|Any CPU
 		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9544A881-DFD1-48D8-A2F1-16E6D7600E06}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1EEED656-98F1-4E15-85CD-4D8714281F44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1EEED656-98F1-4E15-85CD-4D8714281F44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EEED656-98F1-4E15-85CD-4D8714281F44}.DebugFixed|Any CPU.ActiveCfg = DebugFixed|Any CPU
+		{1EEED656-98F1-4E15-85CD-4D8714281F44}.DebugFixed|Any CPU.Build.0 = DebugFixed|Any CPU
 		{1EEED656-98F1-4E15-85CD-4D8714281F44}.Fixed|Any CPU.ActiveCfg = Debug|Any CPU
 		{1EEED656-98F1-4E15-85CD-4D8714281F44}.Fixed|Any CPU.Build.0 = Debug|Any CPU
 		{1EEED656-98F1-4E15-85CD-4D8714281F44}.Release|Any CPU.ActiveCfg = Release|Any CPU

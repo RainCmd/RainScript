@@ -31,7 +31,7 @@ namespace RainScript.Compiler.LogicGenerator
         private readonly ScopeDictionary<uint, Variable> locals;
         private readonly ScopeList<Variable> statementTemporaries;
         private readonly ScopeList<Variable> temporaries;
-        private readonly Referencable<uint> localTop;
+        internal readonly Referencable<uint> localTop;
         public VariableGenerator(CollectionPool pool, uint localAddress)
         {
             this.localAddress = localAddress;
@@ -60,14 +60,13 @@ namespace RainScript.Compiler.LogicGenerator
             addressTop = Math.Max(temporaryAddress, addressTop);
             return temporary;
         }
-        public void GeneratorTemporaryClear(Generator generator)
+        public uint GeneratorTemporaryClear(Generator generator)
         {
             foreach (var temporary in statementTemporaries) ClearVariable(generator, temporary.referencable, temporary.type);
-            generator.WriteCode(CommandMacro.BASE_Stackzero);
-            generator.WriteCode(localTop);
-            generator.WriteCode(temporaryAddress);
-            temporaryAddress = 0;
+            var temporaryAddress = this.temporaryAddress;
+            this.temporaryAddress = 0;
             statementTemporaries.Clear();
+            return temporaryAddress;
         }
         public uint Generator(Generator generator)
         {

@@ -3,6 +3,35 @@
 namespace RainScript.VirtualMachine
 {
     /// <summary>
+    /// 虚拟机状态
+    /// </summary>
+    public struct KernelState
+    {
+        /// <summary>
+        /// 句柄数量
+        /// </summary>
+        public readonly long handleCount;
+        /// <summary>
+        /// 携程数量
+        /// </summary>
+        public readonly long coroutineCount;
+        /// <summary>
+        /// 实体数量
+        /// </summary>
+        public readonly long entityCount;
+        /// <summary>
+        /// 托管堆大小
+        /// </summary>
+        public readonly long heapTotalMemory;
+        internal KernelState(long handleCount, long coroutineCount, long entityCount, long heapTotalMemory)
+        {
+            this.handleCount = handleCount;
+            this.coroutineCount = coroutineCount;
+            this.entityCount = entityCount;
+            this.heapTotalMemory = heapTotalMemory;
+        }
+    }
+    /// <summary>
     /// 核心
     /// </summary>
     public class Kernel : IDisposable
@@ -71,6 +100,14 @@ namespace RainScript.VirtualMachine
         public void Update()
         {
             coroutineAgency.Update();
+        }
+        /// <summary>
+        /// 获取当前状态
+        /// </summary>
+        /// <returns></returns>
+        public KernelState GetState()
+        {
+            return new KernelState(heapAgency.GetHandleCount(), coroutineAgency.GetCoroutineCount(), manipulator.GetEntityCount(), heapAgency.GetHeapTop());
         }
         /// <summary>
         /// 获取当前正在执行的携程的栈帧

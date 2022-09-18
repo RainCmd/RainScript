@@ -35,8 +35,6 @@ namespace RainScript.VirtualMachine
                 var nss = stackSize;
                 while (nss < size) nss <<= 1;
                 var ns = Tools.MAlloc((int)nss);
-                size = hold;
-                while (size < nss) ns[size++] = 0;
                 while (hold-- > 0) ns[hold] = stack[hold];
                 Tools.Free(stack);
                 stack = ns;
@@ -69,7 +67,10 @@ namespace RainScript.VirtualMachine
                 wait--;
                 return true;
             }
-            return Run();
+            kernel.coroutineAgency.invoking = this;
+            var result = Run();
+            kernel.coroutineAgency.invoking = null;
+            return result;
         }
         private bool Run()
         {
@@ -110,16 +111,9 @@ namespace RainScript.VirtualMachine
                     case CommandMacro.BASE_WaitFrame:
                         if (!ignoreWait) wait = *(long*)(stack + bottom + *(uint*)(library.code + point + 1));
                         point += 5;
-                        if (wait > 0)
-                        {
-                            wait--;
-                            return true;
-                        }
-                        break;
-                    case CommandMacro.BASE_EnsureStackeSize:
-                        EnsureStackSize(top, top + *(uint*)(library.code + point + 1));
-                        point += 5;
-                        break;
+                        if (wait == 0) break;
+                        wait--;
+                        return true;
                     case CommandMacro.BASE_Stackzero:
                         {
                             var address = stack + bottom + *(uint*)(library.code + point + 1);
@@ -217,9 +211,8 @@ namespace RainScript.VirtualMachine
                                         if (flag != 0) goto error;
                                         var invokerFunction = new DefinitionFunction(new TypeDefinition(libraryIndex, TypeCode.Handle, *(uint*)(library.code + point + 19)), *(Function*)(library.code + point + 23));
                                         invokerFunction = library.LocalToGlobal(invokerFunction);
-                                        if (kernel.libraryAgency.TryGetFunction(invokerFunction, type, out var targetFunction))
+                                        if (kernel.libraryAgency.GetFunction(invokerFunction, type, out var targetFunction))
                                             *delegateInfo = new RuntimeDelegateInfo(kernel.libraryAgency, targetFunction, target, functionType);
-                                        else throw ExceptionGeneratorVM.EntryNotFound(kernel.libraryAgency[invokerFunction.definition.library].name, invokerFunction);
                                         point += 35;
                                     }
                                     break;
@@ -230,9 +223,8 @@ namespace RainScript.VirtualMachine
                                         if (flag != 0) goto error;
                                         var invokerFunction = new DefinitionFunction(new TypeDefinition(libraryIndex, TypeCode.Interface, *(uint*)(library.code + point + 19)), *(Function*)(library.code + point + 23));
                                         invokerFunction = library.LocalToGlobal(invokerFunction);
-                                        if (kernel.libraryAgency.TryGetFunction(invokerFunction, type, out var targetFunction))
+                                        if (kernel.libraryAgency.GetFunction(invokerFunction, type, out var targetFunction))
                                             *delegateInfo = new RuntimeDelegateInfo(kernel.libraryAgency, targetFunction, target, functionType);
-                                        else throw ExceptionGeneratorVM.EntryNotFound(kernel.libraryAgency[invokerFunction.definition.library].name, invokerFunction);
                                         point += 35;
                                     }
                                     break;
@@ -306,14 +298,13 @@ namespace RainScript.VirtualMachine
                                         if (flag != 0) goto error;
                                         var invokerFunction = new DefinitionFunction(new TypeDefinition(libraryIndex, TypeCode.Handle, *(uint*)(library.code + point + 19)), *(Function*)(library.code + point + 23));
                                         invokerFunction = library.LocalToGlobal(invokerFunction);
-                                        if (kernel.libraryAgency.TryGetFunction(invokerFunction, type, out var targetFunction))
+                                        if (kernel.libraryAgency.GetFunction(invokerFunction, type, out var targetFunction))
                                         {
                                             var invoker = kernel.coroutineAgency.InternalInvoker(kernel.libraryAgency.GetFunctionHandle(targetFunction));
                                             invoker.SetHeapHandleParameter(0, target);
                                             *coroutine = invoker.instanceID;
                                             flag = 1;
                                         }
-                                        else throw ExceptionGeneratorVM.EntryNotFound(kernel.libraryAgency[invokerFunction.definition.library].name, invokerFunction);
                                         point += 35;
                                     }
                                     break;
@@ -324,14 +315,13 @@ namespace RainScript.VirtualMachine
                                         if (flag != 0) goto error;
                                         var invokerFunction = new DefinitionFunction(new TypeDefinition(libraryIndex, TypeCode.Interface, *(uint*)(library.code + point + 19)), *(Function*)(library.code + point + 23));
                                         invokerFunction = library.LocalToGlobal(invokerFunction);
-                                        if (kernel.libraryAgency.TryGetFunction(invokerFunction, type, out var targetFunction))
+                                        if (kernel.libraryAgency.GetFunction(invokerFunction, type, out var targetFunction))
                                         {
                                             var invoker = kernel.coroutineAgency.InternalInvoker(kernel.libraryAgency.GetFunctionHandle(targetFunction));
                                             invoker.SetHeapHandleParameter(0, target);
                                             *coroutine = invoker.instanceID;
                                             flag = 1;
                                         }
-                                        else throw ExceptionGeneratorVM.EntryNotFound(kernel.libraryAgency[invokerFunction.definition.library].name, invokerFunction);
                                         point += 35;
                                     }
                                     break;
@@ -523,6 +513,7 @@ namespace RainScript.VirtualMachine
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             var invoker = kernel.coroutineAgency.GetInternalInvoker(*(ulong*)address);
                             invoker.Start(true, ignoreWait);
+                            kernel.coroutineAgency.invoking = this;
                             point += 5;
                         }
                         break;
@@ -695,32 +686,32 @@ namespace RainScript.VirtualMachine
                         break;
                     case CommandMacro.FUNCTION_MemberVirtualCall://[1,4]library [5,8]定义编号 [9,16]Function [17,20]目标对象变量地址
                         {
-                            flag = (long)kernel.heapAgency.TryGetType(*(uint*)(stack + bottom + *(uint*)(library.code + point + 17)), out var type);
+                            var target = *(uint*)(stack + bottom + *(uint*)(library.code + point + 17));
+                            flag = (long)kernel.heapAgency.TryGetType(target, out var type);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             bottom = top;
                             var function = new DefinitionFunction(new TypeDefinition(*(uint*)(library.code + point + 1), TypeCode.Handle, *(uint*)(library.code + point + 5)), *(Function*)(library.code + point + 9));
                             function = library.LocalToGlobal(function);
-                            if (kernel.libraryAgency.TryGetFunction(function, type, out var targetFunction))
+                            if (kernel.libraryAgency.GetFunction(function, type, out var targetFunction))
                             {
                                 library = kernel.libraryAgency[targetFunction.definition.library];
                                 point = kernel.libraryAgency.GetFunctionHandle(targetFunction).entry;
                             }
-                            else throw ExceptionGeneratorVM.EntryNotFound(library.name, function);
                         }
                         break;
                     case CommandMacro.FUNCTION_InterfaceCall://[1,4]library [5,8]定义编号 [9,16]Function [17,20]目标对象变量地址
                         {
-                            flag = (long)kernel.heapAgency.TryGetType(*(uint*)(stack + bottom + *(uint*)(library.code + point + 17)), out var type);
+                            var target = *(uint*)(stack + bottom + *(uint*)(library.code + point + 17));
+                            flag = (long)kernel.heapAgency.TryGetType(target, out var type);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
                             bottom = top;
                             var function = new DefinitionFunction(new TypeDefinition(*(uint*)(library.code + point + 1), TypeCode.Interface, *(uint*)(library.code + point + 5)), *(Function*)(library.code + point + 9));
                             function = library.LocalToGlobal(function);
-                            if (kernel.libraryAgency.TryGetFunction(function, type, out var targetFunction))
+                            if (kernel.libraryAgency.GetFunction(function, type, out var targetFunction))
                             {
                                 library = kernel.libraryAgency[targetFunction.definition.library];
                                 point = kernel.libraryAgency.GetFunctionHandle(targetFunction).entry;
                             }
-                            else throw ExceptionGeneratorVM.EntryNotFound(library.name, function);
                         }
                         break;
                     case CommandMacro.FUNCTION_CustomCall://[1,4]委托对象
