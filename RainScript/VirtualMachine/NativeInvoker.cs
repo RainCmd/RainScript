@@ -12,6 +12,103 @@ namespace RainScript.VirtualMachine
 {
     internal unsafe class NativeInvoker
     {
+        private class ReflectionMethod
+        {
+            private readonly System.Reflection.MethodInfo method;
+            private readonly object[] parameters;
+            private readonly System.Type[] parameterTypes;
+            private readonly System.Type returnType;
+            public ReflectionMethod(System.Reflection.MethodInfo method)
+            {
+                this.method = method;
+                var parameters = method.GetParameters();
+                this.parameters = new object[parameters.Length];
+                parameterTypes = new System.Type[parameters.Length];
+                for (int i = 0; i < parameterTypes.Length; i++) parameterTypes[i] = parameters[i].ParameterType;
+                returnType = method.ReturnType;
+            }
+
+            public void Invoke(Kernel kernel, IPerformer performer, byte* stack, uint top)
+            {
+                var point = stack + top + Frame.SIZE;
+                if (returnType != typeof(void)) point += 4;
+                for (int i = 0; i < parameterTypes.Length; i++)
+                {
+                    if (parameterTypes[i] == typeof(bool))
+                    {
+                        parameters[i] = *(bool*)point;
+                        point += TypeCode.Bool.FieldSize();
+                    }
+                    else if (parameterTypes[i] == typeof(long))
+                    {
+                        parameters[i] = *(long*)point;
+                        point += TypeCode.Integer.FieldSize();
+                    }
+                    else if (parameterTypes[i] == typeof(real))
+                    {
+                        parameters[i] = *(real*)point;
+                        point += TypeCode.Real.FieldSize();
+                    }
+                    else if (parameterTypes[i] == typeof(Real2))
+                    {
+                        parameters[i] = *(Real2*)point;
+                        point += TypeCode.Real2.FieldSize();
+                    }
+                    else if (parameterTypes[i] == typeof(Real3))
+                    {
+                        parameters[i] = *(Real3*)point;
+                        point += TypeCode.Real3.FieldSize();
+                    }
+                    else if (parameterTypes[i] == typeof(Real4))
+                    {
+                        parameters[i] = *(Real4*)point;
+                        point += TypeCode.Real4.FieldSize();
+                    }
+                    else if (parameterTypes[i] == typeof(string))
+                    {
+                        var address = (uint*)point;
+                        parameters[i] = kernel.stringAgency.Get(*address);
+                        kernel.stringAgency.Release(*address);
+                        *address = 0;
+                        point += TypeCode.String.FieldSize();
+                    }
+                    else if (parameterTypes[i] == typeof(IEntity))
+                    {
+                        var address = (Entity*)point;
+                        parameters[i] = kernel.manipulator.Get(*address);
+                        kernel.manipulator.Release(*address);
+                        *address = Entity.NULL;
+                        point += TypeCode.Entity.FieldSize();
+                    }
+                    else throw ExceptionGeneratorVM.CommunicationNotSupportedType(method.Name, parameterTypes[i].Name);
+                }
+                var result = method.Invoke(performer, parameters);
+                if (returnType != typeof(void))
+                {
+                    var address = stack + *(uint*)(stack + top + Frame.SIZE);
+                    if (returnType == typeof(bool)) *(bool*)address = (bool)result;
+                    else if (returnType == typeof(long)) *(long*)address = (long)result;
+                    else if (returnType == typeof(real)) *(real*)address = (real)result;
+                    else if (returnType == typeof(Real2)) *(Real2*)address = (Real2)result;
+                    else if (returnType == typeof(Real3)) *(Real3*)address = (Real3)result;
+                    else if (returnType == typeof(Real4)) *(Real4*)address = (Real4)result;
+                    else if (returnType == typeof(string))
+                    {
+                        var str = kernel.stringAgency.Add(result as string);
+                        kernel.stringAgency.Release(*(uint*)address);
+                        *(uint*)address = str;
+                        kernel.stringAgency.Reference(*(uint*)address);
+                    }
+                    else if (returnType == typeof(IEntity))
+                    {
+                        var entity = kernel.manipulator.Add(result as IEntity);
+                        kernel.manipulator.Release(*(Entity*)address);
+                        *(Entity*)address = entity;
+                        kernel.manipulator.Reference(*(Entity*)address);
+                    }
+                }
+            }
+        }
         private static readonly FieldInfo field_kernel_manipulator = typeof(Kernel).GetField("manipulator", BindingFlags.NonPublic | BindingFlags.Instance);
         private static readonly System.Reflection.MethodInfo method_EntityManipulator_Add = typeof(EntityManipulator).GetMethod("Add");
         private static readonly System.Reflection.MethodInfo method_EntityManipulator_Get = typeof(EntityManipulator).GetMethod("Get");
@@ -36,9 +133,16 @@ namespace RainScript.VirtualMachine
             if (methodInfo == null) throw ExceptionGeneratorVM.PerformerMethodNotFound(name);
             returnType = methodInfo.ReturnType;
             if (!CheckReturnTypes(returnType, function.returns)) throw ExceptionGeneratorVM.ReturnTypeInconsistency(name);
-            var dynamicMethod = new DynamicMethod(name, typeof(void), parameters, GetType(), true);
-            GenerateNative(dynamicMethod.GetILGenerator(), methodInfo);
-            invoke = (NativeInvoke)dynamicMethod.CreateDelegate(typeof(NativeInvoke));
+            try
+            {
+                var dynamicMethod = new DynamicMethod(name, typeof(void), parameters, GetType(), true);
+                GenerateNative(dynamicMethod.GetILGenerator(), methodInfo);
+                invoke = (NativeInvoke)dynamicMethod.CreateDelegate(typeof(NativeInvoke));
+            }
+            catch (System.Exception)
+            {
+                invoke = new ReflectionMethod(methodInfo).Invoke;
+            }
         }
         private bool CheckReturnTypes(System.Type type, Type[] returns)
         {
@@ -106,7 +210,7 @@ namespace RainScript.VirtualMachine
             generator.Emit(Ldarg_3);
             generator.Emit(Conv_U);
             generator.Emit(Add);
-            generator.Emit(Stloc, topPoint);//stack+top
+            generator.Emit(Stloc, topPoint);
             var retType = method.ReturnType;
             LocalBuilder returnPoint = null;
             if (retType != typeof(void))
@@ -123,7 +227,7 @@ namespace RainScript.VirtualMachine
                 generator.Emit(Ldind_U4);
                 generator.Emit(Conv_U);
                 generator.Emit(Add);
-                generator.Emit(Stloc, returnPoint);//stack+*(uint*)(stack+top+Frame.SIZE)
+                generator.Emit(Stloc, returnPoint);
                 generator.Emit(Ldloc, returnPoint);
                 if (retType == typeof(string))
                 {

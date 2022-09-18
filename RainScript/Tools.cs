@@ -24,7 +24,7 @@ namespace RainScript
             Write(stream, point[0]);
             Write(stream, point[1]);
         }
-        internal static byte* MAlloc(int count = 1)
+        internal static byte* MAlloc(int count)
         {
             return (byte*)Marshal.AllocHGlobal(count);
         }

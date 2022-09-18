@@ -732,7 +732,7 @@ namespace RainScript.VirtualMachine
         {
             if (performer == null) performer = kernel.performerLoader(name);
             if (natives[native.method].invokers[native.index] == null) natives[native.method].invokers[native.index] = new NativeInvoker(natives[native.method].name, natives[native.method].infos[native.index], performer);
-            natives[native.method].invokers[native.index].invoke(kernel, performer, stack, top);
+            natives[native.method].invokers[native.index].invoke?.Invoke(kernel, performer, stack, top);
         }
         public void Dispose()
         {
