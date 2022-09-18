@@ -4274,6 +4274,11 @@ namespace RainScript.Compiler.LogicGenerator
                                             if (TrySub(lexicals[index + 1, -1], SplitFlag.Bracket0, out var coroutineEnd))
                                             {
                                                 coroutineEnd += index + 1;
+                                                while (coroutineEnd + 1 < lexicals.Count && lexicals[coroutineEnd + 1].type == LexicalType.Dot)
+                                                {
+                                                    if (TrySub(lexicals[coroutineEnd + 1, -1], SplitFlag.Bracket0, out var invokerEnd)) coroutineEnd += invokerEnd + 1;
+                                                    else break;
+                                                }
                                                 if (TryParse(lexicals[index + 1, coroutineEnd], out var invoker))
                                                 {
                                                     var expression = new BlurryCoroutineExpression(lexical.anchor, invoker);

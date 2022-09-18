@@ -44,8 +44,11 @@ namespace RainScript.Compiler
             }
             else if (definition.library == LIBRARY.KERNEL || definition.code == TypeCode.Function || definition.code == TypeCode.Coroutine)
             {
-                result = RelyKernel.definitions[(int)definition.code];
-                return true;
+                if (RelyKernel.definitions.Length > (int)definition.code)
+                {
+                    result = RelyKernel.definitions[(int)definition.code];
+                    return true;
+                }
             }
             result = default;
             return false;

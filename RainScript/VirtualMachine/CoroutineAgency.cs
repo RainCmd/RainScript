@@ -153,6 +153,11 @@ namespace RainScript.VirtualMachine
             invoker.Recycle();
         }
 
+        internal long GetCoroutineCount()
+        {
+            return count;
+        }
+
         private void Dispose(Coroutine coroutine)
         {
             while (coroutine != null)

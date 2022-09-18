@@ -2581,7 +2581,6 @@ namespace RainScript.VirtualMachine
         {
             if (invoker.instanceID == instanceID)
             {
-                invoker.ClearParameters();
                 invoker.CopyFrom(stack, invoker.handle.returnSize);
                 invoker.exit = exit;
                 invoker.state = InvokerState.Completed;

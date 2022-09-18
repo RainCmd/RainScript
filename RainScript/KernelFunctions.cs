@@ -36,6 +36,7 @@
                 new KernelMethod("Clame01", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
                 new KernelMethod("Cos", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
                 new KernelMethod("Collect", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
+                new KernelMethod("CountCoroutines", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("CountHandles", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("Cross", new Function(new Type[]{ KERNEL_TYPE.REAL2, KERNEL_TYPE.REAL2 }, KERNEL_TYPE.REAL),  new Function(new Type[]{ KERNEL_TYPE.REAL3, KERNEL_TYPE.REAL3 }, KERNEL_TYPE.REAL3)),
                 new KernelMethod("Dot", new Function(new Type[]{ KERNEL_TYPE.REAL2, KERNEL_TYPE.REAL2 }, KERNEL_TYPE.REAL),  new Function(new Type[]{ KERNEL_TYPE.REAL3, KERNEL_TYPE.REAL3 }, KERNEL_TYPE.REAL)),

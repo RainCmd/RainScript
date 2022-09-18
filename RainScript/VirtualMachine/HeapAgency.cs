@@ -11,9 +11,9 @@ namespace RainScript.VirtualMachine
             public bool flag;
         }
         private readonly Kernel kernel;
-        private Head[] heads = new Head[64];
+        private Head[] heads = new Head[8];
         private byte* heap;
-        private uint headTop = 1, free = 0, head = 0, tail = 0, heapTop = 0, heapSize = 1024;
+        private uint headTop = 1, free = 0, head = 0, tail = 0, heapTop = 0, heapSize = 32;
         private bool flag = false, gc = false;
         public HeapAgency(Kernel kernel)
         {
@@ -242,7 +242,10 @@ namespace RainScript.VirtualMachine
         }
         public void Release(uint handle)
         {
-            if (IsVaild(handle)) heads[handle].reference--;
+            if (IsVaild(handle))
+                if(heads[handle].reference == 0)
+                    Console.WriteLine("???"); ;
+                heads[handle].reference--;
         }
         public ExitCode TryGetArrayLength(uint handle, out uint length)
         {

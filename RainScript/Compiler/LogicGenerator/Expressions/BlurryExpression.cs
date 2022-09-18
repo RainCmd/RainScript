@@ -196,6 +196,7 @@
                 Generator(parameter.results[0], parameterParameter);
                 parameter.generator.SetCodeAddress(address);
             }
+            else parameter.exceptions.Add(anchor, CompilingExceptionCode.COMPILING_INVALID_DEFINITION);
             parameter.generator.WriteCode(CommandMacro.BASE_CoroutineStart);
             parameter.generator.WriteCode(parameter.results[0]);
         }

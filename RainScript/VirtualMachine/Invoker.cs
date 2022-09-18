@@ -591,21 +591,20 @@ namespace RainScript.VirtualMachine
             switch (state)
             {
                 case InvokerState.Unstarted:
-                case InvokerState.Running:
                     {
                         ClearParameters();
                         handle.library.kernel.coroutineAgency.Recycle(this);
                     }
                     break;
+                case InvokerState.Running: break;
                 case InvokerState.Completed:
-                case InvokerState.Aborted:
                     {
                         ClearReturns();
                         handle.library.kernel.coroutineAgency.Recycle(this);
                     }
                     break;
-                case InvokerState.Invalid:
-                    break;
+                case InvokerState.Aborted:
+                case InvokerState.Invalid: break;
             }
             state = InvokerState.Invalid;
             frames.Clear();
