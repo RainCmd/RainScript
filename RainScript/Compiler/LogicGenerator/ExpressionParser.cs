@@ -105,7 +105,7 @@ namespace RainScript.Compiler.LogicGenerator
         {
             var declaration = new Declaration(LIBRARY.SELF, Visibility.Space, DeclarationCode.Lambda, (uint)manager.library.methods.Count, 0, (uint)manager.lambdas.Count);
             var function = new Compiling.Function(declaration, context.space, returns, parameters, parameterNames, pool);
-            lambda = new LambdaFunction(function.entry, parameters, pool);
+            lambda = new LambdaFunction(function.entry, closure.Closure, parameters, pool);
             manager.lambdas.Add(lambda);
             var method = new Compiling.Method((uint)manager.library.methods.Count, DeclarationCode.Lambda, "", context.space);
             method.AddFunction(function);
@@ -352,6 +352,20 @@ namespace RainScript.Compiler.LogicGenerator
                                                 var parser = new ExpressionParser(manager, context, localContext, closure, destructor, pool, exceptions);
                                                 if (parser.TryParseTuple(lambda.body, out var expressions))
                                                 {
+                                                    if (closure.Closure != null)
+                                                    {
+                                                        localContext.Reset();
+                                                        localContext.PushBlock(pool);
+                                                        localContext.AddLocal("", lambda.anchor, new CompilingType(new CompilingDefinition(closure.Closure.declaration), 0));
+                                                        for (int i = 0; i < parameters.Length; i++)
+                                                            localContext.AddLocal(lambda.parameters[i], parameters[i]);
+                                                        if (!parser.TryParseTuple(lambda.body, out expressions))
+                                                        {
+                                                            result = default;
+                                                            measure = default;
+                                                            return false;
+                                                        }
+                                                    }
                                                     if (parser.TryAssignmentConvert(expressions, returns, out var expression, out _))
                                                     {
                                                         BuildLambda(lambda.anchor, closure, type, returns, parameters, lambda.parameters, out result, out var lambdaFunction);

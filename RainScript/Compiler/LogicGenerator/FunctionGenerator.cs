@@ -12,12 +12,14 @@ namespace RainScript.Compiler.LogicGenerator
 
     internal class LambdaFunction : System.IDisposable
     {
+        public readonly Definition definition;
         private readonly Referencable<CodeAddress> entry;
         private uint returnSize;
         public readonly CompilingType[] parameters;
         public readonly ScopeList<Statement> statements;
-        public LambdaFunction(Referencable<CodeAddress> entry, CompilingType[] parameters, CollectionPool pool)
+        public LambdaFunction(Referencable<CodeAddress> entry, Definition definition, CompilingType[] parameters, CollectionPool pool)
         {
+            this.definition = definition;
             this.entry = entry;
             this.parameters = parameters;
             statements = pool.GetList<Statement>();
@@ -32,11 +34,20 @@ namespace RainScript.Compiler.LogicGenerator
             using (var variable = new VariableGenerator(parameter.pool, Frame.SIZE + returnSize))
             {
                 var parameterSize = 0u;
-                for (uint i = 0; i < parameters.Length; i++)
+                if (definition != null)
                 {
-                    variable.DecareLocal(i, parameters[i]);
-                    parameterSize += parameters[i].FieldSize;
+                    variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
+                    for (uint i = 0; i < parameters.Length; i++)
+                    {
+                        variable.DecareLocal(i + 1, parameters[i]);
+                        parameterSize += parameters[i].FieldSize;
+                    }
                 }
+                else for (uint i = 0; i < parameters.Length; i++)
+                    {
+                        variable.DecareLocal(i, parameters[i]);
+                        parameterSize += parameters[i].FieldSize;
+                    }
                 var topValue = new Referencable<uint>(parameter.pool);
                 generator.WriteCode(CommandMacro.FUNCTION_Entrance);
                 generator.WriteCode(Frame.SIZE + returnSize + parameterSize);

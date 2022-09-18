@@ -541,6 +541,7 @@ namespace RainScript.VirtualMachine
                                 *(uint*)(stack + top + *(uint*)(library.code + point + 1)) = runtimeDelegate->target;
                                 top += 4;
                             }
+                            else if(runtimeDelegate->type == FunctionType.Interface) throw ExceptionGeneratorVM.InvalidFunctionType(runtimeDelegate->type);
                         }
                         point += 9;
                         break;
@@ -737,6 +738,7 @@ namespace RainScript.VirtualMachine
                                     library = kernel.libraryAgency[delegateInfo->library];
                                     point = library.GetFunctionEntry(delegateInfo->function);
                                     break;
+                                case FunctionType.Interface:
                                 default: throw ExceptionGeneratorVM.InvalidFunctionType(delegateInfo->type);
                             }
                         }

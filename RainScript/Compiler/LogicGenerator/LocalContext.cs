@@ -65,6 +65,12 @@
             local = default;
             return false;
         }
+        public void Reset()
+        {
+            foreach (var item in localDeclarations) item.Dispose();
+            localDeclarations.Clear();
+            index = 0;
+        }
         public void Dispose()
         {
             foreach (var item in localDeclarations) item.Dispose();
@@ -77,6 +83,7 @@
         private readonly ScopeDictionary<Declaration, Declaration> map;
         private readonly ScopeList<Compiling.Definition.MemberVariableInfo> variables;
         private Compiling.Definition definition;
+        public Compiling.Definition Closure { get { return definition; } }
         public LambdaClosure(ExpressionParser environment)
         {
             this.environment = environment;
