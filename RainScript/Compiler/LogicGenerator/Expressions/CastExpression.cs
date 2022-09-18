@@ -136,11 +136,19 @@
             parameter.generator.WriteCode(parameter.relied.Convert(type).RuntimeType);
             if (local != null)
             {
-                var localParameter = new GeneratorParameter(parameter, 1);
-                local.GeneratorAssignment(localParameter);
-                parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_Handle);
-                parameter.generator.WriteCode(localParameter.results[0]);
-                parameter.generator.WriteCode(targetParameter.results[0]);
+                var endAddress = new Referencable<CodeAddress>(parameter.pool);
+                var assignmentAddress = new Referencable<CodeAddress>(parameter.pool);
+                parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+                parameter.generator.WriteCode(parameter.results[0]);
+                parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+                parameter.generator.WriteCode(assignmentAddress);
+                parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+                parameter.generator.WriteCode(endAddress);
+                parameter.generator.SetCodeAddress(assignmentAddress);
+                local.GeneratorAssignment(targetParameter);
+                parameter.generator.SetCodeAddress(endAddress);
+                assignmentAddress.Dispose();
+                endAddress.Dispose();
             }
         }
     }
