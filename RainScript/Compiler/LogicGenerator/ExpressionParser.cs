@@ -3945,8 +3945,9 @@ namespace RainScript.Compiler.LogicGenerator
                                 {
                                     if (TryGetThisValueExpression(out var thisValueExpression))
                                     {
-                                        if (CheckNext(lexicals, ref index, LexicalType.Dot))
+                                        if (index + 1 < lexicals.Count && lexicals[index + 1].type == LexicalType.Dot)
                                         {
+                                            index++;
                                             if (CheckNext(lexicals, ref index, LexicalType.Word))
                                             {
                                                 var baseAnchor = lexical.anchor;
