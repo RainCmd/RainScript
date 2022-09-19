@@ -12,6 +12,8 @@
         Equals,                 // ==
         NotEquals,              // !=
 
+        Casting,                // 类型转换
+
         BitAnd,                 // &
         BitOr,                  // |
         BitXor,                 // ^
@@ -32,19 +34,18 @@
         IncrementLeft,          // ++ 左自增(++X)
         DecrementLeft,          // -- 左自减(--X)
 
-        Casting,                // 类型转换
     }
     internal enum TokenPriority : byte
     {
         None,                       // 无
         LogicOperation,             // 逻辑运算
         Compare,                    // 比较运算
+        Casting,                    // 类型转换
         BitOperation,               // 位运算
         ElementaryOperation,        // 初级运算
         IntermediateOperation,      // 中级运算
         AdvancedOperation,          // 高级运算
         SymbolicOperation,          // 符号运算
-        Casting,                    // 类型转换
     }
     [System.Flags]
     internal enum TokenAttribute : uint
@@ -88,6 +89,7 @@
                 case TokenType.GreaterEquals:
                 case TokenType.Equals:
                 case TokenType.NotEquals: return TokenPriority.Compare;
+                case TokenType.Casting: return TokenPriority.Casting;
                 case TokenType.BitAnd:
                 case TokenType.BitOr:
                 case TokenType.BitXor:
@@ -104,7 +106,6 @@
                 case TokenType.Negative:
                 case TokenType.IncrementLeft:
                 case TokenType.DecrementLeft: return TokenPriority.SymbolicOperation;
-                case TokenType.Casting: return TokenPriority.Casting;
                 default: return TokenPriority.None;
             }
         }
@@ -119,7 +120,8 @@
                 case TokenType.LessEquals:
                 case TokenType.GreaterEquals:
                 case TokenType.Equals:
-                case TokenType.NotEquals:
+                case TokenType.NotEquals: return TokenAttribute.Value;
+                case TokenType.Casting: return TokenAttribute.None | TokenAttribute.Operator;
                 case TokenType.BitAnd:
                 case TokenType.BitOr:
                 case TokenType.BitXor:
@@ -135,8 +137,7 @@
                 case TokenType.Positive:
                 case TokenType.Negative:
                 case TokenType.IncrementLeft:
-                case TokenType.DecrementLeft:
-                case TokenType.Casting: return TokenAttribute.None | TokenAttribute.Operator;
+                case TokenType.DecrementLeft: return TokenAttribute.None | TokenAttribute.Operator;
                 default: return 0;
             }
         }
