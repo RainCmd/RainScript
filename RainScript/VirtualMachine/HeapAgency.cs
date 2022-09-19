@@ -11,9 +11,9 @@ namespace RainScript.VirtualMachine
             public bool flag;
         }
         private readonly Kernel kernel;
-        private Head[] heads = new Head[64];
+        private Head[] heads = new Head[16];
         private byte* heap;
-        private uint headTop = 1, free = 0, head = 0, tail = 0, heapTop = 0, heapSize = 1024;
+        private uint headTop = 1, free = 0, head = 0, tail = 0, heapTop = 0, heapSize = 64;
         private bool flag = false, gc = false;
         public HeapAgency(Kernel kernel)
         {

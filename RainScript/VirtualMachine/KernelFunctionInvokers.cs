@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using RainScript.Vector;
+using System.Net;
 #if FIXED
 using real = RainScript.Real.Fixed;
 using Math = RainScript.Real.Math;
@@ -39,95 +40,132 @@ namespace RainScript.VirtualMachine
         }
         protected static uint PushParameter(Stream stream, Type type, uint point)
         {
-            switch (type.definition.code)
-            {
-                case TypeCode.Bool:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_1);
-                    break;
-                case TypeCode.Integer:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_8);
-                    break;
-                case TypeCode.Real:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_8);
-                    break;
-                case TypeCode.Real2:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_16);
-                    break;
-                case TypeCode.Real3:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_24);
-                    break;
-                case TypeCode.Real4:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_32);
-                    break;
-                case TypeCode.String:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_String);
-                    break;
-                case TypeCode.Handle:
-                case TypeCode.Interface:
-                case TypeCode.Function:
-                case TypeCode.Coroutine:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_Handle);
-                    break;
-                case TypeCode.Entity:
-                    stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_Entity);
-                    break;
-                case TypeCode.Invalid:
-                default: throw ExceptionGenerator.InvalidTypeCode(type.definition.code);
-            }
-            stream.Write(point);
-            stream.Write(point);
-            return point + type.FieldSize;
-        }
-        protected static void FinishInvoker(Stream stream, uint parameterSize, uint finallyPoint, KernelMethod.Function info)
-        {
-            uint returnPoint = Frame.SIZE, localPoint = parameterSize;
-            foreach (var item in info.returns)
-            {
-                switch (item.definition.code)
+            if (type.dimension > 0) stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_Handle);
+            else switch (type.definition.code)
                 {
+                    case TypeCode.Invalid: goto default;
                     case TypeCode.Bool:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_1);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_1);
                         break;
                     case TypeCode.Integer:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_8);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_8);
                         break;
                     case TypeCode.Real:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_8);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_8);
                         break;
                     case TypeCode.Real2:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_16);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_16);
                         break;
                     case TypeCode.Real3:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_24);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_24);
                         break;
                     case TypeCode.Real4:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_32);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_32);
                         break;
                     case TypeCode.String:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_String);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_String);
                         break;
                     case TypeCode.Handle:
                     case TypeCode.Interface:
                     case TypeCode.Function:
                     case TypeCode.Coroutine:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_Handle);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_Handle);
                         break;
                     case TypeCode.Entity:
-                        stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_Entity);
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_Entity);
                         break;
-                    case TypeCode.Invalid:
-                    default: throw ExceptionGenerator.InvalidTypeCode(item.definition.code);
+                    default: throw ExceptionGenerator.InvalidTypeCode(type.definition.code);
                 }
+            stream.Write(point);
+            stream.Write(point);
+            return point + type.FieldSize;
+        }
+        protected static uint ClearVariable(Stream stream, Type type, uint point)
+        {
+            if (type.dimension > 0)
+            {
+                stream.WriteByte((byte)CommandMacro.ASSIGNMENT_Const2Local_HandleNull);
+                stream.Write(point);
+            }
+            else switch (type.definition.code)
+                {
+                    case TypeCode.Invalid:
+                    case TypeCode.Bool:
+                    case TypeCode.Integer:
+                    case TypeCode.Real:
+                    case TypeCode.Real2:
+                    case TypeCode.Real3:
+                    case TypeCode.Real4:
+                        break;
+                    case TypeCode.String:
+                        stream.WriteByte((byte)CommandMacro.STRING_Release);
+                        stream.Write(point);
+                        break;
+                    case TypeCode.Handle:
+                    case TypeCode.Interface:
+                    case TypeCode.Function:
+                    case TypeCode.Coroutine:
+                        stream.WriteByte((byte)CommandMacro.ASSIGNMENT_Const2Local_HandleNull);
+                        stream.Write(point);
+                        break;
+                    case TypeCode.Entity:
+                        stream.WriteByte((byte)CommandMacro.ASSIGNMENT_Const2Local_EntityNull);
+                        stream.Write(point);
+                        break;
+                }
+            return point + type.FieldSize;
+        }
+        protected static void WriteReturns(Stream stream, uint parameterSize, uint finallyPoint, KernelMethod.Function info)
+        {
+            uint returnPoint = Frame.SIZE, localPoint = parameterSize;
+            foreach (var item in info.returns)
+            {
+                if (item.dimension > 0) stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_Handle);
+                else switch (item.definition.code)
+                    {
+                        case TypeCode.Invalid: goto default;
+                        case TypeCode.Bool:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_1);
+                            break;
+                        case TypeCode.Integer:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_8);
+                            break;
+                        case TypeCode.Real:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_8);
+                            break;
+                        case TypeCode.Real2:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_16);
+                            break;
+                        case TypeCode.Real3:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_24);
+                            break;
+                        case TypeCode.Real4:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_32);
+                            break;
+                        case TypeCode.String:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_String);
+                            break;
+                        case TypeCode.Handle:
+                        case TypeCode.Interface:
+                        case TypeCode.Function:
+                        case TypeCode.Coroutine:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_Handle);
+                            break;
+                        case TypeCode.Entity:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_Entity);
+                            break;
+                        default: throw ExceptionGenerator.InvalidTypeCode(item.definition.code);
+                    }
                 stream.Write(returnPoint);
                 stream.Write(localPoint);
                 returnPoint += 4;
-                localPoint += item.FieldSize;
+                localPoint = ClearVariable(stream, item, localPoint);
             }
+
             var returnPosition = (uint)stream.Position;
-            stream.WriteByte((byte)CommandMacro.FUNCTION_Return);
             stream.Seek(finallyPoint, SeekOrigin.Begin);
             stream.Write(returnPosition);
-            stream.Seek(returnPosition + 1, SeekOrigin.Begin);
+            stream.Seek(returnPosition, SeekOrigin.Begin);
         }
     }
     internal unsafe class KernelMemberMethodInvoker : KernelInvoker
@@ -166,7 +204,11 @@ namespace RainScript.VirtualMachine
             stream.Write(method);
             stream.Write(function);
 
-            FinishInvoker(stream, parameterSize, finallyPoint, info);
+            WriteReturns(stream, parameterSize, finallyPoint, info);
+            returnPoint = ClearVariable(stream, type, returnPoint);
+            foreach (var item in info.parameters)
+                returnPoint = ClearVariable(stream, item, returnPoint);
+            stream.WriteByte((byte)CommandMacro.FUNCTION_Return);
         }
         /// <summary>
         /// 对应<see cref="KernelMethod.memberMethods"/>
@@ -278,47 +320,59 @@ namespace RainScript.VirtualMachine
         private static ExitCode string_GetLength(Kernel kernel, byte* stack, uint top)
         {
             var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
-            var source = kernel.stringAgency.Get(*(uint*)(stack + top + Frame.SIZE + 4));
+            var address = (uint*)(stack + top + Frame.SIZE + 4);
+            var source = kernel.stringAgency.Get(*address);
             *result = source.Length;
+            kernel.stringAgency.Release(*address);
             return ExitCode.None;
         }
         private static ExitCode string_ToBool(Kernel kernel, byte* stack, uint top)
         {
             var result = (bool*)(stack + *(uint*)(stack + top + Frame.SIZE));
-            var source = kernel.stringAgency.Get(*(uint*)(stack + top + Frame.SIZE + 4));
+            var address = (uint*)(stack + top + Frame.SIZE + 4);
+            var source = kernel.stringAgency.Get(*address);
             bool.TryParse(source, out var value);
             *result = value;
+            kernel.stringAgency.Release(*address);
             return ExitCode.None;
         }
         private static ExitCode string_ToInteger(Kernel kernel, byte* stack, uint top)
         {
             var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
-            var source = kernel.stringAgency.Get(*(uint*)(stack + top + Frame.SIZE + 4));
+            var address = (uint*)(stack + top + Frame.SIZE + 4);
+            var source = kernel.stringAgency.Get(*address);
             long.TryParse(source, out var value);
             *result = value;
+            kernel.stringAgency.Release(*address);
             return ExitCode.None;
         }
         private static ExitCode string_ToReal(Kernel kernel, byte* stack, uint top)
         {
             var result = (real*)(stack + *(uint*)(stack + top + Frame.SIZE));
-            var source = kernel.stringAgency.Get(*(uint*)(stack + top + Frame.SIZE + 4));
+            var address = (uint*)(stack + top + Frame.SIZE + 4);
+            var source = kernel.stringAgency.Get(*address);
             real.TryParse(source, out var value);
             *result = value;
+            kernel.stringAgency.Release(*address);
             return ExitCode.None;
         }
         private static ExitCode handle_ToInteger(Kernel kernel, byte* stack, uint top)
         {
             var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
-            *result = *(uint*)(stack + top + Frame.SIZE + 4);
+            var handle = *(uint*)(stack + top + Frame.SIZE + 4);
+            *result = handle;
+            kernel.heapAgency.Release(handle);
             return ExitCode.None;
         }
         private static ExitCode coroutine_Abort(Kernel kernel, byte* stack, uint top)
         {
             var handle = *(uint*)(stack + top + Frame.SIZE);
             var code = kernel.heapAgency.TryGetPoint(handle, out var point);
+            var instance = *(ulong*)point;
+            kernel.heapAgency.Release(handle);
             if (code != ExitCode.None) return code;
             var exitCode = *(long*)(stack + top + Frame.SIZE + TypeCode.Handle.FieldSize());
-            kernel.coroutineAgency.GetInternalInvoker(*(ulong*)point).Abort(exitCode);
+            kernel.coroutineAgency.GetInternalInvoker(instance).Abort(exitCode);
             return ExitCode.None;
         }
         private static ExitCode coroutine_GetState(Kernel kernel, byte* stack, uint top)
@@ -326,8 +380,10 @@ namespace RainScript.VirtualMachine
             var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
             var handle = *(uint*)(stack + top + Frame.SIZE + 4);
             var code = kernel.heapAgency.TryGetPoint(handle, out var point);
+            var instance = *(ulong*)point;
+            kernel.heapAgency.Release(handle);
             if (code != ExitCode.None) return code;
-            *result = (long)kernel.coroutineAgency.GetInternalInvoker(*(ulong*)point).state;
+            *result = (long)kernel.coroutineAgency.GetInternalInvoker(instance).state;
             return ExitCode.None;
         }
         private static ExitCode coroutine_GetExitCode(Kernel kernel, byte* stack, uint top)
@@ -335,8 +391,10 @@ namespace RainScript.VirtualMachine
             var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
             var handle = *(uint*)(stack + top + Frame.SIZE + 4);
             var code = kernel.heapAgency.TryGetPoint(handle, out var point);
+            var instance = *(ulong*)point;
+            kernel.heapAgency.Release(handle);
             if (code != ExitCode.None) return code;
-            *result = kernel.coroutineAgency.GetInternalInvoker(*(ulong*)point).exit;
+            *result = kernel.coroutineAgency.GetInternalInvoker(instance).exit;
             return ExitCode.None;
         }
         private static ExitCode coroutine_IsPause(Kernel kernel, byte* stack, uint top)
@@ -344,30 +402,38 @@ namespace RainScript.VirtualMachine
             var result = (bool*)(stack + *(uint*)(stack + top + Frame.SIZE));
             var handle = *(uint*)(stack + top + Frame.SIZE + 4);
             var code = kernel.heapAgency.TryGetPoint(handle, out var point);
+            var instance = *(ulong*)point;
+            kernel.heapAgency.Release(handle);
             if (code != ExitCode.None) return code;
-            *result = kernel.coroutineAgency.GetInternalInvoker(*(ulong*)point).IsPause;
+            *result = kernel.coroutineAgency.GetInternalInvoker(instance).IsPause;
             return ExitCode.None;
         }
         private static ExitCode coroutine_Pause(Kernel kernel, byte* stack, uint top)
         {
             var handle = *(uint*)(stack + top + Frame.SIZE);
             var code = kernel.heapAgency.TryGetPoint(handle, out var point);
+            var instance = *(ulong*)point;
+            kernel.heapAgency.Release(handle);
             if (code != ExitCode.None) return code;
-            kernel.coroutineAgency.GetInternalInvoker(*(ulong*)point).IsPause = true;
+            kernel.coroutineAgency.GetInternalInvoker(instance).IsPause = true;
             return ExitCode.None;
         }
         private static ExitCode coroutine_Resume(Kernel kernel, byte* stack, uint top)
         {
             var handle = *(uint*)(stack + top + Frame.SIZE);
             var code = kernel.heapAgency.TryGetPoint(handle, out var point);
+            var instance = *(ulong*)point;
+            kernel.heapAgency.Release(handle);
             if (code != ExitCode.None) return code;
-            kernel.coroutineAgency.GetInternalInvoker(*(ulong*)point).IsPause = false;
+            kernel.coroutineAgency.GetInternalInvoker(instance).IsPause = false;
             return ExitCode.None;
         }
         private static ExitCode entity_ToInteger(Kernel kernel, byte* stack, uint top)
         {
             var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
-            *result = (long)((Entity*)(stack + top + Frame.SIZE + 4))->entity;
+            var entity = (Entity*)(stack + top + Frame.SIZE + 4);
+            *result = (long)entity->entity;
+            kernel.manipulator.Release(*entity);
             return ExitCode.None;
         }
         private static ExitCode array_GetLength(Kernel kernel, byte* stack, uint top)
@@ -376,6 +442,7 @@ namespace RainScript.VirtualMachine
             var handle = *(uint*)(stack + top + Frame.SIZE + 4);
             var code = kernel.heapAgency.TryGetArrayLength(handle, out var length);
             *result = length;
+            kernel.heapAgency.Release(handle);
             return code;
         }
 #pragma warning restore IDE1006
@@ -416,7 +483,11 @@ namespace RainScript.VirtualMachine
             stream.Write(method);
             stream.Write(function);
 
-            FinishInvoker(stream, parameterSize, finallyPoint, info);
+            WriteReturns(stream, parameterSize, finallyPoint, info);
+            var returnPoint = Frame.SIZE + (uint)info.returns.Length * 4;
+            foreach (var item in info.parameters)
+                returnPoint = ClearVariable(stream, item, returnPoint);
+            stream.WriteByte((byte)CommandMacro.FUNCTION_Return);
         }
         /// <summary>
         /// 对应<see cref="KernelMethod.methods"/>

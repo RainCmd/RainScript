@@ -136,6 +136,13 @@ namespace RainScript.VirtualMachine
             else symbol.GetInfo(frame.point, out file, out function, out line);
         }
         /// <summary>
+        /// 托管堆回收
+        /// </summary>
+        public void Collect()
+        {
+            heapAgency.GC();
+        }
+        /// <summary>
         /// 析构
         /// </summary>
         ~Kernel() { if (!disposed) Dispose(); }
