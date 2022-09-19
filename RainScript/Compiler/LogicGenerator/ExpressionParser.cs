@@ -3819,6 +3819,29 @@ namespace RainScript.Compiler.LogicGenerator
                                                 else if (c == 't') c = '\t';
                                                 else if (c == 'v') c = '\v';
                                                 else if (c == '0') c = '\0';
+                                                else if (c == 'x')
+                                                {
+                                                    if (++i < segment.Length && TryGetHexValue(segment[i], out var value1))
+                                                    {
+                                                        if (++i < segment.Length && TryGetHexValue(segment[i], out var value2)) c = (char)(value1 * 16 + value2);
+                                                        else i -= 2;
+                                                    }
+                                                    else i--;
+                                                }
+                                                else if (c == 'u')
+                                                {
+                                                    if (i + 4 < segment.Length)
+                                                    {
+                                                        var resultChar = 0u;
+                                                        var idx = i;
+                                                        while (idx - i < 4 && TryGetHexValue(segment[++idx], out var value1)) resultChar = (resultChar << 4) + value1;
+                                                        if (idx == i + 4)
+                                                        {
+                                                            i = idx;
+                                                            c = (char)resultChar;
+                                                        }
+                                                    }
+                                                }
                                                 value += c & 0xff;
                                             }
                                         }
