@@ -114,6 +114,17 @@ namespace RainScript.VirtualMachine
             return "";
         }
 
+        public uint GetStringCount()
+        {
+            var count = slotTop;
+            var index = freeSlot;
+            while (index > 0)
+            {
+                count--;
+                index = slots[index].next;
+            }
+            return count;
+        }
         public bool IsEquals(uint a, uint b)
         {
             if (a == b) return true;

@@ -4342,7 +4342,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             goto unexpected_lexical;
                                         case DeclarationCode.MemberMethod:
-                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
+                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
                                                 if (TryGetThisValueExpression(out var thisValueExpression))
                                                 {
@@ -4362,7 +4362,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         case DeclarationCode.InterfaceMethod:
                                         case DeclarationCode.InterfaceFunction: goto default;
                                         case DeclarationCode.GlobalVariable:
-                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
+                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
                                                 var expression = new VariableGlobalExpression(lexical.anchor, declaration, IsConstant(declaration), GetVariableType(declaration));
                                                 expressionStack.Push(expression);
@@ -4371,7 +4371,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             }
                                             else goto unexpected_lexical;
                                         case DeclarationCode.GlobalMethod:
-                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
+                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
                                                 var expression = new MethodGlobalExpression(lexical.anchor, declaration);
                                                 expressionStack.Push(expression);
@@ -4381,7 +4381,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             else goto unexpected_lexical;
                                         case DeclarationCode.GlobalFunction: goto default;
                                         case DeclarationCode.NativeMethod:
-                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
+                                            if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator | TokenAttribute.Type))
                                             {
                                                 var expression = new MethodNativeExpression(lexical.anchor, declaration);
                                                 expressionStack.Push(expression);
