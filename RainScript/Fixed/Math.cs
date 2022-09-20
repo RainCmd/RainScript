@@ -45,12 +45,13 @@
         }
         public static long Ceil(Fixed real)
         {
-            if (real.value < 0) return (real.value - 1 >> Fixed.DECIMAL) + 1;
-            else return (real.value - 1 >> Fixed.DECIMAL) + 1;
+            if (real.value > 0) return (real.value - 1 >> Fixed.DECIMAL) + 1;
+            else return (real.value + Fixed.MASK_DECIMAL) >> Fixed.DECIMAL;
         }
         public static long Floor(Fixed real)
         {
-            return real.value >> Fixed.DECIMAL;
+            if (real.value > 0) return real.value >> Fixed.DECIMAL;
+            else return ((real.value - Fixed.MASK_DECIMAL) >> Fixed.DECIMAL) + 1;
         }
         public static Fixed Abs(Fixed real)
         {
