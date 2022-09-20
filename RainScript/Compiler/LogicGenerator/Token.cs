@@ -5,6 +5,8 @@
         LogicAnd,               // &&
         LogicOr,                // ||
 
+        Casting,                // 类型转换
+
         Less,                   // <
         Greater,                // >
         LessEquals,             // <=
@@ -31,8 +33,6 @@
         Negative,               // - 负号
         IncrementLeft,          // ++ 左自增(++X)
         DecrementLeft,          // -- 左自减(--X)
-
-        Casting,                // 类型转换
     }
     internal enum TokenPriority : byte
     {
@@ -43,8 +43,8 @@
         ElementaryOperation,        // 初级运算
         IntermediateOperation,      // 中级运算
         AdvancedOperation,          // 高级运算
-        SymbolicOperation,          // 符号运算
         Casting,                    // 类型转换
+        SymbolicOperation,          // 符号运算
     }
     [System.Flags]
     internal enum TokenAttribute : uint
@@ -103,8 +103,8 @@
                 case TokenType.Positive:
                 case TokenType.Negative:
                 case TokenType.IncrementLeft:
-                case TokenType.DecrementLeft: return TokenPriority.SymbolicOperation;
-                case TokenType.Casting: return TokenPriority.Casting;
+                case TokenType.DecrementLeft: 
+                case TokenType.Casting: return TokenPriority.SymbolicOperation;
                 default: return TokenPriority.None;
             }
         }
@@ -113,7 +113,7 @@
             switch (type)
             {
                 case TokenType.LogicAnd:
-                case TokenType.LogicOr:
+                case TokenType.LogicOr: return TokenAttribute.Value;
                 case TokenType.Less:
                 case TokenType.Greater:
                 case TokenType.LessEquals:
@@ -135,8 +135,8 @@
                 case TokenType.Positive:
                 case TokenType.Negative:
                 case TokenType.IncrementLeft:
-                case TokenType.DecrementLeft:
-                case TokenType.Casting: return TokenAttribute.None | TokenAttribute.Operator;
+                case TokenType.DecrementLeft: return TokenAttribute.None | TokenAttribute.Operator;
+                case TokenType.Casting: return TokenAttribute.Type;
                 default: return 0;
             }
         }

@@ -2481,7 +2481,7 @@ namespace RainScript.VirtualMachine
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 5));
                             flag = (long)kernel.heapAgency.TryGetType(handle, out var handleType);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            var type = *(Type*)(stack + bottom + *(uint*)(library.code + point + 9));
+                            var type = *(Type*)(library.code + point + 9);
                             if (kernel.libraryAgency.TryGetInheritDepth(type, handleType, out _))
                             {
                                 flag = (long)ExitCode.InvalidCast;
