@@ -48,15 +48,13 @@ namespace RainScript.VirtualMachine
                 }
                 else
                 {
-                    entity = top++;
                     if (top == slots.Length)
                     {
-                        var size = 1;
-                        while (size <= top) size <<= 1;
-                        var temp = new Slot[size];
+                        var temp = new Slot[top << 1];
                         System.Array.Copy(slots, temp, slots.Length);
                         slots = temp;
                     }
+                    entity = top++;
                 }
                 slots[entity].next = 0;
                 slots[entity].value = value;

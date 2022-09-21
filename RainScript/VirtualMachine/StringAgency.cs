@@ -74,8 +74,7 @@ namespace RainScript.VirtualMachine
                     Array.Copy(slots, 0, newSlots, 0, slotTop);
                     slots = newSlots;
                 }
-                sidx = slotTop;
-                slotTop++;
+                sidx = slotTop++;
             }
             slots[sidx].value = value;
             slots[sidx].refernce = 0;
