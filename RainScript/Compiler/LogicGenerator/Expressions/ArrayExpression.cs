@@ -19,6 +19,58 @@
             parameter.generator.WriteCode(lengthParameter.results[0]);
         }
     }
+    internal class ArrayInitExpression : Expression
+    {
+        private readonly Expression elements;
+        public ArrayInitExpression(Anchor anchor, Expression elements, CompilingType type) : base(anchor, type)
+        {
+            this.elements = elements;
+        }
+
+        public override TokenAttribute Attribute => TokenAttribute.Value | TokenAttribute.Array;
+
+        public override void Generator(GeneratorParameter parameter)
+        {
+            var elementsParameter = new GeneratorParameter(parameter, elements.returns.Length);
+            elements.Generator(elementsParameter);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+
+            var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.INTEGER_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_8);
+            parameter.generator.WriteCode(variable);
+            parameter.generator.WriteCode((long)elements.returns.Length);
+
+            parameter.generator.WriteCode(CommandMacro.BASE_CreateArray);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(new CompilingType(parameter.relied.Convert(returns[0].definition), returns[0].dimension - 1).RuntimeType);
+            parameter.generator.WriteCode(variable);
+
+            var command = GetAssigmentCommand();
+            for (int i = 0; i < elements.returns.Length; i++)
+            {
+                parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_8);
+                parameter.generator.WriteCode(variable);
+                parameter.generator.WriteCode((long)i);
+                parameter.generator.WriteCode(command);
+                parameter.generator.WriteCode(parameter.results[0]);
+                parameter.generator.WriteCode(variable);
+                parameter.generator.WriteCode(elementsParameter.results[i]);
+            }
+        }
+        private CommandMacro GetAssigmentCommand()
+        {
+            var type = new CompilingType(returns[0].definition, returns[0].dimension - 1);
+            if (type.IsHandle) return CommandMacro.ASSIGNMENT_Local2Array_Handle;
+            else if (type == RelyKernel.BOOL_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_1;
+            else if (type == RelyKernel.INTEGER_TYPE || type == RelyKernel.REAL_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_8;
+            else if (type == RelyKernel.REAL2_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_16;
+            else if (type == RelyKernel.REAL3_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_24;
+            else if (type == RelyKernel.REAL4_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_32;
+            else if (type == RelyKernel.STRING_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_String;
+            else if (type == RelyKernel.ENTITY_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_Entity;
+            else throw ExceptionGeneratorCompiler.Unknown();
+        }
+    }
     internal class ArrayEvaluationExpression : VariableExpression
     {
         private readonly Expression array;

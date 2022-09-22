@@ -228,4 +228,17 @@
             parameter.exceptions.Add(anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
         }
     }
+    internal class BlurrySetExpression : Expression
+    {
+        public readonly Expression[] expressions;
+        public override TokenAttribute Attribute => TokenAttribute.Value | TokenAttribute.Array;
+        public BlurrySetExpression(Anchor anchor, Expression[] expressions) : base(anchor, RelyKernel.BLURRY_TYPE)
+        {
+            this.expressions = expressions;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            parameter.exceptions.Add(anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
+        }
+    }
 }

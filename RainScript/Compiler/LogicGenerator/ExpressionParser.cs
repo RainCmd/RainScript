@@ -408,6 +408,15 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                         }
                     }
+                    else if (source is BlurrySetExpression blurrySetExpression)
+                    {
+                        if (TryAssignmentSetConvert(blurrySetExpression.expressions, new CompilingType(type.definition, type.dimension - 1), out var elements))
+                        {
+                            result = new ArrayInitExpression(source.anchor, elements, type);
+                            measure = 0;
+                            return true;
+                        }
+                    }
                 }
                 else if (st == RelyKernel.NULL_TYPE)
                 {
@@ -502,6 +511,34 @@ namespace RainScript.Compiler.LogicGenerator
             measure = default;
             return false;
         }
+        private bool TryAssignmentSetConvert(Expression[] expressions, CompilingType type, out Expression expression)
+        {
+            for (int i = 0; i < expressions.Length; i++)
+                if (expressions[i].returns.Length == 1)
+                {
+                    if (TryAssignmentConvert(expressions[i], type, out var element, out _)) expressions[i] = element;
+                    else
+                    {
+                        expression = default;
+                        exceptions.Add(expressions[i].anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                        return false;
+                    }
+                }
+                else
+                {
+                    var types = new CompilingType[expressions[i].returns.Length];
+                    for (int idx = 0; idx < types.Length; idx++) types[idx] = type;
+                    if (TryAssignmentConvert(expressions[i], types, out var element, out _)) expressions[i] = element;
+                    else
+                    {
+                        expression = default;
+                        exceptions.Add(expressions[i].anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                        return false;
+                    }
+                }
+            expression = TupleExpression.Combine(expressions);
+            return true;
+        }
         private bool TrySub(ListSegment<Lexical> lexicals, SplitFlag flag, out int index)
         {
             using (var stack = pool.GetStack<Lexical>())
@@ -557,7 +594,11 @@ namespace RainScript.Compiler.LogicGenerator
                             if (stack.Count > 0)
                             {
                                 var breacket = stack.Pop();
-                                if (breacket.type == LexicalType.BracketLeft2) break;
+                                if (breacket.type == LexicalType.BracketLeft2)
+                                {
+                                    if (flag.ContainAny(SplitFlag.Bracket2) && stack.Count == 0) return true;
+                                    break;
+                                }
                                 else
                                 {
                                     exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
@@ -3295,6 +3336,11 @@ namespace RainScript.Compiler.LogicGenerator
                                         if (TryCombineExpressions(out var expression, expressions))
                                         {
                                             var array = expressionStack.Pop();
+                                            if (array.returns[0] == RelyKernel.BLURRY_TYPE)
+                                            {
+                                                exceptions.Add(array.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
+                                                goto parse_fail;
+                                            }
                                             if (expression.returns.Length == 1)
                                             {
                                                 if (array.returns[0].dimension > 0)
@@ -3415,6 +3461,13 @@ namespace RainScript.Compiler.LogicGenerator
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
+                                            else if (expressions.Length == 0)
+                                            {
+                                                expression = new TypeExpression(typeExpression.anchor, new CompilingType(typeExpression.type.definition, typeExpression.type.dimension + 1));
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                break;
+                                            }
                                         }
                                         else throw ExceptionGeneratorCompiler.Unknown();
                                     }
@@ -3422,6 +3475,36 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             goto default;
                         case LexicalType.BracketLeft2:
+                            {
+                                if (TryParseBracket(lexicals, SplitFlag.Bracket2, ref index, out var expressions))
+                                {
+                                    if (attribute.ContainAny(TokenAttribute.Type))
+                                    {
+                                        if (expressionStack.Pop() is TypeExpression typeExpression)
+                                        {
+                                            var dimension = Lexical.ExtractDimension(lexicals, ref index);
+                                            var type = new CompilingType(typeExpression.type.definition, typeExpression.type.dimension + dimension);
+                                            if (TryAssignmentSetConvert(expressions, type, out var elements))
+                                            {
+                                                var expression = new ArrayInitExpression(lexical.anchor, elements, new CompilingType(type.definition, type.dimension + 1));
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                break;
+                                            }
+                                            else goto parse_fail;
+                                        }
+                                        else throw ExceptionGeneratorCompiler.Unknown();
+                                    }
+                                    else if (attribute.ContainAny(TokenAttribute.None))
+                                    {
+                                        var expression = new BlurrySetExpression(lexical.anchor, expressions);
+                                        expressionStack.Push(expression);
+                                        attribute = expression.Attribute;
+                                        break;
+                                    }
+                                }
+                            }
+                            goto default;
                         case LexicalType.BracketRight0:
                         case LexicalType.BracketRight1:
                         case LexicalType.BracketRight2:
