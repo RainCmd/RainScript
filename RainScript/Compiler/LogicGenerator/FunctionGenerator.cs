@@ -493,7 +493,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
                             }
                             else if (anchor.Segment == KeyWorld.TRY) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
-                            else if (anchor.Segment == KeyWorld.THROW) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
+                            else if (anchor.Segment == KeyWorld.CATCH) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
                             else if (anchor.Segment == KeyWorld.FINALLY) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
                             else
                             {

@@ -153,7 +153,7 @@
         public const string EXIT = "exit";
         //携程+ExitCode可以实现该功能，所以这个先不实现，但保留关键字
         public const string TRY = "try";
-        public const string THROW = "throw";
+        public const string CATCH = "catch";
         public const string FINALLY = "finally";
 
         public static bool IsKeyWorld(StringSegment segment)
@@ -207,7 +207,7 @@
             if (segment == WAIT) return true;
             if (segment == EXIT) return true;
             if (segment == TRY) return true;
-            if (segment == THROW) return true;
+            if (segment == CATCH) return true;
             if (segment == FINALLY) return true;
 
             return false;
