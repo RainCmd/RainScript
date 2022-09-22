@@ -134,7 +134,7 @@ namespace RainScript.VirtualMachine
                 else if (baseDefinition.code == TypeCode.Interface)
                 {
                     var index = subDefinition;
-                    depth = 0;
+                    depth = 1;
                     while (index != TypeDefinition.INVALID)
                     {
                         var definition = this[index.library].definitions[index.index];
@@ -238,19 +238,24 @@ namespace RainScript.VirtualMachine
         internal bool GetFunction(DefinitionFunction function, Type type, out DefinitionFunction targetFunction)
         {
             if (type.dimension > 0) type = KERNEL_TYPE.ARRAY;
-            if (TryGetInheritDepth(new Type(function.definition, 0), type, out _))
+            if (TryGetInheritDepth(new Type(function.definition, 0), type, out var depth))
             {
-                var characteristic = GetFunctionCharacteristic(function);
-                var definition = this[type.definition.library].definitions[type.definition.index];
-                for (uint index = 0; index < definition.methods.Length; index++)
+                if (depth > 0)
                 {
-                    var method = definition.methods[index];
-                    for (uint i = 0; i < method.characteristic.Length; i++)
-                        if (method.characteristic[i] == characteristic)
+                    var characteristic = GetFunctionCharacteristic(function);
+                    var definition = this[type.definition.library].definitions[type.definition.index];
+                    foreach (var relocation in definition.relocations)
+                        if (relocation.characteristics == characteristic)
                         {
-                            targetFunction = new DefinitionFunction(type.definition, new Function(index, i));
+                            targetFunction = relocation.function;
                             return true;
                         }
+                    if (definition.parent != TypeDefinition.INVALID) return GetFunction(function, new Type(definition.parent, 0), out targetFunction);
+                }
+                else
+                {
+                    targetFunction = function;
+                    return true;
                 }
             }
             throw ExceptionGeneratorVM.EntryNotFound(this[function.definition.library].name, function, type);

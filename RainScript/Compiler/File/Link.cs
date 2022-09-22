@@ -188,7 +188,7 @@ namespace RainScript.Compiler.File
             }
             foreach (var item in interfaces)
             {
-                for (var i = 1; i < item.inherits.Count; i++)
+                for (var i = 0; i < item.inherits.Count; i++)
                 {
                     var inheritDeclaration = context.FindDeclaration(manager, item.inherits[i], pool, exceptions);
                     if (inheritDeclaration.code == DeclarationCode.Interface && inheritDeclaration.library != LIBRARY.KERNEL) item.compiling.inherits[i] = new CompilingDefinition(inheritDeclaration);

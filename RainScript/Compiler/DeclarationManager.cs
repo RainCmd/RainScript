@@ -74,7 +74,7 @@ namespace RainScript.Compiler
             depth++;
             if (baseDefinition == RelyKernel.INTERFACE) return true;
             foreach (var item in index.Inherits)
-                if (item == baseDefinition || TryGetInherit(index, baseDefinition, ref depth))
+                if (item == baseDefinition || (TryGetInterface(item, out var inherit) && TryGetInherit(inherit, baseDefinition, ref depth)))
                     return true;
             depth--;
             return false;

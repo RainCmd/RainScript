@@ -487,7 +487,7 @@ namespace RainScript.Compiler.Compiling
                     {
                         var method = result.GetMethod(methodIndex);
                         for (int functionIndex = 0; functionIndex < method.FunctionCount; functionIndex++)
-                            if (!InterfaceImplementsCheck(manager, definition, result.Declaration.visibility, method.GetFunction(functionIndex), exceptions))
+                            if (!InterfaceImplementsCheck(manager, definition, method.GetFunction(functionIndex), exceptions))
                                 exceptions.Add(definition.name, CompilingExceptionCode.COMPILING_INTERFACE_NOT_IMPLEMENTS, manager.GetDeclarationFullName(method.GetFunction(functionIndex).Declaration));
                     }
                 }
@@ -495,43 +495,33 @@ namespace RainScript.Compiler.Compiling
             }
             else throw ExceptionGeneratorCompiler.Unknown();
         }
-        private bool InterfaceImplementsCheck(DeclarationManager manager, IDefinition definition, Visibility visibility, IFunction function, ExceptionCollector exceptions)
+        private bool InterfaceImplementsCheck(DeclarationManager manager, IDefinition definition, IFunction function, ExceptionCollector exceptions)
         {
-            for (int methodIndex = 0; methodIndex < definition.MethodCount; methodIndex++)
-            {
-                var method = definition.GetMethod(methodIndex);
-                if (method.Name == function.Name)
+            var method = definition.GetMethod(function.Name);
+            if (method != null)
+                for (int functionIndex = 0; functionIndex < method.FunctionCount; functionIndex++)
                 {
-                    while (method != null)
+                    var func = method.GetFunction(functionIndex);
+                    if (CompilingType.IsEquals(func.Parameters, function.Parameters))
                     {
-                        for (int functionIndex = 0; functionIndex < method.FunctionCount; functionIndex++)
+                        if (CompilingType.IsEquals(func.Returns, function.Returns))
                         {
-                            var func = method.GetFunction(functionIndex);
-                            if (CompilingType.IsEquals(func.Parameters, function.Parameters))
+                            if (func.Declaration.visibility == Visibility.Public) return true;
+                            else
                             {
-                                if (CompilingType.IsEquals(func.Returns, function.Returns))
-                                {
-                                    if (Access(visibility, func.Declaration.visibility)) return true;
-                                    else
-                                    {
-                                        exceptions.Add(CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE, manager.GetDeclarationFullName(func.Declaration));
-                                        return false;
-                                    }
-                                }
-                                else
-                                {
-                                    exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(func.Declaration));
-                                    exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(function.Declaration));
-                                    return false;
-                                }
+                                exceptions.Add(CompilingExceptionCode.COMPILING_DECLARATION_NOT_VISIBLE, manager.GetDeclarationFullName(func.Declaration));
+                                return false;
                             }
                         }
-                        method = manager.GetOverrideMethod(method);
+                        else
+                        {
+                            exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(func.Declaration));
+                            exceptions.Add(CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, manager.GetDeclarationFullName(function.Declaration));
+                            return false;
+                        }
                     }
-                    break;
                 }
-            }
-            return manager.TryGetDefinition(manager.GetParent(definition.Parent), out var parent) && InterfaceImplementsCheck(manager, parent, visibility, function, exceptions);
+            return manager.TryGetDefinition(definition.Parent, out var parent) && InterfaceImplementsCheck(manager, parent, function, exceptions);
         }
         public static bool Access(Visibility visibility, Visibility target)
         {
