@@ -89,12 +89,12 @@ namespace 空间名1
 # 各种申明
 申明只能在命名空间的缩进中，函数声明时参数名可以省略，如果函数没有返回值，则函数名前不需要任何字符
 ``` rs
-native NativeFunc()//声明一个本地函数 NativeFunc
-GlobalFunc()//声明一个全局函数 GlobalFunc
-interface ITest//声明一个接口 ITest
-class TestClass//声明一个类 TestClass
-function Func()//声明一个函数指针（委托）类型 Func
-coroutine Coro//声明一个协程 Coro
+native NativeFunc()                 //声明一个本地函数 NativeFunc
+GlobalFunc()                        //声明一个全局函数 GlobalFunc
+interface ITest                     //声明一个接口 ITest
+class TestClass                     //声明一个类 TestClass
+function Func()                     //声明一个函数指针（委托）类型 Func
+coroutine Coro                      //声明一个协程 Coro
 ```
 
 # 元组

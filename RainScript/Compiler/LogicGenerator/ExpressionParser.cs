@@ -204,6 +204,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public bool TryAssignmentConvert(Expression[] sources, CompilingType[] types, out Expression result, out uint measure)
         {
+            sources = (Expression[])sources.Clone();
             measure = 0;
             for (int index = 0, typeIndex = 0; index < sources.Length; index++)
             {
@@ -410,7 +411,7 @@ namespace RainScript.Compiler.LogicGenerator
                     }
                     else if (source is BlurrySetExpression blurrySetExpression)
                     {
-                        if (TryAssignmentSetConvert(blurrySetExpression.expressions, new CompilingType(type.definition, type.dimension - 1), out var elements))
+                        if (TryAssignmentSetConvert(blurrySetExpression.expressions, new CompilingType(type.definition, type.dimension - 1), out var elements, out _))
                         {
                             result = new ArrayInitExpression(source.anchor, elements, type);
                             measure = 0;
@@ -511,8 +512,9 @@ namespace RainScript.Compiler.LogicGenerator
             measure = default;
             return false;
         }
-        private bool TryAssignmentSetConvert(Expression[] expressions, CompilingType type, out Expression expression)
+        private bool TryAssignmentSetConvert(Expression[] expressions, CompilingType type, out Expression expression, out Anchor mismatchExpression)
         {
+            expressions = (Expression[])expressions.Clone();
             for (int i = 0; i < expressions.Length; i++)
                 if (expressions[i].returns.Length == 1)
                 {
@@ -520,7 +522,7 @@ namespace RainScript.Compiler.LogicGenerator
                     else
                     {
                         expression = default;
-                        exceptions.Add(expressions[i].anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                        mismatchExpression = expressions[i].anchor;
                         return false;
                     }
                 }
@@ -532,11 +534,12 @@ namespace RainScript.Compiler.LogicGenerator
                     else
                     {
                         expression = default;
-                        exceptions.Add(expressions[i].anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                        mismatchExpression = expressions[i].anchor;
                         return false;
                     }
                 }
             expression = TupleExpression.Combine(expressions);
+            mismatchExpression = default;
             return true;
         }
         private bool TrySub(ListSegment<Lexical> lexicals, SplitFlag flag, out int index)
@@ -3144,22 +3147,37 @@ namespace RainScript.Compiler.LogicGenerator
             function = null;
             parameter = null;
             var measure = 0u;
-            while (method != null)
+            using (var functions = pool.GetList<IFunction>())
             {
-                for (int i = 0; i < method.FunctionCount; i++)
+                while (method != null)
                 {
-                    var index = method.GetFunction(i);
-                    if (context.IsVisible(manager, index.Declaration) && TryAssignmentConvert(expressions, index.Parameters, out var indexParameter, out var indexMeasure))
+                    for (int i = 0; i < method.FunctionCount; i++)
                     {
-                        if (function == null || indexMeasure < measure)
+                        var index = method.GetFunction(i);
+                        if (context.IsVisible(manager, index.Declaration) && TryAssignmentConvert(expressions, index.Parameters, out var indexParameter, out var indexMeasure))
                         {
-                            function = index;
-                            parameter = indexParameter;
-                            measure = indexMeasure;
+                            if (function == null || indexMeasure < measure)
+                            {
+                                function = index;
+                                parameter = indexParameter;
+                                measure = indexMeasure;
+                                functions.Add(index);
+                            }
+                            else if (indexMeasure == measure) functions.Add(index);
                         }
                     }
+                    method = manager.GetOverrideMethod(method);
                 }
-                method = manager.GetOverrideMethod(method);
+                if (functions.Count > 1)
+                {
+                    var anchor = new Anchor(expressions[0].anchor.textInfo, expressions[0].anchor.start, expressions[expressions.Length - 1].anchor.end);
+                    foreach (var item in functions)
+                        exceptions.Add(anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL, manager.GetDeclarationFullName(item.Declaration));
+                }
+            }
+            if (function == null)
+            {
+                exceptions.Add(new Anchor(expressions[0].anchor.textInfo, expressions[0].anchor.start, expressions[expressions.Length - 1].anchor.end), CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
             }
             return function != null;
         }
@@ -3484,14 +3502,18 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             var dimension = Lexical.ExtractDimension(lexicals, ref index);
                                             var type = new CompilingType(typeExpression.type.definition, typeExpression.type.dimension + dimension);
-                                            if (TryAssignmentSetConvert(expressions, type, out var elements))
+                                            if (TryAssignmentSetConvert(expressions, type, out var elements, out var mismatch))
                                             {
                                                 var expression = new ArrayInitExpression(lexical.anchor, elements, new CompilingType(type.definition, type.dimension + 1));
                                                 expressionStack.Push(expression);
                                                 attribute = expression.Attribute;
                                                 break;
                                             }
-                                            else goto parse_fail;
+                                            else
+                                            {
+                                                exceptions.Add(mismatch, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                                goto parse_fail;
+                                            }
                                         }
                                         else throw ExceptionGeneratorCompiler.Unknown();
                                     }

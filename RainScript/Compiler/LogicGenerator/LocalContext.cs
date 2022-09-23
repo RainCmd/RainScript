@@ -38,7 +38,9 @@
         }
         public Local AddLocal(Anchor anchor, CompilingType type)
         {
-            return localDeclarations[-1][anchor.Segment] = new Local(anchor, index++, type);
+            var result = new Local(anchor, index++, type);
+            if ((bool)anchor) return localDeclarations[-1][anchor.Segment] = result;
+            return result;
         }
         public Local AddLocal(string name, Anchor anchor, CompilingType type)
         {

@@ -872,19 +872,46 @@ namespace RainScript.Compiler
                                 return definition.space.GetFullName() + "." + definition.name + "." + vaibale.name;
                             }
                         case DeclarationCode.MemberMethod:
-                        case DeclarationCode.MemberFunction:
                             {
                                 var definition = RelyKernel.definitions[declaration.definitionIndex];
                                 var method = RelyKernel.methods[definition.methods[declaration.index]];
                                 return definition.space.GetFullName() + "." + definition.name + "." + method.name;
                             }
+                        case DeclarationCode.MemberFunction:
+                            {
+                                var definition = RelyKernel.definitions[declaration.definitionIndex];
+                                var method = RelyKernel.methods[definition.methods[declaration.index]];
+                                var function = method.functions[declaration.overloadIndex];
+                                var name = definition.space.GetFullName() + "." + definition.name + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
+                            }
                         case DeclarationCode.Constructor:
-                        case DeclarationCode.ConstructorFunction:
                             {
                                 var definition = RelyKernel.definitions[declaration.definitionIndex];
                                 if (definition.constructors == LIBRARY.METHOD_INVALID) break;
                                 var method = RelyKernel.methods[definition.constructors];
                                 return definition.space.GetFullName() + "." + definition.name + "." + method.name;
+                            }
+                        case DeclarationCode.ConstructorFunction:
+                            {
+                                var definition = RelyKernel.definitions[declaration.definitionIndex];
+                                if (definition.constructors == LIBRARY.METHOD_INVALID) break;
+                                var method = RelyKernel.methods[definition.constructors];
+                                var function = method.functions[declaration.overloadIndex];
+                                var name = definition.space.GetFullName() + "." + definition.name + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.Delegate:
                         case DeclarationCode.Coroutine:
@@ -897,10 +924,22 @@ namespace RainScript.Compiler
                                 return variable.space.GetFullName() + "." + variable.name;
                             }
                         case DeclarationCode.GlobalMethod:
-                        case DeclarationCode.GlobalFunction:
                             {
                                 var method = RelyKernel.methods[declaration.index];
                                 return method.space.GetFullName() + "." + method.name;
+                            }
+                        case DeclarationCode.GlobalFunction:
+                            {
+                                var method = RelyKernel.methods[declaration.index];
+                                var function = method.functions[declaration.overloadIndex];
+                                var name = method.space.GetFullName() + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.NativeMethod:
                         case DeclarationCode.NativeFunction:
@@ -926,19 +965,46 @@ namespace RainScript.Compiler
                                 return definition.space.GetFullName() + "." + definition.name.Segment + "." + vaibale.name;
                             }
                         case DeclarationCode.MemberMethod:
-                        case DeclarationCode.MemberFunction:
                             {
                                 var definition = library.definitions[(int)declaration.definitionIndex];
                                 var method = library.methods[(int)definition.methods[declaration.index]];
                                 return definition.space.GetFullName() + "." + definition.name.Segment + "." + method.name;
                             }
+                        case DeclarationCode.MemberFunction:
+                            {
+                                var definition = library.definitions[(int)declaration.definitionIndex];
+                                var method = library.methods[(int)definition.methods[declaration.index]];
+                                var function = method[(int)declaration.overloadIndex];
+                                var name = definition.space.GetFullName() + "." + definition.name + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
+                            }
                         case DeclarationCode.Constructor:
-                        case DeclarationCode.ConstructorFunction:
                             {
                                 var definition = library.definitions[(int)declaration.definitionIndex];
                                 if (definition.constructors == LIBRARY.METHOD_INVALID) break;
                                 var method = library.methods[(int)definition.constructors];
                                 return definition.space.GetFullName() + "." + definition.name.Segment + "." + method.name;
+                            }
+                        case DeclarationCode.ConstructorFunction:
+                            {
+                                var definition = library.definitions[(int)declaration.definitionIndex];
+                                if (definition.constructors == LIBRARY.METHOD_INVALID) break;
+                                var method = library.methods[(int)definition.constructors];
+                                var function = method[(int)declaration.overloadIndex];
+                                var name = definition.space.GetFullName() + "." + definition.name + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.Delegate:
                             {
@@ -956,11 +1022,24 @@ namespace RainScript.Compiler
                                 return definition.space.GetFullName() + "." + definition.name.Segment;
                             }
                         case DeclarationCode.InterfaceMethod:
-                        case DeclarationCode.InterfaceFunction:
                             {
                                 var definition = library.interfaces[(int)declaration.definitionIndex];
                                 var method = definition.methods[(int)declaration.index];
                                 return definition.space.GetFullName() + "." + definition.name.Segment + "." + method.name;
+                            }
+                        case DeclarationCode.InterfaceFunction:
+                            {
+                                var definition = library.interfaces[(int)declaration.definitionIndex];
+                                var method = definition.methods[(int)declaration.index];
+                                var function = method.functions[(int)declaration.overloadIndex];
+                                var name = definition.space.GetFullName() + "." + definition.name + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.GlobalVariable:
                             {
@@ -968,16 +1047,36 @@ namespace RainScript.Compiler
                                 return variable.space.GetFullName() + "." + variable.name.Segment;
                             }
                         case DeclarationCode.GlobalMethod:
-                        case DeclarationCode.GlobalFunction:
                             {
                                 var method = library.methods[(int)declaration.index];
                                 return method.space.GetFullName() + "." + method.name;
+                            }
+                        case DeclarationCode.GlobalFunction:
+                            {
+                                var method = library.methods[(int)declaration.index];
+                                var function = method[(int)declaration.overloadIndex];
+                                var name = method.space.GetFullName() + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.NativeMethod:
                         case DeclarationCode.NativeFunction:
                             {
                                 var method = library.natives[(int)declaration.index];
-                                return method.space.GetFullName() + "." + method.name;
+                                var function = method[(int)declaration.overloadIndex];
+                                var name = method.space.GetFullName() + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.Lambda:
                         case DeclarationCode.LambdaClosureValue:
@@ -1002,19 +1101,46 @@ namespace RainScript.Compiler
                                 return definition.space.GetFullName() + "." + definition.name + "." + vaibale.name;
                             }
                         case DeclarationCode.MemberMethod:
-                        case DeclarationCode.MemberFunction:
                             {
                                 var definition = rely.definitions[(int)declaration.definitionIndex];
                                 var method = rely.methods[(int)definition.methods[declaration.index]];
                                 return definition.space.GetFullName() + "." + definition.name + "." + method.name;
                             }
+                        case DeclarationCode.MemberFunction:
+                            {
+                                var definition = rely.definitions[(int)declaration.definitionIndex];
+                                var method = rely.methods[(int)definition.methods[declaration.index]];
+                                var function = method.functions[declaration.overloadIndex];
+                                var name = definition.space.GetFullName() + "." + definition.name + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
+                            }
                         case DeclarationCode.Constructor:
-                        case DeclarationCode.ConstructorFunction:
                             {
                                 var definition = rely.definitions[(int)declaration.definitionIndex];
                                 if (definition.constructors == LIBRARY.METHOD_INVALID) break;
                                 var method = rely.methods[(int)definition.constructors];
                                 return definition.space.GetFullName() + "." + definition.name + "." + method.name;
+                            }
+                        case DeclarationCode.ConstructorFunction:
+                            {
+                                var definition = rely.definitions[(int)declaration.definitionIndex];
+                                if (definition.constructors == LIBRARY.METHOD_INVALID) break;
+                                var method = rely.methods[(int)definition.constructors];
+                                var function = method.functions[declaration.overloadIndex];
+                                var name = definition.space.GetFullName() + "." + definition.name + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.Delegate:
                             {
@@ -1032,11 +1158,24 @@ namespace RainScript.Compiler
                                 return definition.space.GetFullName() + "." + definition.name;
                             }
                         case DeclarationCode.InterfaceMethod:
-                        case DeclarationCode.InterfaceFunction:
                             {
                                 var definition = rely.interfaces[(int)declaration.definitionIndex];
                                 var method = definition.methods[(int)declaration.index];
                                 return definition.space.GetFullName() + "." + definition.name + "." + method.name;
+                            }
+                        case DeclarationCode.InterfaceFunction:
+                            {
+                                var definition = rely.interfaces[(int)declaration.definitionIndex];
+                                var method = definition.methods[(int)declaration.index];
+                                var function = method.functions[declaration.overloadIndex];
+                                var name = definition.space.GetFullName() + "." + definition.name + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.GlobalVariable:
                             {
@@ -1044,16 +1183,41 @@ namespace RainScript.Compiler
                                 return variable.space.GetFullName() + "." + variable.name;
                             }
                         case DeclarationCode.GlobalMethod:
-                        case DeclarationCode.GlobalFunction:
                             {
                                 var method = rely.methods[(int)declaration.index];
                                 return method.space.GetFullName() + "." + method.name;
+                                var function = method.functions[declaration.overloadIndex];
+                            }
+                        case DeclarationCode.GlobalFunction:
+                            {
+                                var method = rely.methods[(int)declaration.index];
+                                var function = method.functions[declaration.overloadIndex];
+                                var name = method.space.GetFullName() + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.NativeMethod:
-                        case DeclarationCode.NativeFunction:
                             {
                                 var method = rely.natives[(int)declaration.index];
                                 return method.space.GetFullName() + "." + method.name;
+                            }
+                        case DeclarationCode.NativeFunction:
+                            {
+                                var method = rely.natives[(int)declaration.index];
+                                var function = method.functions[declaration.overloadIndex];
+                                var name = method.space.GetFullName() + "." + method.name + "(";
+                                for (int i = 0; i < function.parameters.Length; i++)
+                                {
+                                    if (i > 0) name += ",";
+                                    name += GetDeclarationFullName(function.parameters[i].definition.Declaration);
+                                    for (int index = 0; index < function.parameters[i].dimension; index++) name += "[]";
+                                }
+                                return name + ")";
                             }
                         case DeclarationCode.Lambda:
                         case DeclarationCode.LambdaClosureValue:
