@@ -234,11 +234,12 @@ namespace RainScript.VirtualMachine
                 new KernelMemberMethodInvoker(real3_SqrMagnitude),
 
                 new KernelMemberMethodInvoker(string_GetLength),
+                new KernelMemberMethodInvoker(string_GetStringID),
                 new KernelMemberMethodInvoker(string_ToBool),
                 new KernelMemberMethodInvoker(string_ToInteger),
                 new KernelMemberMethodInvoker(string_ToReal),
 
-                new KernelMemberMethodInvoker(handle_ToInteger),
+                new KernelMemberMethodInvoker(handle_GetHandleID),
 
                 new KernelMemberMethodInvoker(coroutine_Abort),
                 new KernelMemberMethodInvoker(coroutine_GetState),
@@ -247,7 +248,7 @@ namespace RainScript.VirtualMachine
                 new KernelMemberMethodInvoker(coroutine_Pause),
                 new KernelMemberMethodInvoker(coroutine_Resume),
 
-                new KernelMemberMethodInvoker(entity_ToInteger),
+                new KernelMemberMethodInvoker(entity_GetEntityID),
 
                 new KernelMemberMethodInvoker(array_GetLength),
             };
@@ -326,6 +327,14 @@ namespace RainScript.VirtualMachine
             kernel.stringAgency.Release(*address);
             return ExitCode.None;
         }
+        private static ExitCode string_GetStringID(Kernel kernel, byte* stack, uint top)
+        {
+            var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
+            var address = (uint*)(stack + top + Frame.SIZE + 4);
+            *result = *address;
+            kernel.stringAgency.Release(*address);
+            return ExitCode.None;
+        }
         private static ExitCode string_ToBool(Kernel kernel, byte* stack, uint top)
         {
             var result = (bool*)(stack + *(uint*)(stack + top + Frame.SIZE));
@@ -356,7 +365,7 @@ namespace RainScript.VirtualMachine
             kernel.stringAgency.Release(*address);
             return ExitCode.None;
         }
-        private static ExitCode handle_ToInteger(Kernel kernel, byte* stack, uint top)
+        private static ExitCode handle_GetHandleID(Kernel kernel, byte* stack, uint top)
         {
             var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
             var handle = *(uint*)(stack + top + Frame.SIZE + 4);
@@ -428,7 +437,7 @@ namespace RainScript.VirtualMachine
             kernel.coroutineAgency.GetInternalInvoker(instance).IsPause = false;
             return ExitCode.None;
         }
-        private static ExitCode entity_ToInteger(Kernel kernel, byte* stack, uint top)
+        private static ExitCode entity_GetEntityID(Kernel kernel, byte* stack, uint top)
         {
             var result = (long*)(stack + *(uint*)(stack + top + Frame.SIZE));
             var entity = (Entity*)(stack + top + Frame.SIZE + 4);

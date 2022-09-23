@@ -70,11 +70,12 @@
                 new KernelMethod("SqrMagnitude", new Function(new Type[0], KERNEL_TYPE.REAL)),
                 //string
                 new KernelMethod("GetLength", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
+                new KernelMethod("GetStringID", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("ToBool", new Function(new Type[0], KERNEL_TYPE.BOOL)),
                 new KernelMethod("ToInteger", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("ToReal", new Function(new Type[0], KERNEL_TYPE.REAL)),
                 //handle
-                new KernelMethod("ToInteger", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
+                new KernelMethod("GetHandleID", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 //coroutine
                 new KernelMethod("Abort", new Function(new Type[]{ KERNEL_TYPE.INTEGER })),
                 new KernelMethod("GetState", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
@@ -83,7 +84,7 @@
                 new KernelMethod("Pause", new Function(new Type[0])),
                 new KernelMethod("Resume", new Function(new Type[0])),
                 //entity
-                new KernelMethod("ToInteger", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
+                new KernelMethod("GetEntityID", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 //array
                 new KernelMethod("GetLength", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
             };
