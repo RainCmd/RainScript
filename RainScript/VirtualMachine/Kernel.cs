@@ -37,11 +37,22 @@ namespace RainScript.VirtualMachine
         }
     }
     /// <summary>
+    /// 携程退出
+    /// </summary>
+    /// <param name="stacks">栈</param>
+    /// <param name="code">退出码</param>
+    public delegate void CoroutineExit(StackFrame[] stacks, long code);
+    /// <summary>
+    /// 命中断点
+    /// </summary>
+    public delegate void HitBreakpoint();
+    /// <summary>
     /// 核心
     /// </summary>
     public class Kernel : IDisposable
     {
         private bool disposed = false;
+        internal bool step = false;
         internal readonly Func<string, IPerformer> performerLoader;
         internal readonly EntityManipulator manipulator;
         internal readonly StringAgency stringAgency;
@@ -51,7 +62,11 @@ namespace RainScript.VirtualMachine
         /// <summary>
         /// 携程非正常退出时触发
         /// </summary>
-        public Action<StackFrame[], long> OnExit;
+        public event CoroutineExit OnExit;
+        /// <summary>
+        /// 触发断点
+        /// </summary>
+        public event Action OnHitBreakpoint;
         /// <summary>
         /// 核心
         /// </summary>
@@ -123,29 +138,19 @@ namespace RainScript.VirtualMachine
             return coroutineAgency.GetInvokingStackFrames();
         }
         /// <summary>
-        /// 获取栈帧详细数据，需要有
-        /// </summary>
-        /// <param name="frame">帧数据</param>
-        /// <param name="symbolLoader">符号表</param>
-        /// <param name="file">文件</param>
-        /// <param name="function">函数</param>
-        /// <param name="line">行数</param>
-        public void GetFrameDetail(StackFrame frame, Func<string, SymbolTable> symbolLoader, out string file, out string function, out uint line)
-        {
-            var symbol = symbolLoader?.Invoke(libraryAgency[frame.library].name);
-            if (symbol == null)
-            {
-                file = function = "";
-                line = 0;
-            }
-            else symbol.GetInfo(frame.point, out file, out function, out line);
-        }
-        /// <summary>
         /// 托管堆回收
         /// </summary>
         public void Collect()
         {
             heapAgency.GC();
+        }
+        internal void OnExitEvent(StackFrame[] stacks, long code)
+        {
+            OnExit?.Invoke(stacks, code);
+        }
+        internal void OnHitBreakpointEvent()
+        {
+            OnHitBreakpoint?.Invoke();
         }
         /// <summary>
         /// 析构

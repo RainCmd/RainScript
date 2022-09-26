@@ -12,6 +12,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public readonly CompilerCommand command;
         public readonly DeclarationManager manager;
         public readonly ReliedGenerator relied;
+        public readonly DebugTableGenerator debug;
         public readonly Generator generator;
         public readonly VariableGenerator variable;
         public readonly ExceptionCollector exceptions;
@@ -19,9 +20,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public readonly Variable[] results;
         public GeneratorParameter(StatementGeneratorParameter parameter, int resultCount)
         {
-            command=parameter.command;
+            command = parameter.command;
             manager = parameter.manager;
             relied = parameter.relied;
+            debug = parameter.debug;
             generator = parameter.generator;
             variable = parameter.variable;
             exceptions = parameter.exceptions;
@@ -34,6 +36,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             command = parameter.command;
             manager = parameter.manager;
             relied = parameter.relied;
+            debug = parameter.debug;
             generator = parameter.generator;
             variable = parameter.variable;
             exceptions = parameter.exceptions;

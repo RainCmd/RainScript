@@ -13,14 +13,16 @@ namespace RainScript.Compiler.LogicGenerator
         public readonly DeclarationManager manager;
         public readonly ReliedGenerator relied;
         public readonly SymbolTableGenerator symbol;
+        public readonly DebugTableGenerator debug;
         public readonly CollectionPool pool;
         public readonly ExceptionCollector exceptions;
-        public GeneratorParameter(CompilerCommand command, DeclarationManager manager, ReliedGenerator relied, SymbolTableGenerator symbol, CollectionPool pool, ExceptionCollector exceptions)
+        public GeneratorParameter(CompilerCommand command, DeclarationManager manager, ReliedGenerator relied, SymbolTableGenerator symbol, DebugTableGenerator debug, CollectionPool pool, ExceptionCollector exceptions)
         {
             this.command = command;
             this.manager = manager;
             this.relied = relied;
             this.symbol = symbol;
+            this.debug = debug;
             this.pool = pool;
             this.exceptions = exceptions;
         }

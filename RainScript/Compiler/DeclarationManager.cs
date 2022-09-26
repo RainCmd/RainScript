@@ -1186,7 +1186,6 @@ namespace RainScript.Compiler
                             {
                                 var method = rely.methods[(int)declaration.index];
                                 return method.space.GetFullName() + "." + method.name;
-                                var function = method.functions[declaration.overloadIndex];
                             }
                         case DeclarationCode.GlobalFunction:
                             {

@@ -364,3 +364,9 @@ FodyWeavers.xsd
 
 #²âÊÔÏîÄ¿
 Test/
+RainScriptDebuggerTest/
+RainScriptDebuggerAdapter/.vscode/
+RainScriptDebuggerAdapter/dist/
+RainScriptDebuggerAdapter/node_modules/
+RainScriptDebuggerAdapter/TestWorkerspace/
+RainScriptDebuggerAdapter/package-lock.json

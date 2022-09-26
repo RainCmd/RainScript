@@ -1,12 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 using RainScript.Vector;
+using RainScript.VirtualMachine;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
 using real = System.Double;
 #endif
-
+namespace RainScript
+{
+    partial class SymbolTable
+    {
+        /// <summary>
+        /// 获取栈信息
+        /// </summary>
+        /// <param name="frame">栈数据</param>
+        /// <param name="file">文件</param>
+        /// <param name="function">函数</param>
+        /// <param name="line">行数</param>
+        public void GetInfo(StackFrame frame, out string file, out string function, out uint line)
+        {
+            if (functions.Length > 0)
+            {
+                var start = 0;
+                var end = functions.Length;
+                while (start < end)
+                {
+                    var middle = (start + end) >> 1;
+                    if (frame.address < functions[middle].point) end = middle;
+                    else if (frame.address >= functions[middle].point) start = middle + 1;
+                }
+                if (start > 0)
+                {
+                    start--;
+                    file = files[functions[start].file];
+                    function = functions[start].function;
+                }
+                else file = function = "";
+            }
+            else file = function = "";
+            if (lines.Length > 0)
+            {
+                var start = 0;
+                var end = lines.Length;
+                while (start < end)
+                {
+                    var middle = (start + end) >> 1;
+                    if (frame.address < lines[middle].point) end = middle;
+                    else if (frame.address >= lines[middle].point) start = middle + 1;
+                }
+                if (start > 0) line = lines[start - 1].line;
+                else line = 0;
+            }
+            else line = 0;
+        }
+    }
+}
 namespace RainScript.VirtualMachine
 {
     /// <summary>
@@ -40,12 +89,18 @@ namespace RainScript.VirtualMachine
     /// </summary>
     public struct StackFrame
     {
-        internal readonly uint library;
-        internal readonly uint point;
-        internal StackFrame(uint library, uint point)
+        /// <summary>
+        /// 程序集名
+        /// </summary>
+        public readonly string library;
+        /// <summary>
+        /// 指令地址
+        /// </summary>
+        public readonly uint address;
+        internal StackFrame(string library, uint point)
         {
             this.library = library;
-            this.point = point;
+            this.address = point;
         }
         /// <summary>
         /// 帧数据
@@ -53,7 +108,7 @@ namespace RainScript.VirtualMachine
         /// <returns></returns>
         public override string ToString()
         {
-            return "[library:{0} address:{1:X}]".Format(library, point);
+            return "[library:{0} address:{1:X}]".Format(library, address);
         }
     }
     /// <summary>
@@ -511,7 +566,7 @@ namespace RainScript.VirtualMachine
         }
         public void PushStack(uint library, uint point)
         {
-            frames.Add(new StackFrame(library, point));
+            frames.Add(new StackFrame(handle.library.kernel.libraryAgency[library].name, point));
         }
         public void Initialize(FunctionHandle handle)
         {

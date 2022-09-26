@@ -209,6 +209,10 @@ namespace RainScript.Compiler
         /// </summary>
         public readonly string path;
         /// <summary>
+        /// 异常所在行
+        /// </summary>
+        public readonly int line;
+        /// <summary>
         /// 异常发生片段
         /// </summary>
         public readonly int start, end;
@@ -220,9 +224,10 @@ namespace RainScript.Compiler
         /// 额外信息
         /// </summary>
         public readonly string message;
-        internal CompilingException(string path, int start, int end, CompilingExceptionCode code, string message)
+        internal CompilingException(string path, int line, int start, int end, CompilingExceptionCode code, string message)
         {
             this.path = path;
+            this.line = line;
             this.start = start;
             this.end = end;
             this.code = code;
@@ -268,16 +273,15 @@ namespace RainScript.Compiler
         }
         internal void Add(CompilingExceptionCode code, string message)
         {
-            Add("", 0, 0, code, message);
+            Add("", -1, 0, 0, code, message);
         }
         internal void Add(Anchor anchor, CompilingExceptionCode code)
         {
-            Add(anchor.textInfo.path, anchor.start, anchor.end, code, anchor.Segment);
+            Add(anchor, code, "");
         }
         internal void Add(Anchor anchor, CompilingExceptionCode code, string message)
         {
-            if (string.IsNullOrEmpty(message)) message = anchor.Segment;
-            Add(anchor.textInfo.path, anchor.start, anchor.end, code, message);
+            Add(anchor.textInfo.path, anchor.textInfo.TryGetLineInfo(anchor.start, out var line) ? line.number : -1, anchor.Segment, code, message);
         }
         internal void Add(TextInfo text, int line, CompilingExceptionCode code)
         {
@@ -285,16 +289,16 @@ namespace RainScript.Compiler
         }
         internal void Add(TextInfo text, int line, CompilingExceptionCode code, string message)
         {
-            Add(text.path, text[line].segment, code, message);
+            Add(text.path, line, text[line].segment, code, message);
         }
-        internal void Add(string path, StringSegment segment, CompilingExceptionCode code, string message)
+        internal void Add(string path, int line, StringSegment segment, CompilingExceptionCode code, string message)
         {
             if (string.IsNullOrEmpty(message)) message = segment;
-            Add(path, segment.start, segment.end, code, message);
+            Add(path, line, segment.start, segment.end, code, message);
         }
-        internal void Add(string path, int start, int end, CompilingExceptionCode code, string message)
+        internal void Add(string path, int line, int start, int end, CompilingExceptionCode code, string message)
         {
-            exceptions.Add(new CompilingException(path, start, end, code, message));
+            exceptions.Add(new CompilingException(path, line, start, end, code, message));
         }
         internal void Clear()
         {

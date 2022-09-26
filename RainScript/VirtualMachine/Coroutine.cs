@@ -67,13 +67,11 @@ namespace RainScript.VirtualMachine
                 wait--;
                 return true;
             }
-            kernel.coroutineAgency.invoking = this;
-            var result = Run();
-            kernel.coroutineAgency.invoking = null;
-            return result;
+            return Run();
         }
         private bool Run()
         {
+            kernel.coroutineAgency.invoking = this;
             while (library != null)
             {
                 switch ((CommandMacro)library.code[point])
@@ -117,7 +115,17 @@ namespace RainScript.VirtualMachine
                     case CommandMacro.BASE_Stackzero:
                         {
                             var address = stack + bottom + *(uint*)(library.code + point + 1);
-                            var size = *(uint*)(library.code + point + 5);
+                            var size = *(int*)(library.code + point + 5);
+                            if (size < 0)
+                            {
+                                size = -size - 1;
+                                kernel.OnHitBreakpointEvent();
+                            }
+                            else if (kernel.step)
+                            {
+                                kernel.step = false;
+                                kernel.OnHitBreakpointEvent();
+                            }
                             while (size-- > 0) address[size] = 0;
                         }
                         point += 9;
@@ -541,7 +549,7 @@ namespace RainScript.VirtualMachine
                                 *(uint*)(stack + top + *(uint*)(library.code + point + 1)) = runtimeDelegate->target;
                                 top += 4;
                             }
-                            else if(runtimeDelegate->type == FunctionType.Interface) throw ExceptionGeneratorVM.InvalidFunctionType(runtimeDelegate->type);
+                            else if (runtimeDelegate->type == FunctionType.Interface) throw ExceptionGeneratorVM.InvalidFunctionType(runtimeDelegate->type);
                         }
                         point += 9;
                         break;
@@ -2542,6 +2550,7 @@ namespace RainScript.VirtualMachine
                     default: throw ExceptionGeneratorVM.InvalidCommand((CommandMacro)library.code[point]);
                 }
             }
+            kernel.coroutineAgency.invoking = null;
             return false;
         }
         public void Abort()
@@ -2560,12 +2569,12 @@ namespace RainScript.VirtualMachine
             }
 
             var frames = new StackFrame[deep];
-            frames[0] = new StackFrame(library.index, point);
+            frames[0] = new StackFrame(library.name, point);
             deep = 1;
             index = *(Frame*)(stack + bottom);
             while (index.libraryIndex != LIBRARY.INVALID)
             {
-                frames[deep++] = new StackFrame(index.libraryIndex, index.point);
+                frames[deep++] = new StackFrame(kernel.libraryAgency[index.libraryIndex].name, index.point);
                 index = *(Frame*)(stack + index.bottom);
             }
             return frames;
@@ -2577,7 +2586,7 @@ namespace RainScript.VirtualMachine
                 invoker.CopyFrom(stack, invoker.handle.returnSize);
                 invoker.exit = exit;
                 invoker.state = InvokerState.Completed;
-                if (exit != 0) kernel.OnExit?.Invoke(invoker.GetStackFrames(), exit);
+                if (exit != 0) kernel.OnExitEvent(invoker.GetStackFrames(), exit);
             }
         }
         public void Dispose()

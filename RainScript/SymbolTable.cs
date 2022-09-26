@@ -3,7 +3,7 @@
     /// <summary>
     /// 符号表
     /// </summary>
-    public class SymbolTable
+    public partial class SymbolTable
     {
         internal struct Function
         {
@@ -36,42 +36,6 @@
             this.files = files;
             this.functions = functions;
             this.lines = lines;
-        }
-        internal void GetInfo(uint point, out string file, out string function, out uint line)
-        {
-            if (functions.Length > 0)
-            {
-                var start = 0;
-                var end = functions.Length;
-                while (start < end)
-                {
-                    var middle = (start + end) >> 1;
-                    if (point < functions[middle].point) end = middle;
-                    else if (point >= functions[middle].point) start = middle + 1;
-                }
-                if (start > 0)
-                {
-                    start--;
-                    file = files[functions[start].file];
-                    function = functions[start].function;
-                }
-                else file = function = "";
-            }
-            else file = function = "";
-            if (lines.Length > 0)
-            {
-                var start = 0;
-                var end = lines.Length;
-                while (start < end)
-                {
-                    var middle = (start + end) >> 1;
-                    if (point < lines[middle].point) end = middle;
-                    else if (point >= lines[middle].point) start = middle + 1;
-                }
-                if (start > 0) line = lines[start - 1].line;
-                else line = 0;
-            }
-            else line = 0;
         }
     }
 }

@@ -6,9 +6,9 @@
         private readonly ScopeDictionary<string, uint> files;
         private readonly ScopeList<SymbolTable.Function> functions;
         private readonly ScopeList<SymbolTable.Line> lines;
-        public SymbolTableGenerator(bool enable, CollectionPool pool)
+        public SymbolTableGenerator(CompilerCommand command, CollectionPool pool)
         {
-            this.enable = enable;
+            enable = command.generatorSymbolTable;
             if (enable)
             {
                 files = pool.GetDictionary<string, uint>();

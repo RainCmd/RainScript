@@ -54,6 +54,10 @@ namespace RainScript.Compiler
         /// </summary>
         internal readonly bool generatorSymbolTable;
         /// <summary>
+        /// 生成调试表
+        /// </summary>
+        internal readonly bool generatorDebugTable;
+        /// <summary>
         /// 忽略Exit功能
         /// </summary>
         public readonly bool ignoreExit;
@@ -61,10 +65,12 @@ namespace RainScript.Compiler
         /// 编译命令选项
         /// </summary>
         /// <param name="generatorSymbolTable"></param>
+        /// <param name="generatorDebugTable"></param>
         /// <param name="ignoreExit"></param>
-        public CompilerCommand(bool generatorSymbolTable, bool ignoreExit)
+        public CompilerCommand(bool generatorSymbolTable, bool generatorDebugTable, bool ignoreExit)
         {
             this.generatorSymbolTable = generatorSymbolTable;
+            this.generatorDebugTable = generatorDebugTable;
             this.ignoreExit = ignoreExit;
         }
     }
@@ -100,6 +106,10 @@ namespace RainScript.Compiler
         /// 符号表
         /// </summary>
         public SymbolTable SymbolTable { get; private set; }
+        /// <summary>
+        /// 调试表
+        /// </summary>
+        public DebugTable DebugTable { get; private set; }
         /// <summary>
         /// 编译器
         /// </summary>
@@ -156,15 +166,21 @@ namespace RainScript.Compiler
                     manager.library.CalculatedVariableAddress();
 
                     using (var relied = new ReliedGenerator(manager, pool))
-                    using (var symbol = new SymbolTableGenerator(command.generatorSymbolTable, pool))
+                    using (var symbol = new SymbolTableGenerator(command, pool))
                     using (var libraryGenerator = new Generator(manager.library.ConstantData, pool))
                     {
-                        libraryGenerator.GeneratorLibrary(new GeneratorParameter(command, manager, relied, symbol, pool, exceptions), out var code, out var codeStrings, out var dataStrings);
+                        var debug = new DebugTableGenerator(command, name);
+                        var paramter = new GeneratorParameter(command, manager, relied, symbol, debug, pool, exceptions);
+                        libraryGenerator.GeneratorLibrary(paramter, out var code, out var codeStrings, out var dataStrings);
+                        if (command.generatorDebugTable)
+                            foreach (var variable in manager.library.variables)
+                                paramter.debug.AddGlobalValue(manager.GetDeclarationFullName(variable.declaration), variable.address, relied.Convert(variable.type).RuntimeType);
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LogicGeneratorFail();
                         var library = GeneratorLibrary(manager, manager.library, relied, code, codeStrings, dataStrings);
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LibraryGeneratorFail();
                         Library = library;
                         SymbolTable = symbol.Generator();
+                        DebugTable = debug.Generator();
                     }
                 }
                 State = CompileState.Completed;

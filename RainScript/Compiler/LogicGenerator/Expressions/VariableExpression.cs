@@ -20,15 +20,20 @@
             this.declaration = declaration;
             this.attribute = attribute.AddTypeAttribute(type);
         }
-        public override void Generator(GeneratorParameter parameter)
-        {
-            if (!parameter.variable.TryGetLocal(declaration.index, out parameter.results[0]))
-                parameter.results[0] = parameter.variable.DecareLocal(declaration.index, returns[0]);
-        }
-        public override void GeneratorAssignment(GeneratorParameter parameter)
+        private Variable GetVariable(GeneratorParameter parameter)
         {
             if (!parameter.variable.TryGetLocal(declaration.index, out var variable))
                 variable = parameter.variable.DecareLocal(declaration.index, returns[0]);
+            parameter.debug.AddVariable(anchor, parameter.generator.Point, variable.address, parameter.relied.Convert(returns[0]).RuntimeType);
+            return variable;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            parameter.results[0] = GetVariable(parameter);
+        }
+        public override void GeneratorAssignment(GeneratorParameter parameter)
+        {
+            var variable = GetVariable(parameter);
             if (variable.type.IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_Handle);
             else if (variable.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_1);
             else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_8);

@@ -1,0 +1,159 @@
+{
+  "name": "rainscript-debug",
+  "displayName": "雨言调试器",
+  "version": "0.51.0",
+  "publisher": "渴望蓝天",
+  "description": "用来调试RainScript的扩展。",
+  "author": {
+    "name": "渴望蓝天"
+  },
+  "license": "MIT",
+  "keywords": [
+    "rain script",
+    "雨言"
+  ],
+  "engines": {
+    "vscode": "^1.66.0"
+  },
+  "icon": "images/RainLanguage.png",
+  "categories": [
+    "Debuggers"
+  ],
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RainCmd/RainScript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RainCmd/RainScript.git"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=node --outfile=dist/extension.js",
+    "watch": "npm run -S esbuild-base -- --sourcemap --sources-content=false --watch",
+    "build": "npm run -S esbuild-base -- --sourcemap --sources-content=false",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "publish-pre-release": "vsce publish --pre-release",
+    "vscode:prepublish": "rimraf dist && npm run -S esbuild-base -- --minify"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^14.18.29",
+    "@types/vscode": "^1.66.0",
+    "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "@typescript-eslint/parser": "^5.17.0",
+    "@vscode/debugadapter": "^1.56.0",
+    "@vscode/debugadapter-testsupport": "^1.56.0",
+    "await-notify": "^1.0.1",
+    "base64-js": "^1.5.1",
+    "esbuild": "^0.14.29",
+    "eslint": "^8.12.0",
+    "events": "^3.3.0",
+    "glob": "^7.2.0",
+    "mocha": "^9.2.2",
+    "path-browserify": "^1.0.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.6.3",
+    "url": "^0.11.0",
+    "vsce": "^2.7.0"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onDebugResolve:雨言",
+    "onDebugDynamicConfigurations:雨言",
+    "onCommand:雨言调试器.运行",
+    "onCommand:雨言调试器.远程调试",
+    "onLanguage:rust"
+  ],
+  "workspaceTrust": {
+    "request": "never"
+  },
+  "contributes": {
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "雨言调试器.运行",
+          "when": "resourceLangId == rust",
+          "group": "navigation@1"
+        },
+        {
+          "command": "雨言调试器.远程调试",
+          "when": "resourceLangId == rust",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "雨言调试器.远程调试",
+          "when": "resourceLangId == rust"
+        },
+        {
+          "command": "雨言调试器.运行",
+          "when": "resourceLangId == rust"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "雨言调试器.远程调试",
+        "title": "远程调试",
+        "category": "雨言调试器",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "雨言调试器.运行",
+        "title": "运行",
+        "category": "雨言调试器",
+        "enablement": "!inDebugMode",
+        "icon": "$(play)"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "rust"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "雨言",
+        "languages": [
+          "rust"
+        ],
+        "label": "雨言调试器",
+        "program": "./out/debugAdapter.js",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "libraryName"
+            ],
+            "properties": {
+              "libraryName": {
+                "type": "string",
+                "description": "当前程序集名",
+                "default": "TestLibrary"
+              }
+            }
+          },
+          "attach": {
+            "required": [
+              "libraryName"
+            ],
+            "properties": {
+              "libraryName": {
+                "type": "string",
+                "description": "当前程序集名",
+                "default": "TestLibrary"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

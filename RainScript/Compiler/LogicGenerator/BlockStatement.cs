@@ -35,7 +35,7 @@
             parameter.WriteSymbol(anchor);
             var endPoint = new Referencable<CodeAddress>(parameter.pool);
             var truePoint = new Referencable<CodeAddress>(parameter.pool);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
             {
                 var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                 condition.Generator(conditionParameter);
@@ -80,7 +80,7 @@
             parameter.generator.SetCodeAddress(loopPoint);
             if (condition != null)
             {
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);

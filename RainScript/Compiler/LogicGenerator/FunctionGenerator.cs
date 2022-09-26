@@ -9,19 +9,25 @@ using real = System.Double;
 namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
+    using System.Security.AccessControl;
+    using static RainScript.SymbolTable;
 
     internal class LambdaFunction : System.IDisposable
     {
-        public readonly Definition definition;
+        private readonly Definition definition;
         private readonly Referencable<CodeAddress> entry;
         private uint returnSize;
-        public readonly CompilingType[] parameters;
+        private readonly CompilingType[] parameters;
+        private readonly Anchor[] parameterNames;
         public readonly ScopeList<Statement> statements;
-        public LambdaFunction(Referencable<CodeAddress> entry, Definition definition, CompilingType[] parameters, CollectionPool pool)
+        private readonly Anchor anchor;
+        public LambdaFunction(Anchor anchor, Referencable<CodeAddress> entry, Definition definition, CompilingType[] parameters, Anchor[] parameterNames, CollectionPool pool)
         {
+            this.anchor = anchor;
             this.definition = definition;
             this.entry = entry;
             this.parameters = parameters;
+            this.parameterNames = parameterNames;
             statements = pool.GetList<Statement>();
         }
         public void SetReturnCount(uint returnCount)
@@ -34,18 +40,21 @@ namespace RainScript.Compiler.LogicGenerator
             using (var variable = new VariableGenerator(parameter.pool, Frame.SIZE + returnSize))
             {
                 var parameterSize = 0u;
+                parameter.debug.AddFunction(anchor.textInfo.path, anchor.StartLine, generator.Point);
                 if (definition != null)
                 {
                     variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
                     for (uint i = 0; i < parameters.Length; i++)
                     {
-                        variable.DecareLocal(i + 1, parameters[i]);
+                        var local = variable.DecareLocal(i + 1, parameters[i]);
+                        parameter.debug.AddVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize += parameters[i].FieldSize;
                     }
                 }
                 else for (uint i = 0; i < parameters.Length; i++)
                     {
-                        variable.DecareLocal(i, parameters[i]);
+                        var local = variable.DecareLocal(i, parameters[i]);
+                        parameter.debug.AddVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize += parameters[i].FieldSize;
                     }
                 var topValue = new Referencable<uint>(parameter.pool);
@@ -70,16 +79,19 @@ namespace RainScript.Compiler.LogicGenerator
     }
     internal class FunctionGenerator : System.IDisposable
     {
-        public readonly Definition definition;
-        public readonly CompilingType[] parameters;
-        public readonly CompilingType[] returns;
-        public readonly BlockStatement statements;
+        private readonly Definition definition;
+        private readonly CompilingType[] parameters;
+        private readonly Anchor[] parameterNames;
+        private readonly CompilingType[] returns;
+        private readonly BlockStatement statements;
         private readonly string file;
         private readonly string fullName;
+        private readonly int line;
         public FunctionGenerator(GeneratorParameter parameter, Generator generator)
         {
             file = fullName = "";
             parameters = returns = new CompilingType[0];
+            parameterNames = new Anchor[0];
             statements = new BlockStatement(default, parameter.pool);
             foreach (var variable in parameter.manager.library.variables)
                 if (variable.constant)
@@ -167,8 +179,10 @@ namespace RainScript.Compiler.LogicGenerator
         {
             file = function.name.textInfo.path;
             fullName = parameter.manager.GetDeclarationFullName(function.declaration);
+            line = function.name.StartLine;
             statements = new BlockStatement(default, parameter.pool);
             parameters = function.parameters;
+            parameterNames = function.parameterNames;
             returns = function.returns;
             var localContext = new LocalContext(parameter.pool);
             localContext.PushBlock(parameter.pool);
@@ -233,12 +247,14 @@ namespace RainScript.Compiler.LogicGenerator
         {
             file = definition.name.textInfo.path;
             fullName = parameter.manager.GetDeclarationFullName(definition.declaration) + ".~";
+            line = (bool)definition.destructor.body ? definition.destructor.body.start : definition.name.StartLine;
             statements = new BlockStatement(default, parameter.pool);
             var localContext = new LocalContext(parameter.pool);
             localContext.PushBlock(parameter.pool);
             localContext.AddLocal(KeyWorld.THIS, definition.name, new CompilingType(new CompilingDefinition(definition.declaration), 0));
             this.definition = definition;
             parameters = returns = new CompilingType[0];
+            parameterNames = new Anchor[0];
             if ((bool)definition.destructor.body) Parse(parameter, definition.space, definition.destructor, localContext, true);
             localContext.Dispose();
         }
@@ -268,7 +284,7 @@ namespace RainScript.Compiler.LogicGenerator
             var parser = new ExpressionParser(parameter, context, localContext, false);
             var expressions = new Expression[0];
             if (lexicals == null || lexicals.Count < 2 || parser.TryParseTuple(lexicals[1, -1], out expressions))
-                if (parser.TryGetFunction(parser.manager.GetMethod(method), expressions, out var ctor, out var ctorParameter))
+                if (parser.TryGetFunction(anchor, parser.manager.GetMethod(method), expressions, out var ctor, out var ctorParameter))
                     statements.statements.Add(new ExpressionStatement(new InvokerMemberExpression(anchor, ctor.Declaration, thisExpression, ctorParameter, returns)));
                 else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
         }
@@ -537,18 +553,21 @@ namespace RainScript.Compiler.LogicGenerator
             using (var variable = new VariableGenerator(parameter.pool, Frame.SIZE + returnSize))
             {
                 var parameterSize = 0u;
+                parameter.debug.AddFunction(file, line, generator.Point);
                 if (definition != null)
                 {
                     variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
                     for (uint i = 0; i < parameters.Length; i++)
                     {
-                        variable.DecareLocal(i + 1, parameters[i]);
+                        var local = variable.DecareLocal(i + 1, parameters[i]);
+                        parameter.debug.AddVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize += parameters[i].FieldSize;
                     }
                 }
                 else for (uint i = 0; i < parameters.Length; i++)
                     {
-                        variable.DecareLocal(i, parameters[i]);
+                        var local = variable.DecareLocal(i, parameters[i]);
+                        parameter.debug.AddVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize += parameters[i].FieldSize;
                     }
                 var topValue = new Referencable<uint>(parameter.pool);

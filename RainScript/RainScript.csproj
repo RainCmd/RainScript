@@ -54,6 +54,9 @@
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -70,6 +73,7 @@
     <Compile Include="Compiler\CompilingException.cs" />
     <Compile Include="Compiler\Compiling\Library.cs" />
     <Compile Include="Compiler\Context.cs" />
+    <Compile Include="Compiler\DebugTableGenerator.cs" />
     <Compile Include="Compiler\Declaration.cs" />
     <Compile Include="Compiler\DeclarationManager.cs" />
     <Compile Include="Compiler\ExceptionGeneratorCompiler.cs" />
@@ -115,6 +119,7 @@
     <Compile Include="Compiler\TextInfo.cs" />
     <Compile Include="Compiler\Visibility.cs" />
     <Compile Include="ConstantValues.cs" />
+    <Compile Include="DebugTable.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="ExceptionGenerator.cs" />
     <Compile Include="Fixed\Fixed.cs" />

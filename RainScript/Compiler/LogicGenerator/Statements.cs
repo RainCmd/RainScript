@@ -7,6 +7,7 @@
         public readonly DeclarationManager manager;
         public readonly ReliedGenerator relied;
         public readonly SymbolTableGenerator symbol;
+        public readonly DebugTableGenerator debug;
         public readonly Generator generator;
         public readonly VariableGenerator variable;
         public readonly ExceptionCollector exceptions;
@@ -17,6 +18,7 @@
             manager = parameter.manager;
             relied = parameter.relied;
             symbol = parameter.symbol;
+            debug = parameter.debug;
             this.generator = generator;
             this.variable = variable;
             exceptions = parameter.exceptions;
@@ -48,7 +50,7 @@
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
             parameter.WriteSymbol(anchor);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
             {
                 var expressionParameter = new Expressions.GeneratorParameter(parameter, expression.returns.Length);
                 expression.Generator(expressionParameter);
@@ -66,7 +68,7 @@
         {
             parameter.WriteSymbol(anchor);
             if (expression != null)
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
                 {
                     var returnParameter = new Expressions.GeneratorParameter(parameter, expression.returns.Length);
                     expression.Generator(returnParameter);
@@ -113,7 +115,7 @@
             }
             else
             {
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);
@@ -137,7 +139,7 @@
         {
             parameter.WriteSymbol(anchor);
             if (expression == null) parameter.generator.WriteCode(CommandMacro.BASE_Wait);
-            else using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            else using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
                 {
                     var waitParameter = new Expressions.GeneratorParameter(parameter, 1);
                     expression.Generator(waitParameter);
@@ -157,7 +159,7 @@
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
             parameter.WriteSymbol(anchor);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
             {
                 var exitParameter = new Expressions.GeneratorParameter(parameter, 1);
                 expression.Generator(exitParameter);

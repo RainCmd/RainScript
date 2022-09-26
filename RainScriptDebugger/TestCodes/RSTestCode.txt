@@ -1,6 +1,0 @@
-﻿native Print(string)
-
-public Main()
-	Print("哈喽沃德")
-	wait 10
-	

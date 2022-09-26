@@ -105,7 +105,7 @@ namespace RainScript.Compiler.LogicGenerator
         {
             var declaration = new Declaration(LIBRARY.SELF, Visibility.Space, DeclarationCode.Lambda, (uint)manager.library.methods.Count, 0, (uint)manager.lambdas.Count);
             var function = new Compiling.Function(declaration, context.space, returns, parameters, parameterNames, pool);
-            lambda = new LambdaFunction(function.entry, closure.Closure, parameters, pool);
+            lambda = new LambdaFunction(anchor, function.entry, closure.Closure, parameters, parameterNames, pool);
             manager.lambdas.Add(lambda);
             var method = new Compiling.Method((uint)manager.library.methods.Count, DeclarationCode.Lambda, "", context.space);
             method.AddFunction(function);
@@ -3142,7 +3142,7 @@ namespace RainScript.Compiler.LogicGenerator
                 return false;
             }
         }
-        public bool TryGetFunction(IMethod method, Expression[] expressions, out IFunction function, out Expression parameter)
+        public bool TryGetFunction(Anchor anchor, IMethod method, Expression[] expressions, out IFunction function, out Expression parameter)
         {
             function = null;
             parameter = null;
@@ -3169,16 +3169,10 @@ namespace RainScript.Compiler.LogicGenerator
                     method = manager.GetOverrideMethod(method);
                 }
                 if (functions.Count > 1)
-                {
-                    var anchor = new Anchor(expressions[0].anchor.textInfo, expressions[0].anchor.start, expressions[expressions.Length - 1].anchor.end);
                     foreach (var item in functions)
                         exceptions.Add(anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL, manager.GetDeclarationFullName(item.Declaration));
-                }
             }
-            if (function == null)
-            {
-                exceptions.Add(new Anchor(expressions[0].anchor.textInfo, expressions[0].anchor.start, expressions[expressions.Length - 1].anchor.end), CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
-            }
+            if (function == null) exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
             return function != null;
         }
         private bool TryAddLocal(ScopeStack<Expression> expressionStack, Lexical lexical, ref TokenAttribute attribute)
@@ -3226,7 +3220,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         var methodExpression = expressionStack.Pop();
                                         if (methodExpression is MethodMemberExpression memberMethod)
                                         {
-                                            if (TryGetFunction(manager.GetMethod(memberMethod.declaration), expressions, out var function, out var parameter))
+                                            if (TryGetFunction(methodExpression.anchor, manager.GetMethod(memberMethod.declaration), expressions, out var function, out var parameter))
                                             {
                                                 var expression = new InvokerMemberExpression(methodExpression.anchor, function.Declaration, memberMethod.target, parameter, function.Returns);
                                                 expressionStack.Push(expression);
@@ -3236,7 +3230,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (methodExpression is MethodVirtualExpression virtualMethod)
                                         {
-                                            if (TryGetFunction(manager.GetMethod(virtualMethod.declaration), expressions, out var function, out var parameter))
+                                            if (TryGetFunction(methodExpression.anchor, manager.GetMethod(virtualMethod.declaration), expressions, out var function, out var parameter))
                                             {
                                                 var expression = new InvokerVirtualMemberExpression(methodExpression.anchor, function.Declaration, virtualMethod.target, parameter, function.Returns);
                                                 expressionStack.Push(expression);
@@ -3246,7 +3240,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (methodExpression is MethodQuestionExpression questionMethod)
                                         {
-                                            if (TryGetFunction(manager.GetMethod(questionMethod.declaration), expressions, out var function, out var parameter))
+                                            if (TryGetFunction(methodExpression.anchor, manager.GetMethod(questionMethod.declaration), expressions, out var function, out var parameter))
                                             {
                                                 var expression = new InvokerQuestionMemberExpression(methodExpression.anchor, function.Declaration, questionMethod.target, parameter, function.Returns);
                                                 expressionStack.Push(expression);
@@ -3256,7 +3250,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (methodExpression is MethodGlobalExpression globalMethod)
                                         {
-                                            if (TryGetFunction(manager.GetMethod(globalMethod.declaration), expressions, out var function, out var parameter))
+                                            if (TryGetFunction(methodExpression.anchor, manager.GetMethod(globalMethod.declaration), expressions, out var function, out var parameter))
                                             {
                                                 var expression = new InvokerGlobalExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
                                                 expressionStack.Push(expression);
@@ -3266,7 +3260,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (methodExpression is MethodNativeExpression nativeMethod)
                                         {
-                                            if (TryGetFunction(manager.GetMethod(nativeMethod.declaration), expressions, out var function, out var parameter))
+                                            if (TryGetFunction(methodExpression.anchor, manager.GetMethod(nativeMethod.declaration), expressions, out var function, out var parameter))
                                             {
                                                 var expression = new InvokerNativeExpression(methodExpression.anchor, function.Declaration, parameter, function.Returns);
                                                 expressionStack.Push(expression);
@@ -3313,7 +3307,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 if (TryPushVetcorConstructorExpression(expressionStack, expressions, typeExpression.anchor, type, 4, ref attribute)) break;
                                                 else goto parse_fail;
                                             }
-                                            else if (manager.TryGetConstructor(type, out var constructor) && TryGetFunction(constructor, expressions, out var constructorFunction, out var constructorParameter))
+                                            else if (manager.TryGetConstructor(type, out var constructor) && TryGetFunction(typeExpression.anchor, constructor, expressions, out var constructorFunction, out var constructorParameter))
                                             {
                                                 if (destructor) exceptions.Add(typeExpression.anchor, CompilingExceptionCode.SYNTAX_DESTRUCTOR_ALLOC);
                                                 var expression = new InvokerConstructorExpression(typeExpression.anchor, constructorFunction.Declaration, constructorParameter, type);

@@ -17,6 +17,7 @@ namespace RainScriptDebugger
             public HashSet<string> dirs;
             public string pattern;
             public bool symbol;
+            public bool debug;
             public bool ignoreExit;
             public int frame;
             public IEnumerable<IFileInfo> GetFileInfos()
@@ -98,6 +99,9 @@ namespace RainScriptDebugger
                             case "symbol":
                                 bool.TryParse(value, out config.symbol);
                                 break;
+                            case "debug":
+                                bool.TryParse(value, out config.debug);
+                                break;
                             case "ignoreexit":
                                 bool.TryParse(value, out config.ignoreExit);
                                 break;
@@ -133,6 +137,9 @@ namespace RainScriptDebugger
                     case "-s":
                         config.symbol = true;
                         break;
+                    case "-d":
+                        config.debug = true;
+                        break;
                     case "-ie":
                         config.ignoreExit = true;
                         break;
@@ -165,7 +172,7 @@ namespace RainScriptDebugger
             var builder = new Builder(config.name, config.GetFileInfos(), config.GetReferences());
             try
             {
-                builder.Compile(new CompilerCommand(config.symbol, config.ignoreExit));
+                builder.Compile(new CompilerCommand(config.symbol, config.debug, config.ignoreExit));
             }
             catch (Exception e)
             {
@@ -205,7 +212,7 @@ namespace RainScriptDebugger
                         Console.WriteLine("携程异常退出，退出代码:\x1b[31m0x{0}\x1b[0m", code.ToString("X"));
                         foreach (var frame in frames)
                         {
-                            kernel.GetFrameDetail(frame, name => symbols[name], out var fileName, out var functionName, out var lineNumber);
+                            symbols[frame.library].GetInfo(frame, out var fileName, out var functionName, out var lineNumber);
                             Console.WriteLine("{0} \x1b[33m{1}\x1b[0m line:\x1b[36m{2}\x1b[0m", fileName, functionName, lineNumber + 1);
                         }
                     };
