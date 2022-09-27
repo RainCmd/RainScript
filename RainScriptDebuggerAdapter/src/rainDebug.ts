@@ -28,7 +28,7 @@ enum SCProto
 	Continue=0x1001,
 	Next,
 	Pause,
-	SetBreakpoint,
+	SetExceptionFilter,
 	ClearBreakpoint,
 	GetCoroutines,
 	SetVariable,
@@ -85,13 +85,13 @@ export class RainDebugSession extends LoggingDebugSession {
 				var id=rbuf.readInt32();
 				var code=rbuf.readInt64();
 				var text=rbuf.readString();
-				var stack=rbuf.readString();
-				this.exceptions[id]={
-					code:code,
-					text:text,
-					stack:stack
-				}
-				this.sendEvent(new StoppedEvent('exception',id,text));
+				var stack = rbuf.readString();
+				this.exceptions.set(id,{
+					code : code,
+					text : text,
+					stack : stack
+				});
+				this.sendEvent(new StoppedEvent('携程异常退出',id,text));
 			}break;
 		}
 	}
@@ -164,19 +164,12 @@ export class RainDebugSession extends LoggingDebugSession {
 		response.body.supportsExceptionFilterOptions = true;
 		response.body.exceptionBreakpointFilters = [
 			{
-				filter: 'namedException',
-				label: "Named Exception",
-				description: `Break on named exceptions. Enter the exception's name as the Condition.`,
-				default: false,
-				supportsCondition: true,
-				conditionDescription: `Enter the exception's name`
-			},
-			{
-				filter: 'otherExceptions',
-				label: "Other Exceptions",
-				description: 'This is a other exception',
+				filter: '退出码',
+				label: "指定退出码",
+				description: `只有当退出码等于输入的退出码时才会引发断点`,
 				default: true,
-				supportsCondition: false
+				supportsCondition: true,
+				conditionDescription: `输入退出码`
 			}
 		];
 
@@ -289,6 +282,23 @@ export class RainDebugSession extends LoggingDebugSession {
 				breakpoints: []
 			};
 		}
+		this.sendResponse(response);
+	}
+
+	protected async setExceptionBreakPointsRequest(response: DebugProtocol.SetExceptionBreakpointsResponse, args: DebugProtocol.SetExceptionBreakpointsArguments, request?: DebugProtocol.Request | undefined): Promise<void> {
+		var filter="0";
+		if(args.filterOptions){
+			args.filterOptions.forEach(element => {
+				if(element.filterId=='退出码'){
+					if(element.condition){
+						filter=element.condition;
+					}
+				}
+			});
+		}
+		var buf=new RainBufferGenerator();
+		buf.pushString(filter);
+		await this.Request(SCProto.SetExceptionFilter,buf);
 		this.sendResponse(response);
 	}
 
@@ -410,5 +420,22 @@ export class RainDebugSession extends LoggingDebugSession {
 		await this.Request(SCProto.Pause);
 		this.sendResponse(response);
 	}
+	// protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments, request?: DebugProtocol.Request | undefined): void {
+	// 	if(args.context=='hover'){
+	// 		console.log("hover表达式 "+args.expression);
+	// 		var reg = /[0-9]*/g;
+	// 		var m = reg.exec(args.expression);
+	// 		if(m?.length==2){
+	// 			var line = Number.parseInt(m[0].valueOf());
+	// 			var col = Number.parseInt(m[1].valueOf());
+	// 			console.log("请求表达式 line:"+line+" col:"+col);
+	// 		}
+	// 		response.body={
+	// 			result : "cnm的",
+	// 			variablesReference : 0
+	// 		};
+	// 	}
+	// 	this.sendResponse(response);
+	// }
 }
 

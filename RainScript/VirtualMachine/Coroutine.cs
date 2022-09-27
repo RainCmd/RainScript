@@ -2560,6 +2560,7 @@ namespace RainScript.VirtualMachine
         }
         public StackFrame[] GetStackFrames()
         {
+            if (invoker.state != InvokerState.Running) return invoker.GetStackFrames();
             var deep = 1;
             var index = *(Frame*)(stack + bottom);
             while (index.libraryIndex != LIBRARY.INVALID)
@@ -2586,7 +2587,12 @@ namespace RainScript.VirtualMachine
                 invoker.CopyFrom(stack, invoker.handle.returnSize);
                 invoker.exit = exit;
                 invoker.state = InvokerState.Completed;
-                if (exit != 0) kernel.OnExitEvent(invoker.GetStackFrames(), exit);
+                if (exit != 0)
+                {
+                    kernel.coroutineAgency.invoking = this;
+                    kernel.OnExitEvent(invoker.GetStackFrames(), exit);
+                    kernel.coroutineAgency.invoking = null;
+                }
             }
         }
         public void Dispose()

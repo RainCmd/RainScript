@@ -22,7 +22,7 @@ namespace RainScriptDebugger
         Continue = 0x1001,
         Next,
         Pause,
-        SetBreakpoint,
+        SetExceptionFilter,
         ClearBreakpoint,
         GetCoroutines,
         SetVariable,
@@ -65,6 +65,7 @@ namespace RainScriptDebugger
         private readonly uint library;
         private readonly Dictionary<int, Breakpoint> breakpoints = new Dictionary<int, Breakpoint>();
         private readonly SymbolTable symbol;
+        private long exceptionFilter;
         private DateTime lastbeat;
         private int breakpointIndex = 1;
         private BufferWriter GetWriter(RainSocketHead head)
@@ -195,8 +196,10 @@ namespace RainScriptDebugger
                         new RKernenl(kernel).Step(true);
                     }
                     break;
-                case RECVInstruction.SetBreakpoint://插件里还没用到，可能需要补充
+                case RECVInstruction.SetExceptionFilter:
                     {
+                        reader.ReadInt32();//数据长度
+                        long.TryParse(reader.ReadString(), out exceptionFilter);
                         var writer = GetWriter(RainSocketHead.message);
                         writer.Write((int)SENDInstruction.Reply);
                         writer.Write(reqID);
@@ -351,19 +354,24 @@ namespace RainScriptDebugger
 
         internal void OnException(StackFrame[] stacks, long code)
         {
-            var writer = GetWriter(RainSocketHead.message);
-            writer.Write((int)SENDInstruction.Exception);
-            writer.Write((int)new RKernenl(kernel).coroutineAgency.invoking.id);
-            writer.Write(code);
-            writer.Write(((ExitCode)code).ToString());
-            var stackMsg = "";
-            foreach (var stack in stacks)
+            if (code == exceptionFilter || exceptionFilter == 0)
             {
-                if (!string.IsNullOrEmpty(stackMsg)) stackMsg += "\r\n";
-                stackMsg += stack.ToString();
+                var writer = GetWriter(RainSocketHead.message);
+                writer.Write((int)SENDInstruction.Exception);
+                writer.Write((int)new RKernenl(kernel).coroutineAgency.invoking.id);
+                writer.Write(code);
+                writer.Write(((ExitCode)code).ToString());
+                var stackMsg = "";
+                foreach (var stack in stacks)
+                {
+                    if (!string.IsNullOrEmpty(stackMsg)) stackMsg += "\r\n";
+                    stackMsg += stack.ToString();
+                }
+                writer.Write(stackMsg);
+                Send(writer);
+                _continue = false;
+                while (!_continue && !_disposed) Thread.Sleep(10);
             }
-            writer.Write(stackMsg);
-            Send(writer);
         }
         internal void OnHit()
         {

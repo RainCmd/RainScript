@@ -56,7 +56,25 @@ export function activate(context: vscode.ExtensionContext) {
 				config.projectPath="${workspaceFolder}/";
 				return config;
 			}
-		})
+		}),
+		// vscode.languages.registerEvaluatableExpressionProvider('雨言',{
+		// 	provideEvaluatableExpression(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.EvaluatableExpression> {
+				
+		// 		console.log("开始匹配");
+		// 		const reg = /[a-z][a-z0-9_]*/ig;
+		// 		const line = document.lineAt(position.line).text;
+		// 		let match : RegExpExecArray | null;
+		// 		while(match = reg.exec(line)){
+		// 			var range = new vscode.Range(position.line, match.index, position.line, match.index + match[0].length);
+		// 			if(range.contains(position)){
+		// 				var expr = position.line+" "+position.character;
+		// 				console.log("expr:"+expr);
+		// 				return new vscode.EvaluatableExpression(range,expr);
+		// 			}
+		// 		}
+		// 		return undefined;
+		// 	},
+		// })
 	);
 	rainBase.activate();
 }
