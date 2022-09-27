@@ -109,7 +109,7 @@ namespace RainScriptDebugger
                                 adapter.Recv();
                                 adapter.Dispose();
                             }
-                            else Console.WriteLine(string.Format("程序集 {0} 加载失败", libraryName));
+                            else Console.WriteLine(string.Format("程序集调试表 {0} 加载失败", libraryName));
                         }
                         catch { }
                     }

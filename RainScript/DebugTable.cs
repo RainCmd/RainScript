@@ -19,6 +19,7 @@ namespace RainScript
         /// <summary>
         /// 变量信息
         /// </summary>
+        [Serializable]
         public struct VariableInfo
         {
             /// <summary>
@@ -51,6 +52,7 @@ namespace RainScript
                 this.length = length;
             }
         }
+        [Serializable]
         internal struct Variable
         {
             public readonly string name;

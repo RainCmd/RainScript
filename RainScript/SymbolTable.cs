@@ -1,10 +1,14 @@
-﻿namespace RainScript
+﻿using System;
+
+namespace RainScript
 {
     /// <summary>
     /// 符号表
     /// </summary>
+    [Serializable]
     public partial class SymbolTable
     {
+        [Serializable]
         internal struct Function
         {
             public readonly uint point;
@@ -17,6 +21,7 @@
                 this.function = function;
             }
         }
+        [Serializable]
         internal struct Line
         {
             public readonly uint point;

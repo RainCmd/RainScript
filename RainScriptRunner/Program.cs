@@ -28,7 +28,7 @@ namespace RainScriptDebugger
                     {
                         using (var file = File.OpenText(path))
                         {
-                            yield return new FileInfo(path, file.ReadToEnd());
+                            yield return new FileInfo(path.Substring(path.Length), file.ReadToEnd());
                         }
                     }
                 }
@@ -36,6 +36,10 @@ namespace RainScriptDebugger
             public IEnumerable<ReferenceLibrary> GetReferences()
             {
                 yield break;
+            }
+            public void AddDir(string dir)
+            {
+                dirs.Add(dir.Replace("\\", "/"));
             }
         }
         class FileInfo : IFileInfo
@@ -63,16 +67,17 @@ namespace RainScriptDebugger
                 if (!char.IsLetterOrDigit(name[i])) return false;
             return true;
         }
-        static void Main(string[] args)
+        static bool TryLoadCfg(out Config config)
         {
             var path = Environment.CurrentDirectory + "\\generator.cfg";
             if (!File.Exists(path))
             {
                 Console.WriteLine("配置文件未找到：" + path);
                 Console.ReadKey();
-                return;
+                config = default;
+                return false;
             }
-            var config = new Config() { dirs = new HashSet<string>() };
+            config = new Config() { dirs = new HashSet<string>() };
             using (var file = File.OpenText(path))
             {
                 while (!file.EndOfStream)
@@ -91,7 +96,7 @@ namespace RainScriptDebugger
                                 config.entry = value;
                                 break;
                             case "path":
-                                config.dirs.Add(value);
+                                config.AddDir(value);
                                 break;
                             case "pattern":
                                 config.pattern = value;
@@ -112,6 +117,10 @@ namespace RainScriptDebugger
                     }
                 }
             }
+            return true;
+        }
+        static void ParseArgs(ref Config config, string[] args)
+        {
             var index = 0;
             while (index < args.Length)
             {
@@ -127,7 +136,7 @@ namespace RainScriptDebugger
                         else Console.WriteLine("-entry 指令缺少参数");
                         break;
                     case "-path":
-                        if (index < arg.Length) config.dirs.Add(args[index++]);
+                        if (index < arg.Length) config.AddDir(args[index++]);
                         else Console.WriteLine("-path 指令缺少参数");
                         break;
                     case "-p":
@@ -152,24 +161,30 @@ namespace RainScriptDebugger
                         break;
                 }
             }
+        }
+        static bool CheckConfig(Config config)
+        {
             if (!IsVaildName(config.name))
             {
                 Console.WriteLine("无效的名称：" + config.name);
-                return;
+                return false;
             }
             foreach (var dir in config.dirs)
                 if (!Directory.Exists(dir))
                 {
                     Console.WriteLine("目录不存在：" + dir);
-                    return;
+                    return false;
                 }
             if (config.frame < 0)
             {
                 Console.WriteLine("帧间隔不能小于0，当前间隔{0}ms", config.frame);
-                return;
+                return false;
             }
-
-            var builder = new Builder(config.name, config.GetFileInfos(), config.GetReferences());
+            return true;
+        }
+        static bool TryBuild(Config config, out Builder builder)
+        {
+            builder = new Builder(config.name, config.GetFileInfos(), config.GetReferences());
             try
             {
                 builder.Compile(new CompilerCommand(config.symbol, config.debug, config.ignoreExit));
@@ -189,47 +204,52 @@ namespace RainScriptDebugger
                         Console.WriteLine();
                     }
                 }
+                return false;
+            }
+            return true;
+        }
+        static void Exe(Kernel kernel, Config config)
+        {
+            var handle = kernel.GetFunctionHandle(config.entry, config.name);
+            if (handle == null)
+            {
+                Console.WriteLine("入口函数 \x1b[33m{0}\x1b[0m 未找到", config.entry);
                 return;
             }
-            var librarys = new Dictionary<string, Library>
+            var invoker = kernel.Invoker(handle);
+            invoker.Start(true, false);
+            while (invoker.State == InvokerState.Running)
             {
-                [config.name] = builder.Library
-            };
-            var performers = new Dictionary<string, Performer>
-            {
-                [config.name] = new Performer()
-            };
-            using (var kernel = new Kernel(builder.Library, name => librarys[name], name => performers[name]))
+                kernel.Update();
+                Thread.Sleep(config.frame);
+            }
+        }
+        static void Main(string[] args)
+        {
+            if (!TryLoadCfg(out var config)) return;
+            ParseArgs(ref config, args);
+            if (!CheckConfig(config)) return;
+            if (!TryBuild(config, out var builder)) return;
+
+            using (var kernel = new Kernel(builder.Library, name => name == config.name ? builder.Library : null, name => name == config.name ? new Performer() : null))
             {
                 if (builder.SymbolTable != null)
                 {
-                    var symbols = new Dictionary<string, SymbolTable>
-                    {
-                        { config.name, builder.SymbolTable }
-                    };
                     kernel.OnExit += (frames, code) =>
                     {
                         Console.WriteLine("携程异常退出，退出代码:\x1b[31m0x{0}\x1b[0m", code.ToString("X"));
                         foreach (var frame in frames)
                         {
-                            symbols[frame.library].GetInfo(frame, out var fileName, out var functionName, out var lineNumber);
+                            builder.SymbolTable.GetInfo(frame, out var fileName, out var functionName, out var lineNumber);
                             Console.WriteLine("{0} \x1b[33m{1}\x1b[0m line:\x1b[36m{2}\x1b[0m", fileName, functionName, lineNumber + 1);
                         }
                     };
                 }
-                var handle = kernel.GetFunctionHandle(config.entry, config.name);
-                if (handle == null)
-                {
-                    Console.WriteLine("入口函数 \x1b[33m{0}\x1b[0m 未找到", config.entry);
-                    return;
-                }
-                var invoker = kernel.Invoker(handle);
-                invoker.Start(true, false);
-                while (invoker.State == InvokerState.Running)
-                {
-                    kernel.Update();
-                    Thread.Sleep(config.frame);
-                }
+                if (builder.DebugTable == null) Exe(kernel, config);
+                else using (var debugger = new Debugger(config.name, kernel, name => name == config.name ? builder.DebugTable : null, name => name == config.name ? builder.SymbolTable : null))
+                    {
+                        Exe(kernel, config);
+                    }
             }
             Console.WriteLine("携程 \x1b[33m{0}\x1b[0m 已退出。", config.entry);
         }

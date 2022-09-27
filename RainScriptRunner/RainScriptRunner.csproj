@@ -47,6 +47,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\RainScriptDebugger\RainScriptDebugger.csproj">
+      <Project>{9939c9a2-c9f1-4b92-853f-3eed1a336218}</Project>
+      <Name>RainScriptDebugger</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RainScript\RainScript.csproj">
       <Project>{16709272-b08b-4975-b5c3-310166424a4e}</Project>
       <Name>RainScript</Name>

@@ -28,6 +28,7 @@ namespace RainScript
         Entity,
     }
     [StructLayout(LayoutKind.Explicit)]
+    [System.Serializable]
     internal struct TypeDefinition
     {
         [FieldOffset(0)]
@@ -69,6 +70,7 @@ namespace RainScript
         public static readonly TypeDefinition INVALID = new TypeDefinition(LIBRARY.INVALID, TypeCode.Invalid, 0);
     }
     [StructLayout(LayoutKind.Explicit)]
+    [System.Serializable]
     internal struct Type
     {
         [FieldOffset(0)]
@@ -126,6 +128,7 @@ namespace RainScript
         public static readonly Type INVALID = new Type(TypeDefinition.INVALID, 0);
     }
     [StructLayout(LayoutKind.Explicit)]
+    [System.Serializable]
     internal struct Function
     {
         [FieldOffset(0)]
@@ -160,6 +163,7 @@ namespace RainScript
         }
     }
     [StructLayout(LayoutKind.Explicit)]
+    [System.Serializable]
     internal struct MemberVariable
     {
 
@@ -175,6 +179,7 @@ namespace RainScript
         }
     }
     [StructLayout(LayoutKind.Explicit)]
+    [System.Serializable]
     internal struct MemberFunction
     {
         [FieldOffset(0)]
@@ -214,6 +219,7 @@ namespace RainScript
         }
     }
     [StructLayout(LayoutKind.Explicit)]
+    [System.Serializable]
     internal struct InterfaceFunction
     {
         [FieldOffset(0)]
@@ -253,6 +259,7 @@ namespace RainScript
         }
     }
     [StructLayout(LayoutKind.Explicit)]
+    [System.Serializable]
     internal struct DefinitionFunction
     {
         [FieldOffset(0)]
@@ -286,6 +293,7 @@ namespace RainScript
             return hashCode;
         }
     }
+    [System.Serializable]
     internal struct Relocation
     {
         public DefinitionFunction overrideFunction;
@@ -297,6 +305,7 @@ namespace RainScript
         }
     }
     #region Infos
+    [System.Serializable]
     internal class DefinitionInfo
     {
         public readonly TypeDefinition parent;
@@ -315,6 +324,7 @@ namespace RainScript
             this.destructor = destructor;
         }
     }
+    [System.Serializable]
     internal class VariableInfo
     {
         internal readonly uint address;
@@ -325,6 +335,7 @@ namespace RainScript
             this.type = type;
         }
     }
+    [System.Serializable]
     internal class CoroutineInfo
     {
         internal readonly Type[] returns;
@@ -333,6 +344,7 @@ namespace RainScript
             this.returns = returns;
         }
     }
+    [System.Serializable]
     internal class FunctionInfo
     {
         internal readonly Type[] parameters;
@@ -344,6 +356,7 @@ namespace RainScript
         }
         internal static readonly FunctionInfo EMPTY = new FunctionInfo(new Type[0], new Type[0]);
     }
+    [System.Serializable]
     internal class MethodInfo
     {
         internal readonly uint[] entries;
@@ -354,6 +367,7 @@ namespace RainScript
             this.functions = functions;
         }
     }
+    [System.Serializable]
     internal class InterfaceMethodInfo
     {
         internal readonly FunctionInfo[] functions;
@@ -362,6 +376,7 @@ namespace RainScript
             this.functions = functions;
         }
     }
+    [System.Serializable]
     internal class InterfaceInfo
     {
         internal readonly TypeDefinition[] inherits;
@@ -374,6 +389,7 @@ namespace RainScript
             this.methods = methods;
         }
     }
+    [System.Serializable]
     internal class NativeMethodInfo
     {
         internal readonly string name;
@@ -386,6 +402,7 @@ namespace RainScript
     }
     #endregion Infos
     #region Imports
+    [System.Serializable]
     internal class ImportInfo
     {
         internal readonly ImportSpaceInfo space;
@@ -408,8 +425,10 @@ namespace RainScript
         }
         private static readonly System.Text.StringBuilder builder = new System.Text.StringBuilder();
     }
+    [System.Serializable]
     internal class ImportDefinitionInfo : ImportInfo
     {
+        [System.Serializable]
         internal struct Variable
         {
             public readonly string name;
@@ -428,6 +447,7 @@ namespace RainScript
             this.methods = methods;
         }
     }
+    [System.Serializable]
     internal class ImportVariableInfo : ImportInfo
     {
         internal readonly Type type;
@@ -436,6 +456,7 @@ namespace RainScript
             this.type = type;
         }
     }
+    [System.Serializable]
     internal class ImportDelegateInfo : ImportInfo
     {
         internal readonly Type[] parameters;
@@ -446,6 +467,7 @@ namespace RainScript
             this.returns = returns;
         }
     }
+    [System.Serializable]
     internal class ImportCoroutineInfo : ImportInfo
     {
         internal readonly Type[] returns;
@@ -454,6 +476,7 @@ namespace RainScript
             this.returns = returns;
         }
     }
+    [System.Serializable]
     internal class ImportMethodInfo : ImportInfo
     {
         internal readonly FunctionInfo[] functions;
@@ -462,6 +485,7 @@ namespace RainScript
             this.functions = functions;
         }
     }
+    [System.Serializable]
     internal class ImportInterfaceInfo : ImportInfo
     {
         internal readonly ImportMethodInfo[] methods;
@@ -471,6 +495,7 @@ namespace RainScript
             this.methods = methods;
         }
     }
+    [System.Serializable]
     internal class ImportSpaceInfo
     {
         internal readonly ImportSpaceInfo parent;
@@ -481,6 +506,7 @@ namespace RainScript
             this.name = name;
         }
     }
+    [System.Serializable]
     internal class ImportLibraryInfo : ImportSpaceInfo
     {
         internal readonly ImportDefinitionInfo[] definitions;
@@ -504,6 +530,7 @@ namespace RainScript
     }
     #endregion Imports
     #region Exports
+    [System.Serializable]
     internal struct ExportDefinition
     {
         internal readonly string name;
@@ -518,6 +545,7 @@ namespace RainScript
             this.methods = methods;
         }
     }
+    [System.Serializable]
     internal struct ExportIndex
     {
         internal readonly string name;
@@ -528,6 +556,7 @@ namespace RainScript
             this.index = index;
         }
     }
+    [System.Serializable]
     internal struct ExportMethod
     {
         internal readonly string name;
@@ -540,6 +569,7 @@ namespace RainScript
             this.functions = functions;
         }
     }
+    [System.Serializable]
     internal struct ExportInterface
     {
         internal readonly string name;
@@ -555,6 +585,7 @@ namespace RainScript
     /// <summary>
     /// 命名空间
     /// </summary>
+    [System.Serializable]
     public class Space
     {
         /// <summary>
@@ -586,6 +617,7 @@ namespace RainScript
     /// <summary>
     /// 库
     /// </summary>
+    [System.Serializable]
     public partial class Library : Space
     {
         internal readonly byte[] code, constantData;
