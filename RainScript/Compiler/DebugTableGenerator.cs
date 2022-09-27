@@ -67,7 +67,7 @@ namespace RainScript.Compiler
         internal void AddGlobalValue(string fullName,uint point,Type type)
         {
             if (table == null) return;
-            table.globalValues.Add(new DebugTable.VariableInfo(fullName, type, point));
+            table.globalVariables.Add(new DebugTable.VariableInfo(fullName, type, point));
         }
     }
 }

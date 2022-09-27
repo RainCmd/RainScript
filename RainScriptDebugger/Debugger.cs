@@ -16,7 +16,7 @@ namespace RainScriptDebugger
         private bool disposed;
         private Socket socket;
         private Adapter adapter;
-        private readonly byte[] sendBuffer = new byte[4096], recvBuffer = new byte[4096];
+        private readonly byte[] sendBuffer = new byte[65536], recvBuffer = new byte[65536];
         /// <summary>
         /// 调试名称
         /// </summary>

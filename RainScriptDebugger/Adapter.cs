@@ -1,6 +1,7 @@
 ﻿using RainScript;
 using RainScript.VirtualMachine;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -272,23 +273,25 @@ namespace RainScriptDebugger
                             var point = writer.Size;
                             writer.Write(0);
                             var count = 0;
-                            var address = new RKernenl(kernel).coroutineAgency.invoking.point;
-                            foreach (var item in debug.GetVariables(address))
+                            var invoking = new RKernenl(kernel).coroutineAgency.invoking;
+                            var address = invoking.point;
+                            var stack = invoking.stack;
+                            foreach (var variable in debug.GetVariables(address))
                             {
-                                writer.Write(item.name);
-                                writer.Write(DebugTable.Evaluate(kernel, item, new RKernenl(kernel).coroutineAgency.invoking.stack));
+                                writer.Write(variable.name);
+                                writer.Write(DebugTable.Evaluate(kernel, variable, stack));
                                 count++;
                             }
                             writer.Write(count, point);
                         }
                         else if (type == 2)//全局变量
                         {
-                            writer.Write(debug.globalValues.Count);
+                            writer.Write(debug.globalVariables.Count);
                             var address = new RKernenl(kernel).libraryAgency[library].data;
-                            foreach (var item in debug.globalValues)
+                            foreach (var variable in debug.globalVariables)
                             {
-                                writer.Write(item.name);
-                                writer.Write(DebugTable.Evaluate(kernel, item, address));
+                                writer.Write(variable.name);
+                                writer.Write(DebugTable.Evaluate(kernel, variable, address));
                             }
                         }
 

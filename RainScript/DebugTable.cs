@@ -1,5 +1,4 @@
-﻿using RainScript.VirtualMachine;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using RainScript.Vector;
 #if FIXED
@@ -100,7 +99,7 @@ namespace RainScript
         /// <summary>
         /// 全局变量
         /// </summary>
-        public readonly List<VariableInfo> globalValues = new List<VariableInfo>();
+        public readonly List<VariableInfo> globalVariables = new List<VariableInfo>();
 
         internal DebugTable(string name)
         {
@@ -227,7 +226,7 @@ namespace RainScript
         /// <param name="info"></param>
         /// <param name="stack"></param>
         /// <returns></returns>
-        public static unsafe string Evaluate(Kernel kernel, VariableInfo info, byte* stack)
+        public static unsafe string Evaluate(VirtualMachine.Kernel kernel, VariableInfo info, byte* stack)
         {
             var address = stack + info.address;
             if (info.type.dimension == 0)
@@ -250,8 +249,38 @@ namespace RainScript
                     default: return "未知的类型";
                 }
             }
-            if (kernel.heapAgency.TryGetArrayLength(*(uint*)address, out var length) == ExitCode.None) return string.Format("数组[{0}]：{1}", length, *(uint*)address);
+            if (kernel.heapAgency.TryGetArrayLength(*(uint*)address, out var length) == VirtualMachine.ExitCode.None) return string.Format("数组[{0}]：{1}", length, *(uint*)address);
             else return string.Format("数组：{1}", length, *(uint*)address);
+        }
+        /// <summary>
+        /// 获取库的代码指针
+        /// </summary>
+        /// <param name="library"></param>
+        /// <returns></returns>
+        public static unsafe byte* GetCode(object library)
+        {
+            if (library is VirtualMachine.RuntimeLibraryInfo runtime) return runtime.code;
+            return null;
+        }
+        /// <summary>
+        /// 获取库的数据指针
+        /// </summary>
+        /// <param name="library"></param>
+        /// <returns></returns>
+        public static unsafe byte* GetData(object library)
+        {
+            if(library is VirtualMachine.RuntimeLibraryInfo runtime) return runtime.data;
+            return null;
+        }
+        /// <summary>
+        /// 获取携程当前栈
+        /// </summary>
+        /// <param name="coroutine"></param>
+        /// <returns></returns>
+        public static unsafe byte*GetStack(object coroutine)
+        {
+            if (coroutine is VirtualMachine.Coroutine cor) return cor.stack;
+            else return null;
         }
     }
 }

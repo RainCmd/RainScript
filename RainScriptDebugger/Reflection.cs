@@ -1,4 +1,5 @@
-﻿using RainScript.VirtualMachine;
+﻿using RainScript;
+using RainScript.VirtualMachine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -125,7 +126,8 @@ namespace RainScriptDebugger
         private readonly object coroutine;
         public object next { get { return field_next.GetValue(coroutine); } }
         public ulong id { get { return (ulong)field_instanceID.GetValue(coroutine); } }
-        public byte* stack { get { return (byte*)Pointer.Unbox(field_stack.GetValue(coroutine)) + (uint)field_bottom.GetValue(coroutine); } }
+        public byte* stack { get { return DebugTable.GetStack(coroutine) + (uint)field_bottom.GetValue(coroutine); } }//unity中反射取到的指针都是空的
+        //public byte* stack { get { return (byte*)Pointer.Unbox(field_stack.GetValue(coroutine)) + (uint)field_bottom.GetValue(coroutine); } }
         public uint point { get { return (uint)field_point.GetValue(coroutine); } }
         public RCoroutine(object coroutine)
         {
@@ -166,8 +168,8 @@ namespace RainScriptDebugger
     {
         private readonly object library;
         public string name { get { return (string)field_name.GetValue(library); } }
-        public byte* code { get { return (byte*)Pointer.Unbox(field_code.GetValue(library)); } }
-        public byte* data { get { return (byte*)Pointer.Unbox(field_data.GetValue(library)); } }
+        public byte* code => DebugTable.GetCode(library);//{ get { return (byte*)Pointer.Unbox(field_code.GetValue(library)); } }//unity中反射取到的指针都是空的
+        public byte* data => DebugTable.GetData(library);//{ get { return (byte*)Pointer.Unbox(field_data.GetValue(library)); } }//unity中反射取到的指针都是空的
         public RLibrary(object library)
         {
             this.library = library;

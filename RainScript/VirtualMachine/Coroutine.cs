@@ -20,7 +20,7 @@ namespace RainScript.VirtualMachine
         public long exit;
         private uint stackSize, bottom, top, point;
         private long wait, flag;
-        private byte* stack;
+        internal byte* stack;
         public Coroutine(Kernel kernel)
         {
             this.kernel = kernel;
