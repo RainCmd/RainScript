@@ -17,7 +17,8 @@ import { Subject } from 'await-notify';
  * 接口应该始终匹配此模式。
  */
 interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
-	libraryName: string;
+	libraryName : string;
+	projectPath : string;
 }
 interface IAttachRequestArguments extends ILaunchRequestArguments { }
 
@@ -25,7 +26,8 @@ enum SCProto
 {
 	Reply = 0xffff,
 	Continue=0x1001,
-	Step,
+	Next,
+	Pause,
 	SetBreakpoint,
 	ClearBreakpoint,
 	GetCoroutines,
@@ -52,6 +54,7 @@ export class RainDebugSession extends LoggingDebugSession {
 	remoteSummary?:RemoteDebugSummary;
 	private _configurationDone = new Subject();
 	libraryName:string="未知的程序集";
+	projectPath:string="未定义的工程路径";
 	/**
 	 * 创建用于一个调试会话的新调试适配器。
 	 * 我们在这里配置一个调试适配器的默认实现。
@@ -74,12 +77,9 @@ export class RainDebugSession extends LoggingDebugSession {
 			}break;
 
 			case SCProto.HitBreakpoint:{
-				try {
-					var tid=rbuf.readInt32();
-					this.sendEvent(new StoppedEvent('stopOnBreakpoint',tid));
-				} catch (error) {
-					console.log(error);
-				}
+				var tid=rbuf.readInt32();
+				var reason=rbuf.readString();
+				this.sendEvent(new StoppedEvent(reason,tid));
 			}break;
 			case SCProto.Exception:{
 				var id=rbuf.readInt32();
@@ -158,7 +158,7 @@ export class RainDebugSession extends LoggingDebugSession {
 
 		response.body.supportsCancelRequest = true;// 使VS Code发送取消请求
 		response.body.supportsBreakpointLocationsRequest = true;// 让VS Code发送breakpointLocations请求
-		response.body.supportsStepInTargetsRequest = true;// 让VS Code提供“步进目标”功能
+		response.body.supportsStepInTargetsRequest = false;// 让VS Code提供“步进目标”功能
 
 		// 适配器定义了两个异常过滤器，其中一个支持条件。
 		response.body.supportsExceptionFilterOptions = true;
@@ -181,7 +181,7 @@ export class RainDebugSession extends LoggingDebugSession {
 		];
 
 		response.body.supportsExceptionInfoRequest = true;// 让VS Code发送exceptionInfo请求
-		response.body.supportsSetVariable = true;// 让VS Code发送setVariable请求
+		response.body.supportsSetVariable = false;// 让VS Code发送setVariable请求
 		response.body.supportsSetExpression = false;// 让VS Code发送setExpression请求
 
 		// 使VS Code发送反汇编请求
@@ -219,13 +219,30 @@ export class RainDebugSession extends LoggingDebugSession {
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
 		this._configurationDone.wait(1000);
 		this.sendResponse(response);
-		if(args.libraryName) this.libraryName=args.libraryName;
-		console.log("Library Name:"+this.libraryName);
+		if(args.libraryName) {
+			this.libraryName=args.libraryName;
+		}else{
+			var result=await vscode.window.showInputBox({
+				title:"输入当前程序集名"
+			});
+			if(result)this.libraryName=result;
+			else{
+				vscode.window.showErrorMessage("必须输入程序集名称才能继续调试");
+				this.sendEvent(new TerminatedEvent());
+			}
+		}
+		if(args.projectPath) {
+			this.projectPath=args.projectPath.replace(/\\/g,'/');
+		}else{
+			vscode.window.showErrorMessage("获取当前工程目录失败");
+			this.sendEvent(new TerminatedEvent());
+		}
 	}
 
 	protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {
 
-		const path = args.source.path as string;
+		var path = args.source.path as string;
+		path = path.replace(/\\/g,'/').substring(this.projectPath.length);
 		const clientLines = args.lines || [];
 
 		var sbuf=new RainBufferGenerator();
@@ -314,7 +331,6 @@ export class RainDebugSession extends LoggingDebugSession {
 	}
 
 	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): Promise<void> {
-
 		var buf=new RainBufferGenerator()
 		buf.pushInt32(args.threadId);
 		var result=await this.Request(SCProto.GetStack,buf);
@@ -327,7 +343,7 @@ export class RainDebugSession extends LoggingDebugSession {
 					name : result.readString(),
 					line : result.readInt32(),
 					source:{
-						path : result.readString(),
+						path : this.projectPath + result.readString(),
 					},
 					column : 0
 				});
@@ -379,7 +395,19 @@ export class RainDebugSession extends LoggingDebugSession {
 	}
 
 	protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
-		await this.Request(SCProto.Step);
+		await this.Request(SCProto.Next);
+		this.sendResponse(response);
+	}
+	protected async stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments, request?: DebugProtocol.Request | undefined): Promise<void> {
+		await this.Request(SCProto.Next);
+		this.sendResponse(response);
+	}
+	protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments, request?: DebugProtocol.Request | undefined): void {
+		this.sendEvent(new StoppedEvent("不支持跳出",args.threadId));
+		this.sendResponse(response);
+	}
+	protected async pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments, request?: DebugProtocol.Request | undefined): Promise<void> {
+		await this.Request(SCProto.Pause);
 		this.sendResponse(response);
 	}
 }

@@ -19,7 +19,8 @@ namespace RainScriptDebugger
     enum RECVInstruction
     {
         Continue = 0x1001,
-        Step,
+        Next,
+        Pause,
         SetBreakpoint,
         ClearBreakpoint,
         GetCoroutines,
@@ -170,17 +171,27 @@ namespace RainScriptDebugger
                         writer.Write((int)SENDInstruction.Reply);
                         writer.Write(reqID);
                         Send(writer);
+                        new RKernenl(kernel).Step(false);
                         _continue = true;
                     }
                     break;
-                case RECVInstruction.Step:
+                case RECVInstruction.Next:
                     {
                         var writer = GetWriter(RainSocketHead.message);
                         writer.Write((int)SENDInstruction.Reply);
                         writer.Write(reqID);
                         Send(writer);
-                        new RKernenl(kernel).Step();
+                        new RKernenl(kernel).Step(true);
                         _continue = true;
+                    }
+                    break;
+                case RECVInstruction.Pause:
+                    {
+                        var writer = GetWriter(RainSocketHead.message);
+                        writer.Write((int)SENDInstruction.Reply);
+                        writer.Write(reqID);
+                        Send(writer);
+                        new RKernenl(kernel).Step(true);
                     }
                     break;
                 case RECVInstruction.SetBreakpoint://插件里还没用到，可能需要补充
@@ -356,6 +367,7 @@ namespace RainScriptDebugger
             var writer = GetWriter(RainSocketHead.message);
             writer.Write((int)SENDInstruction.HitBreakpoint);
             writer.Write((int)new RKernenl(kernel).coroutineAgency.invoking.id);
+            writer.Write("命中断点");
             Send(writer);
             _continue = false;
             while (!_continue && !_disposed) Thread.Sleep(10);

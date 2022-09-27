@@ -47,7 +47,16 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 			}
 		}),
-		vscode.debug.registerDebugAdapterDescriptorFactory('雨言',new InlineDebugAdapterFactory())
+		vscode.debug.registerDebugAdapterDescriptorFactory('雨言',new InlineDebugAdapterFactory()),
+		vscode.debug.registerDebugConfigurationProvider('雨言',{
+			resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration>{
+				if(!config.libraryName){
+					config.libraryName="${workspaceFolderBasename}";
+				}
+				config.projectPath="${workspaceFolder}/";
+				return config;
+			}
+		})
 	);
 	rainBase.activate();
 }

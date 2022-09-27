@@ -18,9 +18,9 @@ namespace RainScriptDebugger
         {
             this.kernel = kernel;
         }
-        public void Step()
+        public void Step(bool on)
         {
-            field_step.SetValue(kernel, true);
+            field_step.SetValue(kernel, on);
         }
         private static readonly FieldInfo field_manipulator = typeof(Kernel).GetField("manipulator", BindingFlags.NonPublic | BindingFlags.Instance);
         private static readonly FieldInfo field_stringAgency = typeof(Kernel).GetField("stringAgency", BindingFlags.NonPublic | BindingFlags.Instance);

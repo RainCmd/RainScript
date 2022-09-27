@@ -37,7 +37,7 @@ namespace RainScript.Vector
         /// </summary>
         public override string ToString()
         {
-            return string.Format("Vector3[{0},{1},{2}]", x, y, z);
+            return string.Format("({0},{1},{2})", x, y, z);
         }
         /// <summary>
         /// 比较两个向量坐标值是否相等
