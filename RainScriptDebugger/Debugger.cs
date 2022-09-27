@@ -61,7 +61,7 @@ namespace RainScriptDebugger
                 var buffer = new byte[portBytes.Length + nameBytes.Length];
                 Array.Copy(portBytes, buffer, portBytes.Length);
                 Array.Copy(nameBytes, 0, buffer, portBytes.Length, nameBytes.Length);
-                while (!disposed)
+                while (!disposed && kernel)
                 {
                     if (adapter == null) socket.SendTo(buffer, buffer.Length, SocketFlags.None, ip);
                     Thread.Sleep(1000);
@@ -70,6 +70,7 @@ namespace RainScriptDebugger
             finally
             {
                 socket.Close();
+                Dispose();
             }
         }
         private void Accept()
@@ -116,7 +117,7 @@ namespace RainScriptDebugger
                 }
             }
             catch (Exception e) { Console.WriteLine(e); }
-            finally { socket.Close(); }
+            finally { Dispose(); }
         }
         private void OnHitBreakpoint()
         {
@@ -129,7 +130,6 @@ namespace RainScriptDebugger
         {
             if (disposed) return;
             disposed = true;
-            kernel.Dispose();
             socket.Close();
             adapter?.Dispose();
         }
