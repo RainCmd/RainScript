@@ -91,7 +91,7 @@ export class RainDebugSession extends LoggingDebugSession {
 					text : text,
 					stack : stack
 				});
-				this.sendEvent(new StoppedEvent('携程异常退出',id,text));
+				this.sendEvent(new StoppedEvent('exception',id,text));
 			}break;
 		}
 	}

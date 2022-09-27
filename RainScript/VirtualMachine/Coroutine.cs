@@ -118,7 +118,7 @@ namespace RainScript.VirtualMachine
                             var size = *(int*)(library.code + point + 5);
                             if (size < 0)
                             {
-                                size = -size - 1;
+                                size = ~size;
                                 kernel.OnHitBreakpointEvent();
                             }
                             else if (kernel.step)

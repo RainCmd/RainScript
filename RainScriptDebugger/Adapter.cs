@@ -226,7 +226,7 @@ namespace RainScriptDebugger
                             if (verified && *(code + point) == BASE_Stackzero)
                             {
                                 var address = (int*)(code + point + 5);
-                                *address = -Math.Abs(*address) - 1;
+                                *address = ~Math.Abs(*address);
                             }
                             else verified = false;
                             var breakpoint = new Breakpoint(breakpointIndex++, library, point, verified);
