@@ -163,6 +163,55 @@ namespace RainScript.Compiler
             depth = default;
             return false;
         }
+        public IDeclaration GetDeclaration(Declaration declaration)
+        {
+            if (declaration.library == LIBRARY.KERNEL)
+            {
+                switch (declaration.code)
+                {
+                    case DeclarationCode.Definition: return RelyKernel.definitions[(int)declaration.index];
+                    case DeclarationCode.MemberFunction: return RelyKernel.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]].functions[(int)declaration.overloadIndex];
+                    case DeclarationCode.ConstructorFunction: return RelyKernel.methods[(int)declaration.index].functions[(int)declaration.overloadIndex];
+                    case DeclarationCode.GlobalVariable: return RelyKernel.variables[(int)declaration.index];
+                    case DeclarationCode.GlobalFunction: return RelyKernel.methods[(int)declaration.index].functions[(int)declaration.overloadIndex];
+                }
+            }
+            else if (declaration.library == LIBRARY.SELF)
+            {
+                switch (declaration.code)
+                {
+                    case DeclarationCode.Definition: return library.definitions[(int)declaration.index];
+                    case DeclarationCode.MemberVariable: return library.definitions[(int)declaration.definitionIndex].variables[(int)declaration.index];
+                    case DeclarationCode.MemberFunction:return library.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]][(int)declaration.overloadIndex];
+                    case DeclarationCode.ConstructorFunction: return library.methods[(int)declaration.index][(int)declaration.overloadIndex];
+                    case DeclarationCode.Delegate: return library.delegates[(int)declaration.index];
+                    case DeclarationCode.Coroutine: return library.coroutines[(int)declaration.index];
+                    case DeclarationCode.Interface: return library.interfaces[(int)declaration.index];
+                    case DeclarationCode.InterfaceFunction: return library.interfaces[(int)declaration.definitionIndex].methods[declaration.index].functions[declaration.overloadIndex];
+                    case DeclarationCode.GlobalVariable: return library.variables[(int)declaration.index];
+                    case DeclarationCode.GlobalFunction: return library.methods[(int)declaration.index][(int)declaration.overloadIndex];
+                    case DeclarationCode.NativeFunction: return library.natives[(int)declaration.index][(int)declaration.overloadIndex];
+                }
+            }
+            else
+            {
+                var rely = relies[declaration.library];
+                switch (declaration.code)
+                {
+                    case DeclarationCode.Definition: return rely.definitions[(int)declaration.index];
+                    case DeclarationCode.MemberFunction: return rely.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]].functions[(int)declaration.overloadIndex];
+                    case DeclarationCode.ConstructorFunction: return rely.methods[(int)declaration.index].functions[(int)declaration.overloadIndex];
+                    case DeclarationCode.Delegate: return rely.delegates[(int)declaration.index];
+                    case DeclarationCode.Coroutine: return rely.coroutines[(int)declaration.index];
+                    case DeclarationCode.Interface: return rely.interfaces[(int)declaration.index];
+                    case DeclarationCode.InterfaceFunction: return rely.interfaces[(int)declaration.definitionIndex].methods[declaration.index].functions[declaration.overloadIndex];
+                    case DeclarationCode.GlobalVariable: return rely.variables[(int)declaration.index];
+                    case DeclarationCode.GlobalFunction: return rely.methods[(int)declaration.index].functions[(int)declaration.overloadIndex];
+                    case DeclarationCode.NativeFunction: return rely.natives[(int)declaration.index].functions[(int)declaration.overloadIndex];
+                }
+            }
+            return null;
+        }
         public ISpace GetSpace(Declaration declaration)
         {
             if (declaration.library == LIBRARY.KERNEL) return RelyKernel.kernel;

@@ -58,8 +58,19 @@
             attribute = constant ? TokenAttribute.Constant : (TokenAttribute.Assignable | TokenAttribute.Value);
             attribute = attribute.AddTypeAttribute(type);
         }
+        private void AddDebugInfo(GeneratorParameter parameter)
+        {
+            if (parameter.command.generatorDebugTable && declaration)
+            {
+                var declaration = parameter.manager.GetDeclaration(this.declaration);
+                var type = parameter.relied.Convert(returns[0]).RuntimeType;
+                var relied = parameter.relied.Convert(this.declaration);
+                parameter.debug.AddGlobalVariableSegment(declaration, anchor, parameter.generator.Point, relied.library, relied.index, type);
+            }
+        }
         public override void Generator(GeneratorParameter parameter)
         {
+            AddDebugInfo(parameter);
             var declaration = parameter.relied.Convert(this.declaration);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Global2Local_Handle);
@@ -77,6 +88,7 @@
         }
         public override void GeneratorAssignment(GeneratorParameter parameter)
         {
+            AddDebugInfo(parameter);
             var declaration = parameter.relied.Convert(this.declaration);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_Handle);
             else if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_1);

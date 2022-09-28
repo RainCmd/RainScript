@@ -66,7 +66,7 @@ namespace RainScript.Compiler
             map.Dispose();
         }
     }
-    internal class RelyDeclaration
+    internal class RelyDeclaration : IDeclaration
     {
         public readonly string name;
         public readonly Declaration declaration;
@@ -77,6 +77,10 @@ namespace RainScript.Compiler
             this.declaration = declaration;
             this.space = space;
         }
+
+        Declaration IDeclaration.Declaration => declaration;
+        ISpace IDeclaration.Space => space;
+        string IDeclaration.Name => name;
     }
     internal class RelyDefinition : RelyDeclaration, IDefinition
     {
@@ -110,9 +114,6 @@ namespace RainScript.Compiler
             this.methods = methods;
         }
 
-        ISpace IDeclaramtion.Space => space;
-        string IDeclaramtion.Name => name;
-        Declaration IDeclaramtion.Declaration => declaration;
         CompilingDefinition IDefinition.Parent { get { return parent; } }
         IList<CompilingDefinition> IInterface.Inherits { get { return inherits; } }
         uint IDefinition.Constructor => constructors;
@@ -136,7 +137,7 @@ namespace RainScript.Compiler
         {
             var space = this.space;
             while (space.parent != null) space = space.parent;
-            if(space is RelyKernel)
+            if (space is RelyKernel)
             {
                 foreach (var method in methods)
                     if (RelyKernel.methods[method].name == name)
@@ -185,9 +186,6 @@ namespace RainScript.Compiler
 
         CompilingType[] IFunction.Parameters => parameters;
         CompilingType[] IFunction.Returns => returns;
-        Declaration IDeclaramtion.Declaration => declaration;
-        ISpace IDeclaramtion.Space => space;
-        string IDeclaramtion.Name => name;
     }
     internal class RelyMethod : RelyDeclaration, IMethod
     {
@@ -217,9 +215,6 @@ namespace RainScript.Compiler
 
         IList<CompilingDefinition> IInterface.Inherits => inherits;
         int IInterface.MethodCount => methods.Length;
-        Declaration IDeclaramtion.Declaration => declaration;
-        ISpace IDeclaramtion.Space => space;
-        string IDeclaramtion.Name => name;
         IMethod IInterface.GetMethod(int index)
         {
             return methods[index];

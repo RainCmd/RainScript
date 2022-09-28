@@ -23,7 +23,7 @@ namespace RainScript.Compiler
         /// </summary>
         bool Contain(ISpace space);
     }
-    internal interface IDeclaramtion
+    internal interface IDeclaration
     {
         Declaration Declaration { get; }
         ISpace Space { get; }
@@ -36,12 +36,12 @@ namespace RainScript.Compiler
         string Name { get; }
         IFunction GetFunction(int index);
     }
-    internal interface IFunction : IDeclaramtion
+    internal interface IFunction : IDeclaration
     {
         CompilingType[] Parameters { get; }
         CompilingType[] Returns { get; }
     }
-    internal interface IInterface : IDeclaramtion
+    internal interface IInterface : IDeclaration
     {
         IList<CompilingDefinition> Inherits { get; }
         int MethodCount { get; }

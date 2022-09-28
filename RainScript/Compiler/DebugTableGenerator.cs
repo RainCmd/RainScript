@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using RainScript.Compiler.LogicGenerator.Expressions;
+using System.Collections.Generic;
 
 namespace RainScript.Compiler
 {
     internal class DebugTableGenerator
     {
         private readonly DebugTable table;
+        private int index = 0x1000_0000;
         public DebugTableGenerator(CompilerCommand command, string name)
         {
             if (command.generatorDebugTable) table = new DebugTable(name);
@@ -64,10 +66,43 @@ namespace RainScript.Compiler
                 }
             }
         }
-        internal void AddGlobalValue(string fullName,uint point,Type type)
+        internal void AddGlobalVariableSegment(IDeclaration declaration, Anchor anchor, uint point, uint library, uint index, Type type)
         {
             if (table == null) return;
-            table.globalVariables.Add(new DebugTable.VariableInfo(fullName, type, point));
+            if (anchor.textInfo.TryGetLineInfo(anchor.start, out var line) && TryGetFunction(anchor, point, out var function))
+            {
+                var debugIndex = RegistGlobalVariable(declaration, library, index, type);
+                function.globalVariables.Add(new DebugTable.GlobalVariableSegment(line.number, anchor.start - line.segment.start, anchor.Segment.Length, debugIndex));
+            }
+        }
+        internal int RegistGlobalVariable(IDeclaration declaration, uint library, uint index, Type type)
+        {
+            if (table == null) return -1;
+            var space = GetSpace(declaration.Space);
+            foreach (var item in space.variables)
+            {
+                var variable = table.globalVariables[item];
+                if (variable.library == library && variable.index == index)
+                    return item;
+            }
+            var result = table.globalVariables.Count;
+            space.variables.Add(result);
+            table.globalVariables.Add(new DebugTable.GlobalVariable(declaration.Name, type, library, index));
+            return result;
+        }
+        private DebugTable.Space GetSpace(ISpace space)
+        {
+            if (space.Parent == null) return AddSpace(table.spaces, space.Name);
+            else return AddSpace(GetSpace(space.Parent).spaces, space.Name);
+        }
+        private DebugTable.Space AddSpace(IList<DebugTable.Space> spaces, string name)
+        {
+            foreach (var item in spaces)
+                if (item.name == name)
+                    return item;
+            var result = new DebugTable.Space(index++, name);
+            spaces.Add(result);
+            return result;
         }
     }
 }

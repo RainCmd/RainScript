@@ -35,6 +35,7 @@ enum SCProto
 	GetVariable,
 	GetHeap,
 	GetStack,
+	GetHover,
 
 	HitBreakpoint = 0x2001,
 	Exception,
@@ -160,7 +161,7 @@ export class RainDebugSession extends LoggingDebugSession {
 		response.body.supportsBreakpointLocationsRequest = true;// 让VS Code发送breakpointLocations请求
 		response.body.supportsStepInTargetsRequest = false;// 让VS Code提供“步进目标”功能
 
-		// 适配器定义了两个异常过滤器，其中一个支持条件。
+		// 条件异常过滤器
 		response.body.supportsExceptionFilterOptions = true;
 		response.body.exceptionBreakpointFilters = [
 			{
@@ -234,8 +235,7 @@ export class RainDebugSession extends LoggingDebugSession {
 
 	protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {
 
-		var path = args.source.path as string;
-		path = path.replace(/\\/g,'/').substring(this.projectPath.length);
+		var path = this.getLocalPath(args.source.path as string);
 		const clientLines = args.lines || [];
 
 		var sbuf=new RainBufferGenerator();
@@ -366,13 +366,12 @@ export class RainDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
-
+	protected async scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): Promise<void> {
 		response.body = {
 			scopes: [
-				new Scope("局部变量", 1, false),
-				new Scope("全局变量", 2, true),
-			 ]
+				new Scope("局部变量", 0x7fff_ffff, false),
+				new Scope("程序集", 0x7fff_fffe, true)
+			]
 		};
 		this.sendResponse(response);
 	}
@@ -383,7 +382,15 @@ export class RainDebugSession extends LoggingDebugSession {
 		buf.pushInt32(args.variablesReference);
 		var result=await this.Request(SCProto.GetVariable,buf);
 		if(result){
-			var cnt=result?.readInt32();
+			var cnt=result.readInt32();
+			while(cnt-->0){
+				vs.push({
+					name : result.readString(),
+					variablesReference : result.readInt32(),
+					value : ""
+				});
+			}
+			cnt=result.readInt32();
 			while(cnt-->0){
 				vs.push({
 					name : result.readString(),
@@ -420,22 +427,30 @@ export class RainDebugSession extends LoggingDebugSession {
 		await this.Request(SCProto.Pause);
 		this.sendResponse(response);
 	}
-	// protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments, request?: DebugProtocol.Request | undefined): void {
-	// 	if(args.context=='hover'){
-	// 		console.log("hover表达式 "+args.expression);
-	// 		var reg = /[0-9]*/g;
-	// 		var m = reg.exec(args.expression);
-	// 		if(m?.length==2){
-	// 			var line = Number.parseInt(m[0].valueOf());
-	// 			var col = Number.parseInt(m[1].valueOf());
-	// 			console.log("请求表达式 line:"+line+" col:"+col);
-	// 		}
-	// 		response.body={
-	// 			result : "cnm的",
-	// 			variablesReference : 0
-	// 		};
-	// 	}
-	// 	this.sendResponse(response);
-	// }
+	protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments, request?: DebugProtocol.Request | undefined): Promise<void> {
+		if(args.context=='hover'){
+			var splits = args.expression.split(' ');
+			if(splits.length==3){
+				var path=splits[0];
+				var line=Number.parseInt(splits[1]);
+				var col=Number.parseInt(splits[2]);
+				var buf=new RainBufferGenerator();
+				buf.pushString(this.getLocalPath(path));
+				buf.pushInt32(line);
+				buf.pushInt32(col);
+				var result = await this.Request(SCProto.GetHover,buf);
+				if(result&&result.readBool()){
+					response.body={
+						result : result.readString(),
+						variablesReference : 0
+					};
+				}
+			}
+		}
+		this.sendResponse(response);
+	}
+	private getLocalPath(path:string):string{
+		return path.replace(/\\/g,'/').substring(this.projectPath.length); 
+	}
 }
 

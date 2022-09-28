@@ -26,7 +26,7 @@ namespace RainScript.Compiler.Compiling
             this.references = references;
         }
     }
-    internal class Declaration
+    internal class Declaration : IDeclaration
     {
         public readonly Anchor name;
         public readonly Compiler.Declaration declaration;
@@ -37,6 +37,10 @@ namespace RainScript.Compiler.Compiling
             this.declaration = declaration;
             this.space = space;
         }
+
+        Compiler.Declaration IDeclaration.Declaration => declaration;
+        ISpace IDeclaration.Space => space;
+        string IDeclaration.Name => name.Segment;
     }
     internal class Definition : Declaration, IDefinition
     {
@@ -71,9 +75,6 @@ namespace RainScript.Compiler.Compiling
             this.destructor = destructor;
         }
 
-        ISpace IDeclaramtion.Space => space;
-        Compiler.Declaration IDeclaramtion.Declaration => declaration;
-        string IDeclaramtion.Name => name.Segment;
         CompilingDefinition IDefinition.Parent { get { return parent; } }
         IList<CompilingDefinition> IInterface.Inherits { get { return inherits; } }
         uint IDefinition.Constructor => constructors;
@@ -126,9 +127,6 @@ namespace RainScript.Compiler.Compiling
             parameterNames = new Anchor[parameterCount];
         }
 
-        string IDeclaramtion.Name => name.Segment;
-        ISpace IDeclaramtion.Space => space;
-        Compiler.Declaration IDeclaramtion.Declaration => declaration;
         CompilingType[] IFunction.Parameters => parameters;
         CompilingType[] IFunction.Returns => returns;
     }
@@ -166,9 +164,6 @@ namespace RainScript.Compiler.Compiling
 
         CompilingType[] IFunction.Parameters => parameters;
         CompilingType[] IFunction.Returns => returns;
-        Compiler.Declaration IDeclaramtion.Declaration => declaration;
-        ISpace IDeclaramtion.Space => space;
-        string IDeclaramtion.Name => name.Segment;
     }
     internal class Method : IMethod
     {
@@ -238,9 +233,6 @@ namespace RainScript.Compiler.Compiling
 
         IList<CompilingDefinition> IInterface.Inherits { get { return inherits; } }
         int IInterface.MethodCount => methods.Length;
-        Compiler.Declaration IDeclaramtion.Declaration => declaration;
-        ISpace IDeclaramtion.Space => space;
-        string IDeclaramtion.Name => name.Segment;
         IMethod IInterface.GetMethod(int index)
         {
             return methods[index];

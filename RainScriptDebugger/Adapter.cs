@@ -29,6 +29,7 @@ namespace RainScriptDebugger
         GetVariable,
         GetHeap,
         GetStack,
+        GetHover,
     }
     internal struct Breakpoint
     {
@@ -266,13 +267,15 @@ namespace RainScriptDebugger
                 case RECVInstruction.GetVariable:
                     {
                         reader.ReadInt32();//指令数据长度
-                        var type = reader.ReadInt32();
+                        var index = reader.ReadInt32();
                         var writer = GetWriter(RainSocketHead.message);
                         writer.Write((int)SENDInstruction.Reply);
                         writer.Write(reqID);
 
-                        if (type == 1)//局部变量
+                        if (index == 0x7fff_ffff)//局部变量
                         {
+                            writer.Write(0);
+
                             var point = writer.Size;
                             writer.Write(0);
                             var count = 0;
@@ -287,15 +290,49 @@ namespace RainScriptDebugger
                             }
                             writer.Write(count, point);
                         }
-                        else if (type == 2)//全局变量
+                        else if (index == 0x7fff_fffe)//程序集
                         {
-                            writer.Write(debug.globalVariables.Count);
-                            var address = new RKernenl(kernel).libraryAgency[library].data;
-                            foreach (var variable in debug.globalVariables)
+                            var point = writer.Size;
+                            writer.Write(0);
+                            var count = 0;
+                            foreach (var space in debug.GetSpaces())
+                            {
+                                writer.Write(space.name);
+                                writer.Write(space.index);
+                                count++;
+                            }
+                            writer.Write(count, point);
+
+                            writer.Write(0);
+                        }
+                        else if (debug.TryGetSpace(index, out var space))
+                        {
+                            var point = writer.Size;
+                            writer.Write(0);
+                            var count = 0;
+                            foreach (var item in space)
+                            {
+                                writer.Write(item.name);
+                                writer.Write(item.index);
+                                count++;
+                            }
+                            writer.Write(count, point);
+
+                            point = writer.Size;
+                            writer.Write(0);
+                            count = 0;
+                            foreach (var variable in space.GetVariables(debug))
                             {
                                 writer.Write(variable.name);
-                                writer.Write(DebugTable.Evaluate(kernel, variable, address));
+                                writer.Write(DebugTable.Evaluate(kernel, variable, library));
+                                count++;
                             }
+                            writer.Write(count, point);
+                        }
+                        else
+                        {
+                            writer.Write(0);
+                            writer.Write(0);
                         }
 
                         Send(writer);
@@ -343,7 +380,28 @@ namespace RainScriptDebugger
                         Send(writer);
                     }
                     break;
-                default:
+                case RECVInstruction.GetHover:
+                    {
+                        reader.ReadInt32();//数据长度
+                        var path = reader.ReadString();
+                        var line = reader.ReadInt32();
+                        var col = reader.ReadInt32();
+                        var writer = GetWriter(RainSocketHead.message);
+                        writer.Write((int)SENDInstruction.Reply);
+                        writer.Write(reqID);
+                        if (debug.TryGetVariable(path, line, col, out var variable))
+                        {
+                            writer.Write(true);
+                            writer.Write(DebugTable.Evaluate(kernel, variable, new RKernenl(kernel).coroutineAgency.invoking.stack));
+                        }
+                        else if (debug.TryGetGlobalVariable(path, line, col, out var globalVariable))
+                        {
+                            writer.Write(true);
+                            writer.Write(DebugTable.Evaluate(kernel, globalVariable, library));
+                        }
+                        else writer.Write(false);
+                        Send(writer);
+                    }
                     break;
             }
         }
