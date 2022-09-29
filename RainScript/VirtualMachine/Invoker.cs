@@ -380,20 +380,18 @@ namespace RainScript.VirtualMachine
         private uint size;
         private byte* data = null;
         private readonly List<StackFrame> frames = new List<StackFrame>();
+        internal Coroutine coroutine;
         public bool IsPause
         {
             get
             {
                 StateAssert(InvokerState.Running);
-                var coroutine = handle.library.kernel.coroutineAgency.GetCoroutine(this);
-                if (coroutine != null) return coroutine.pause;
-                else return false;
+                return coroutine.pause;
             }
             set
             {
                 StateAssert(InvokerState.Running);
-                var coroutine = handle.library.kernel.coroutineAgency.GetCoroutine(this);
-                if (coroutine != null) coroutine.pause = value;
+                coroutine.pause = value;
             }
         }
         public Invoker(ulong instanceIndex)
@@ -542,7 +540,7 @@ namespace RainScript.VirtualMachine
             if (code != 0)
             {
                 StateAssert(InvokerState.Running);
-                handle.library.kernel.coroutineAgency.Abort(this, code);
+                coroutine.exit = code;
                 state = InvokerState.Aborted;
             }
         }
@@ -581,7 +579,7 @@ namespace RainScript.VirtualMachine
             {
                 case InvokerState.Unstarted:
                     break;
-                case InvokerState.Running: return handle.library.kernel.coroutineAgency.GetCoroutine(this).GetStackFrames();
+                case InvokerState.Running: return coroutine.GetStackFrames();
                 case InvokerState.Completed:
                 case InvokerState.Aborted: return frames.ToArray();
                 case InvokerState.Invalid:

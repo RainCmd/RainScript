@@ -6,7 +6,7 @@ namespace RainScript.VirtualMachine
     internal class CoroutineAgency : IDisposable
     {
         private readonly Kernel kernel;
-        private Coroutine head, abort;
+        private Coroutine head;
         internal Coroutine invoking;
         private int count;
         [NonSerialized]
@@ -47,12 +47,13 @@ namespace RainScript.VirtualMachine
             }
             coroutine.Initialize(invoker, ignoreWait);
             count++;
-            if (immediately && !coroutine.Update()) Recycle(coroutine);
-            else
+            if (immediately) coroutine.Update();
+            if (coroutine.Running)
             {
                 coroutine.next = head;
                 head = coroutine;
             }
+            else Recycle(coroutine);
         }
         private bool Remove(Invoker invoker, ref Coroutine head, out Coroutine coroutine)
         {
@@ -67,25 +68,6 @@ namespace RainScript.VirtualMachine
             coroutine = default;
             return false;
         }
-        internal void Abort(Invoker invoker, long code)
-        {
-            if (code != 0)
-            {
-                if (Remove(invoker, ref head, out var coroutine))
-                {
-                    coroutine.exit = code;
-                    coroutine.next = abort;
-                    abort = coroutine;
-                }
-            }
-        }
-        internal Coroutine GetCoroutine(Invoker invoker)
-        {
-            for (var index = head; index != null; index = index.next)
-                if (index.invoker == invoker)
-                    return index;
-            return null;
-        }
         internal void Update()
         {
             var count = this.count;
@@ -99,28 +81,29 @@ namespace RainScript.VirtualMachine
                 coroutines = new Coroutine[(count << 1) - count + 1];
             }
             count = 0;
-            for (var index = head; index != null; index = index.next)
-                if (!index.pause) coroutines[count++] = index;
+            for (var index = head; index != null; index = index.next) coroutines[count++] = index;
             for (var i = 0; i < count; i++)
             {
                 var coroutine = coroutines[i];
-                if (!coroutine.pause && coroutine.exit == 0 && !coroutine.Update())
-                    for (Coroutine index = head, prev = null; index != null; prev = index, index = index.next)
-                        if (index == coroutine)
-                        {
-                            if (prev == null) head = index.next;
-                            else prev.next = index.next;
-                            count--;
-                            Recycle(coroutine);
-                            break;
-                        }
+                if (!coroutine.pause && coroutine.exit == 0)
+                    coroutine.Update();
             }
-
-            for (var index = abort; abort != null; index = abort)
+            var idx = head;
+            for (int i = 0; i < count; i++)
             {
-                abort = abort.next;
-                index.Abort();
-                Recycle(index);
+                var coroutine = coroutines[i];
+                if (!coroutine.Running)
+                {
+                    if (head == coroutine) idx = head = coroutine.next;
+                    else
+                    {
+                        while (idx.next != coroutine) idx = idx.next;
+                        idx.next = coroutine.next;
+                    }
+                    if (idx.exit != 0) idx.Abort();
+                    Recycle(coroutine);
+                }
+                coroutines[i] = null;
             }
         }
         private void Recycle(Coroutine coroutine)
@@ -175,9 +158,8 @@ namespace RainScript.VirtualMachine
         {
             while (invokerPool.Count > 0) invokerPool.Pop().Dispose();
             Dispose(head);
-            Dispose(abort);
             Dispose(free);
-            head = abort = free = null;
+            head = free = null;
             invokerCount = 1;
         }
     }

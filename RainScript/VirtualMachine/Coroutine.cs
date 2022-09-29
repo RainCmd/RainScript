@@ -22,6 +22,7 @@ namespace RainScript.VirtualMachine
         internal uint bottom, point;
         private long wait, flag;
         internal byte* stack;
+        public bool Running { get { return exit == 0 && library != null; } }
         public Coroutine(Kernel kernel)
         {
             this.kernel = kernel;
@@ -48,6 +49,7 @@ namespace RainScript.VirtualMachine
             exit = wait = 0;
             library = invoker.handle.library;
             instanceID = invoker.instanceID;
+            invoker.coroutine = this;
             this.invoker = invoker;
             this.ignoreWait = ignoreWait;
             this.point = invoker.handle.entry;
@@ -61,16 +63,12 @@ namespace RainScript.VirtualMachine
             for (int i = 0; i < invoker.handle.function.returns.Length; i++) *(uint*)(point + i * 4) = invoker.handle.returnPoints[i];
             invoker.CopyTo(point + invoker.handle.function.returns.Length * 4, invoker.handle.parameterSize);
         }
-        public bool Update()
+        public void Update()
         {
-            if (wait > 0)
-            {
-                wait--;
-                return true;
-            }
-            return Run();
+            if (wait > 0) wait--;
+            else Run();
         }
-        private bool Run()
+        private void Run()
         {
             kernel.coroutineAgency.invoking = this;
             while (library != null)
@@ -106,13 +104,13 @@ namespace RainScript.VirtualMachine
                         break;
                     case CommandMacro.BASE_Wait:
                         point++;
-                        return true;
+                        return;
                     case CommandMacro.BASE_WaitFrame:
                         if (!ignoreWait) wait = *(long*)(stack + bottom + *(uint*)(library.code + point + 1));
                         point += 5;
                         if (wait == 0) break;
                         wait--;
-                        return true;
+                        return;
                     case CommandMacro.BASE_Stackzero:
                         {
                             var address = stack + bottom + *(uint*)(library.code + point + 1);
@@ -2552,7 +2550,6 @@ namespace RainScript.VirtualMachine
                 }
             }
             kernel.coroutineAgency.invoking = null;
-            return false;
         }
         public void Abort()
         {
@@ -2594,6 +2591,7 @@ namespace RainScript.VirtualMachine
                     kernel.OnExitEvent(invoker.GetStackFrames(), exit);
                     kernel.coroutineAgency.invoking = null;
                 }
+                invoker.coroutine = null;
             }
         }
         public void Dispose()
