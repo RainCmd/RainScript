@@ -4417,6 +4417,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     goto default;
                                 }
                                 else if (KeyWorld.IsKeyWorld(lexical.anchor.Segment)) goto default;
+                                else if (TryAddLocal(expressionStack, lexical, ref attribute)) break;
                                 else if (TryFindDeclaration(lexical.anchor, out var declaration))
                                 {
                                     switch (declaration.code)
@@ -4528,7 +4529,6 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else if (!TryAddLocal(expressionStack, lexical, ref attribute)) goto parse_fail;
                                 }
-                                else if (TryAddLocal(expressionStack, lexical, ref attribute)) break;
                                 else
                                 {
                                     exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);

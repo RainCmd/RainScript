@@ -47,14 +47,14 @@ namespace RainScript.Compiler.LogicGenerator
                     for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i + 1, parameters[i]);
-                        parameter.debug.AddVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
+                        parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize += parameters[i].FieldSize;
                     }
                 }
                 else for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i, parameters[i]);
-                        parameter.debug.AddVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
+                        parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize += parameters[i].FieldSize;
                     }
                 var topValue = new Referencable<uint>(parameter.pool);
@@ -556,18 +556,19 @@ namespace RainScript.Compiler.LogicGenerator
                 parameter.debug.AddFunction(file, line, generator.Point);
                 if (definition != null)
                 {
-                    variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
+                    var thisVarliable = variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
+                    parameter.debug.AddThisVariable(definition.name, generator.Point, thisVarliable.address, parameter.relied.Convert(thisVarliable.type).RuntimeType);
                     for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i + 1, parameters[i]);
-                        parameter.debug.AddVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
+                        parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize += parameters[i].FieldSize;
                     }
                 }
                 else for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i, parameters[i]);
-                        parameter.debug.AddVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
+                        parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize += parameters[i].FieldSize;
                     }
                 var topValue = new Referencable<uint>(parameter.pool);

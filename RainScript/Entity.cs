@@ -7,6 +7,10 @@
         {
             this.entity = entity;
         }
+        public override string ToString()
+        {
+            return "Entity:" + entity.ToString();
+        }
         public static explicit operator Entity(ulong entity)
         {
             return new Entity(entity);

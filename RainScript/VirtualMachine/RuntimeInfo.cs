@@ -99,9 +99,6 @@ namespace RainScript.VirtualMachine
         public readonly Function function;
         [FieldOffset(12)]
         public readonly uint target;
-        /// <summary>
-        /// 目标函数类型 0:全局函数 1:Native函数 2:成员函数 3:成员函数虚调用
-        /// </summary>
         [FieldOffset(16)]
         public readonly FunctionType type;
         public RuntimeDelegateInfo(uint library, Function function, uint target, FunctionType type)

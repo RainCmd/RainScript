@@ -157,6 +157,11 @@ namespace RainScript.VirtualMachine
         {
             return count;
         }
+        internal IEnumerable<Coroutine> GetCoroutines()
+        {
+            for (var index = head; index != null; index = index.next)
+                yield return index;
+        }
 
         private void Dispose(Coroutine coroutine)
         {

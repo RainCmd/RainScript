@@ -12,13 +12,14 @@ namespace RainScript.VirtualMachine
     {
         private readonly Kernel kernel;
         private RuntimeLibraryInfo library;
-        private ulong instanceID;
+        internal ulong instanceID;
         public Invoker invoker;
         public Coroutine next;
         private bool ignoreWait;
         public bool pause;
         public long exit;
-        private uint stackSize, bottom, top, point;
+        private uint stackSize, top;
+        internal uint bottom, point;
         private long wait, flag;
         internal byte* stack;
         public Coroutine(Kernel kernel)

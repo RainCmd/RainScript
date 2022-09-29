@@ -75,21 +75,10 @@ namespace RainScript.Real
             if (this.value == 0) return "0";
             var stringBuilder = new StringBuilder();
             var value = this.value;
-            if (value < 0)
-            {
-                value = -value;
-                stringBuilder.Append('-');
-            }
+            if (value < 0) value = -value;
             var integer = value >> DECIMAL;
             if (integer == 0) stringBuilder.Append('0');
-            else
-            {
-                while (integer > 0)
-                {
-                    stringBuilder.Insert(0, integer % 10);
-                    integer /= 10;
-                }
-            }
+            else stringBuilder.Append(integer);
             var dec = value & MASK_DECIMAL;
             if (dec > 0)
             {
@@ -101,6 +90,7 @@ namespace RainScript.Real
                     dec &= MASK_DECIMAL;
                 }
             }
+            if (this.value < 0) stringBuilder.Insert(0, '-');
             return stringBuilder.ToString();
         }
         /// <summary>

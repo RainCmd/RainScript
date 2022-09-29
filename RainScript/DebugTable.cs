@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
-using RainScript.Vector;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -16,20 +14,15 @@ namespace RainScript
     [Serializable]
     public class DebugTable
     {
-        /// <summary>
-        /// 全局变量
-        /// </summary>
+        internal const int SPACE_INDEX = 0x1000_0000;
         [Serializable]
-        public struct GlobalVariable
+        internal struct GlobalVariable
         {
-            /// <summary>
-            /// 变量名
-            /// </summary>
             public readonly string name;
-            internal readonly Type type;
-            internal readonly uint library;
-            internal readonly uint index;
-            internal GlobalVariable(string name, Type type, uint library, uint index)
+            public readonly Type type;
+            public readonly uint library;
+            public readonly uint index;
+            public GlobalVariable(string name, Type type, uint library, uint index)
             {
                 this.name = name;
                 this.type = type;
@@ -37,49 +30,17 @@ namespace RainScript
                 this.index = index;
             }
         }
-        /// <summary>
-        /// 空间
-        /// </summary>
         [Serializable]
-        public class Space
+        internal class Space
         {
-            /// <summary>
-            /// 编号
-            /// </summary>
             public readonly int index;
-            /// <summary>
-            /// 名称
-            /// </summary>
             public readonly string name;
-            internal readonly List<Space> spaces = new List<Space>();
-            internal readonly List<int> variables = new List<int>();
-            internal Space(int index, string name)
+            public readonly List<Space> spaces = new List<Space>();
+            public readonly List<int> variables = new List<int>();
+            public Space(int index, string name)
             {
                 this.index = index;
                 this.name = name;
-            }
-            /// <summary>
-            /// 遍历当前空间下的全局变量
-            /// </summary>
-            /// <param name="table"></param>
-            /// <returns></returns>
-            public IEnumerable<GlobalVariable> GetVariables(DebugTable table)
-            {
-                foreach (var item in variables)
-                {
-                    yield return table.globalVariables[item];
-                }
-            }
-            /// <summary>
-            /// 遍历子空间
-            /// </summary>
-            /// <returns></returns>
-            public IEnumerator<Space> GetEnumerator()
-            {
-                foreach (var space in spaces)
-                {
-                    yield return space;
-                }
             }
         }
         [Serializable]
@@ -97,22 +58,13 @@ namespace RainScript
                 this.index = index;
             }
         }
-        /// <summary>
-        /// 变量信息
-        /// </summary>
         [Serializable]
-        public struct VariableInfo
+        internal struct VariableInfo
         {
-            /// <summary>
-            /// 变量名
-            /// </summary>
             public readonly string name;
-            internal readonly Type type;
-            /// <summary>
-            /// 地址
-            /// </summary>
+            public readonly Type type;
             public readonly uint address;
-            internal VariableInfo(string name, Type type, uint address)
+            public VariableInfo(string name, Type type, uint address)
             {
                 this.name = name;
                 this.type = type;
@@ -125,7 +77,7 @@ namespace RainScript
             public readonly int line;
             public readonly int column;
             public readonly int length;
-            internal Segment(int line, int column, int length)
+            public Segment(int line, int column, int length)
             {
                 this.line = line;
                 this.column = column;
@@ -152,7 +104,7 @@ namespace RainScript
             public readonly uint line;
             public readonly uint point;
 
-            internal Breakpoint(uint line, uint point)
+            public Breakpoint(uint line, uint point)
             {
                 this.line = line;
                 this.point = point;
@@ -180,21 +132,12 @@ namespace RainScript
         internal readonly Dictionary<string, List<Function>> files = new Dictionary<string, List<Function>>();
         internal readonly List<Space> spaces = new List<Space>();
         internal readonly List<GlobalVariable> globalVariables = new List<GlobalVariable>();
-        /// <summary>
-        /// 遍历程序集
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<Space> GetSpaces()
+
+        internal DebugTable(string name)
         {
-            return spaces;
+            this.name = name;
         }
-        /// <summary>
-        /// 获取指定编号的空间
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        public bool TryGetSpace(int index, out Space result)
+        internal bool TryGetSpace(int index, out Space result)
         {
             foreach (var space in spaces)
                 if (TryGetSpace(space, index, out result))
@@ -215,11 +158,6 @@ namespace RainScript
             result = default;
             return false;
         }
-
-        internal DebugTable(string name)
-        {
-            this.name = name;
-        }
         private bool TryGetFunction(string path, int line, out Function result)
         {
             if (files.TryGetValue(path, out var functions))
@@ -236,29 +174,14 @@ namespace RainScript
             result = default;
             return false;
         }
-        /// <summary>
-        /// 获取断点位置
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="line"></param>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        public bool TryGetBreakpoint(string path, int line, out uint point)
+        internal bool TryGetBreakpoint(string path, int line, out uint point)
         {
             if (TryGetFunction(path, line, out var function) && function.points.TryGetValue(line, out point))
                 return true;
             point = 0;
             return false;
         }
-        /// <summary>
-        /// 获取文本所属变量
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="line"></param>
-        /// <param name="column"></param>
-        /// <param name="variable"></param>
-        /// <returns></returns>
-        public bool TryGetVariable(string path, int line, int column, out VariableInfo variable)
+        internal bool TryGetVariable(string path, int line, int column, out VariableInfo variable)
         {
             if (TryGetFunction(path, line, out var function))
             {
@@ -280,15 +203,7 @@ namespace RainScript
             variable = default;
             return false;
         }
-        /// <summary>
-        /// 获取文本所属变量
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="line"></param>
-        /// <param name="column"></param>
-        /// <param name="variable"></param>
-        /// <returns></returns>
-        public bool TryGetGlobalVariable(string path, int line, int column, out GlobalVariable variable)
+        internal bool TryGetGlobalVariable(string path, int line, int column, out GlobalVariable variable)
         {
             if (TryGetFunction(path, line, out var function))
             {
@@ -307,12 +222,7 @@ namespace RainScript
             variable = default;
             return false;
         }
-        /// <summary>
-        /// 当前上下文中的局部变量列表(可能有重复变量名)
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        public IEnumerable<VariableInfo> GetVariables(uint point)
+        internal IEnumerable<VariableInfo> GetVariables(uint point)
         {
             Function function = null;
             var dis = uint.MaxValue;
@@ -327,15 +237,7 @@ namespace RainScript
                 foreach (var item in function.variables)
                     yield return new VariableInfo(item.Value.name, item.Value.type, item.Key);
         }
-        /// <summary>
-        /// 获取函数信息
-        /// </summary>
-        /// <param name="point"></param>
-        /// <param name="path"></param>
-        /// <param name="fn"></param>
-        /// <param name="line"></param>
-        /// <returns></returns>
-        public bool TryGetFunctionInfo(uint point, out string path, out string fn, out uint line)
+        internal bool TryGetFunctionInfo(uint point, out string path, out string fn, out uint line)
         {
             Function function = null;
             var dis = uint.MaxValue;
@@ -359,85 +261,6 @@ namespace RainScript
                     }
             }
             return function != null;
-        }
-        private static unsafe string Evaluate(VirtualMachine.Kernel kernel, Type type, byte* address)
-        {
-            if (type.dimension == 0)
-            {
-                switch (type.definition.code)
-                {
-                    case TypeCode.Invalid: goto default;
-                    case TypeCode.Bool: return ((bool*)(address))->ToString();
-                    case TypeCode.Integer: return ((long*)(address))->ToString();
-                    case TypeCode.Real: return ((real*)(address))->ToString();
-                    case TypeCode.Real2: return ((Real2*)(address))->ToString();
-                    case TypeCode.Real3: return ((Real3*)(address))->ToString();
-                    case TypeCode.Real4: return ((Real4*)(address))->ToString();
-                    case TypeCode.String: return kernel.stringAgency.Get(*(uint*)address);
-                    case TypeCode.Handle: return string.Format("托管类型：{0}", *(uint*)address);
-                    case TypeCode.Interface: return string.Format("接口类型：{0}", *(uint*)address);
-                    case TypeCode.Function: return string.Format("函数指针：{0}", *(uint*)address);
-                    case TypeCode.Coroutine: return string.Format("协程：{0}", *(uint*)address);
-                    case TypeCode.Entity: return string.Format("实体：{0}", ((Entity*)address)->entity);
-                    default: return "未知的类型";
-                }
-            }
-            if (kernel.heapAgency.TryGetArrayLength(*(uint*)address, out var length) == VirtualMachine.ExitCode.None) return string.Format("数组[{0}]：{1}", length, *(uint*)address);
-            else return string.Format("数组：{1}", length, *(uint*)address);
-        }
-        /// <summary>
-        /// 计算变量值
-        /// </summary>
-        /// <param name="kernel"></param>
-        /// <param name="info"></param>
-        /// <param name="stack"></param>
-        /// <returns></returns>
-        public static unsafe string Evaluate(VirtualMachine.Kernel kernel, VariableInfo info, byte* stack)
-        {
-            return Evaluate(kernel, info.type, stack + info.address);
-        }
-        /// <summary>
-        /// 计算变量值
-        /// </summary>
-        /// <param name="kernel"></param>
-        /// <param name="info"></param>
-        /// <param name="library"></param>
-        /// <returns></returns>
-        public static unsafe string Evaluate(VirtualMachine.Kernel kernel, GlobalVariable info, uint library)
-        {
-            kernel.libraryAgency[library].LocalToGlobal(info.library, info.index, out var globalLibrary, out var globalVariable);
-            var targetLibrary = kernel.libraryAgency[globalLibrary];
-            return Evaluate(kernel, info.type, targetLibrary.data + targetLibrary.variables[globalVariable]);
-        }
-        /// <summary>
-        /// 获取库的代码指针
-        /// </summary>
-        /// <param name="library"></param>
-        /// <returns></returns>
-        public static unsafe byte* GetCode(object library)
-        {
-            if (library is VirtualMachine.RuntimeLibraryInfo runtime) return runtime.code;
-            return null;
-        }
-        /// <summary>
-        /// 获取库的数据指针
-        /// </summary>
-        /// <param name="library"></param>
-        /// <returns></returns>
-        public static unsafe byte* GetData(object library)
-        {
-            if (library is VirtualMachine.RuntimeLibraryInfo runtime) return runtime.data;
-            return null;
-        }
-        /// <summary>
-        /// 获取携程当前栈
-        /// </summary>
-        /// <param name="coroutine"></param>
-        /// <returns></returns>
-        public static unsafe byte* GetStack(object coroutine)
-        {
-            if (coroutine is VirtualMachine.Coroutine cor) return cor.stack;
-            else return null;
         }
     }
 }

@@ -377,7 +377,7 @@ export class RainDebugSession extends LoggingDebugSession {
 	}
 
 	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request): Promise<void> {
-		let vs:Variable[]=[]
+		let vs:DebugProtocol.Variable[]=[]
 		var buf=new RainBufferGenerator()
 		buf.pushInt32(args.variablesReference);
 		var result=await this.Request(SCProto.GetVariable,buf);
@@ -387,15 +387,16 @@ export class RainDebugSession extends LoggingDebugSession {
 				vs.push({
 					name : result.readString(),
 					variablesReference : result.readInt32(),
-					value : ""
+					value : "",
 				});
 			}
 			cnt=result.readInt32();
 			while(cnt-->0){
 				vs.push({
 					name : result.readString(),
-					variablesReference : 0,
-					value : result.readString()
+					variablesReference : result.readInt32(),
+					type : result.readString(),
+					value : result.readString(),
 				});
 			}
 		}
@@ -439,10 +440,10 @@ export class RainDebugSession extends LoggingDebugSession {
 				buf.pushInt32(line);
 				buf.pushInt32(col);
 				var result = await this.Request(SCProto.GetHover,buf);
-				if(result&&result.readBool()){
+				if(result && result.readBool()){
 					response.body={
+						variablesReference : result.readInt32(),
 						result : result.readString(),
-						variablesReference : 0
 					};
 				}
 			}

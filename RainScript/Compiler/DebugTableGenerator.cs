@@ -1,4 +1,5 @@
 ﻿using RainScript.Compiler.LogicGenerator.Expressions;
+using RainScript.Real;
 using System.Collections.Generic;
 
 namespace RainScript.Compiler
@@ -6,7 +7,7 @@ namespace RainScript.Compiler
     internal class DebugTableGenerator
     {
         private readonly DebugTable table;
-        private int index = 0x1000_0000;
+        private int index = DebugTable.SPACE_INDEX;
         public DebugTableGenerator(CompilerCommand command, string name)
         {
             if (command.generatorDebugTable) table = new DebugTable(name);
@@ -40,7 +41,7 @@ namespace RainScript.Compiler
             }
             if (function != null)
             {
-                function.endLine = anchor.StartLine;
+                function.endLine = System.Math.Max(anchor.StartLine, function.endLine);
             }
             return function != null;
         }
@@ -51,7 +52,12 @@ namespace RainScript.Compiler
                 function.points.Add(anchor.StartLine, point);
             }
         }
-        internal void AddVariable(Anchor anchor, uint point, uint address, Type type)
+        internal void AddThisVariable(Anchor anchor, uint point, uint address, Type type)
+        {
+            if (TryGetFunction(anchor, point, out var function))
+                function.variables.Add(address, new DebugTable.Variable(KeyWorld.THIS, type));
+        }
+        internal void AddLocalVariable(Anchor anchor, uint point, uint address, Type type)
         {
             if (TryGetFunction(anchor, point, out var function))
             {

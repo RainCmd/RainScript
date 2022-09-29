@@ -57,7 +57,7 @@ namespace RainScript.VirtualMachine
         private readonly Kernel kernel;
         private readonly RuntimeLibraryInfo kernelLibrary;
         private readonly Func<string, Library> libraryLoader;
-        private readonly IList<RuntimeLibraryInfo> libraries = new List<RuntimeLibraryInfo>();
+        internal readonly List<RuntimeLibraryInfo> libraries = new List<RuntimeLibraryInfo>();
         private uint functionCharacteristic = 0;
         internal RuntimeLibraryInfo this[uint index]
         {

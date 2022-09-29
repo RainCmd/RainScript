@@ -24,7 +24,7 @@
         {
             if (!parameter.variable.TryGetLocal(declaration.index, out var variable))
                 variable = parameter.variable.DecareLocal(declaration.index, returns[0]);
-            parameter.debug.AddVariable(anchor, parameter.generator.Point, variable.address, parameter.relied.Convert(returns[0]).RuntimeType);
+            parameter.debug.AddLocalVariable(anchor, parameter.generator.Point, variable.address, parameter.relied.Convert(returns[0]).RuntimeType);
             return variable;
         }
         public override void Generator(GeneratorParameter parameter)

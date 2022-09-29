@@ -120,6 +120,9 @@
     <Compile Include="Compiler\Visibility.cs" />
     <Compile Include="ConstantValues.cs" />
     <Compile Include="DebugTable.cs" />
+    <Compile Include="Debug\Adapter.cs" />
+    <Compile Include="Debug\Debugger.cs" />
+    <Compile Include="Debug\Protocol.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="ExceptionGenerator.cs" />
     <Compile Include="Fixed\Fixed.cs" />
@@ -152,6 +155,7 @@
     <Compile Include="VirtualMachine\RuntimeInfo.cs" />
     <Compile Include="VirtualMachine\StringAgency.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>"D:\Soft\Unity2018.3.5f1\Unity\Editor\Data\MonoBleedingEdge\bin\mono.exe" "D:\Soft\Unity2018.3.5f1\Unity\Editor\Data\MonoBleedingEdge\lib\mono\4.5\pdb2mdb.exe" $(TargetPath)</PostBuildEvent>

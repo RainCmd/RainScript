@@ -15,8 +15,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决�
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainScriptRunner", "RainScriptRunner\RainScriptRunner.csproj", "{1C7E42EA-4B8D-435D-965B-9F7D5C184950}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainScriptDebugger", "RainScriptDebugger\RainScriptDebugger.csproj", "{9939C9A2-C9F1-4B92-853F-3EED1A336218}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainScriptDebuggerTest", "RainScriptDebuggerTest\RainScriptDebuggerTest.csproj", "{4D38DE1F-9D92-43AE-BD49-43773EF531C0}"
 EndProject
 Global
@@ -51,14 +49,6 @@ Global
 		{1C7E42EA-4B8D-435D-965B-9F7D5C184950}.Fixed|Any CPU.Build.0 = Debug|Any CPU
 		{1C7E42EA-4B8D-435D-965B-9F7D5C184950}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C7E42EA-4B8D-435D-965B-9F7D5C184950}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9939C9A2-C9F1-4B92-853F-3EED1A336218}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9939C9A2-C9F1-4B92-853F-3EED1A336218}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9939C9A2-C9F1-4B92-853F-3EED1A336218}.DebugFixed|Any CPU.ActiveCfg = Debug|Any CPU
-		{9939C9A2-C9F1-4B92-853F-3EED1A336218}.DebugFixed|Any CPU.Build.0 = Debug|Any CPU
-		{9939C9A2-C9F1-4B92-853F-3EED1A336218}.Fixed|Any CPU.ActiveCfg = Debug|Any CPU
-		{9939C9A2-C9F1-4B92-853F-3EED1A336218}.Fixed|Any CPU.Build.0 = Debug|Any CPU
-		{9939C9A2-C9F1-4B92-853F-3EED1A336218}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9939C9A2-C9F1-4B92-853F-3EED1A336218}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4D38DE1F-9D92-43AE-BD49-43773EF531C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4D38DE1F-9D92-43AE-BD49-43773EF531C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D38DE1F-9D92-43AE-BD49-43773EF531C0}.DebugFixed|Any CPU.ActiveCfg = Debug|Any CPU
