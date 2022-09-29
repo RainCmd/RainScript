@@ -1,12 +1,13 @@
 ﻿using RainScript;
 using RainScript.Compiler;
 using RainScript.VirtualMachine;
+using RainScript.Debug;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace RainScriptDebugger
+namespace RainScriptRunner
 {
     internal class Program
     {

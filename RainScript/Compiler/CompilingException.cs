@@ -178,6 +178,10 @@ namespace RainScript.Compiler
         /// </summary>
         GENERATOR_NOT_MEMBER_METHOD,
         /// <summary>
+        /// 不是句柄类型的成员方法
+        /// </summary>
+        GENERATOR_NOT_HANDLE_MEMBER_METHOD,
+        /// <summary>
         /// 不是个类型
         /// </summary>
         GENERATOR_NOT_TYPE,
