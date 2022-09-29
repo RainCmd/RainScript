@@ -3,7 +3,7 @@
  *--------------------------------------------------------*/
 import {
 	LoggingDebugSession, InitializedEvent,
-	Thread, Scope, StoppedEvent, Variable, TerminatedEvent
+	Thread, Scope, StoppedEvent, TerminatedEvent
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import {RemoteDebugSummary, selectionRemoteDebugger, sleep} from "./rainBase";

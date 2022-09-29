@@ -120,9 +120,9 @@
     <Compile Include="Compiler\Visibility.cs" />
     <Compile Include="ConstantValues.cs" />
     <Compile Include="DebugTable.cs" />
-    <Compile Include="Debug\Adapter.cs" />
-    <Compile Include="Debug\Debugger.cs" />
-    <Compile Include="Debug\Protocol.cs" />
+    <Compile Include="DebugAdapter\Adapter.cs" />
+    <Compile Include="DebugAdapter\Debugger.cs" />
+    <Compile Include="DebugAdapter\Protocol.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="ExceptionGenerator.cs" />
     <Compile Include="Fixed\Fixed.cs" />
