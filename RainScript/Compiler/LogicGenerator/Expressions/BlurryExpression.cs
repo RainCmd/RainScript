@@ -139,6 +139,7 @@
             }
             else if (invoker is InvokerMemberExpression invokerMember)
             {
+                if (IsKernelStructMember(invokerMember.declaration)) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_HANDLE_MEMBER_METHOD);
                 var targetParameter = new GeneratorParameter(parameter, 1);
                 invokerMember.target.Generator(targetParameter);
                 var parameterParameter = new GeneratorParameter(parameter, invokerMember.parameter.returns.Length);
@@ -174,6 +175,7 @@
             }
             else if (invoker is InvokerQuestionMemberExpression invokerQuestionMember)
             {
+                if (IsKernelStructMember(invokerQuestionMember.declaration)) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_HANDLE_MEMBER_METHOD);
                 var address = new Referencable<CodeAddress>(parameter.pool);
                 var targetParameter = new GeneratorParameter(parameter, 1);
                 invokerQuestionMember.target.Generator(targetParameter);
@@ -211,6 +213,22 @@
                 else parameter.generator.WriteCode(variable.type.definition.code);
                 parameter.generator.WriteCode(variable);
             }
+        }
+        private static bool IsKernelStructMember(Declaration declaration)
+        {
+            if (declaration.library == LIBRARY.KERNEL)
+            {
+                switch ((TypeCode)declaration.definitionIndex)
+                {
+                    case TypeCode.Handle:
+                    case TypeCode.Interface:
+                    case TypeCode.Function:
+                    case TypeCode.Coroutine:
+                        break;
+                    default: return true;
+                }
+            }
+            return false;
         }
     }
     internal class BlurryLambdaExpression : Expression

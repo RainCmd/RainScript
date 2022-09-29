@@ -158,6 +158,7 @@
         }
         public override void Generator(GeneratorParameter parameter)
         {
+            if (IsKernelStructMember(this.function)) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_HANDLE_MEMBER_METHOD);
             var sourceParameter = new GeneratorParameter(parameter, 1);
             source.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
@@ -171,6 +172,22 @@
             parameter.generator.WriteCode(function.definitionIndex);
             parameter.generator.WriteCode(new Function(function.index, 0));
             parameter.generator.WriteCode(sourceParameter.results[0]);
+        }
+        private static bool IsKernelStructMember(Declaration declaration)
+        {
+            if (declaration.library == LIBRARY.KERNEL)
+            {
+                switch ((TypeCode)declaration.definitionIndex)
+                {
+                    case TypeCode.Handle:
+                    case TypeCode.Interface:
+                    case TypeCode.Function:
+                    case TypeCode.Coroutine:
+                        break;
+                    default: return true;
+                }
+            }
+            return false;
         }
     }
     internal class DelegateCreateVirtualMemberFunctionExpression : Expression
@@ -212,6 +229,7 @@
         }
         public override void Generator(GeneratorParameter parameter)
         {
+            if (IsKernelStructMember(this.function)) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_HANDLE_MEMBER_METHOD);
             var address = new Referencable<CodeAddress>(parameter.pool);
             var sourceParameter = new GeneratorParameter(parameter, 1);
             source.Generator(sourceParameter);
@@ -231,6 +249,22 @@
             parameter.generator.WriteCode(sourceParameter.results[0]);
             parameter.generator.WriteCode(address);
             address.Dispose();
+        }
+        private static bool IsKernelStructMember(Declaration declaration)
+        {
+            if (declaration.library == LIBRARY.KERNEL)
+            {
+                switch ((TypeCode)declaration.definitionIndex)
+                {
+                    case TypeCode.Handle:
+                    case TypeCode.Interface:
+                    case TypeCode.Function:
+                    case TypeCode.Coroutine:
+                        break;
+                    default: return true;
+                }
+            }
+            return false;
         }
     }
 }
