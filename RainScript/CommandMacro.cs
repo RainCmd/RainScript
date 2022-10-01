@@ -266,5 +266,7 @@
         CASTING_R2I,
         CASTING_I2R,
         #endregion casting
+
+        BREAKPOINT,
     }
 }

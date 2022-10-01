@@ -59,7 +59,6 @@ namespace RainScript.DebugAdapter
     }
     internal unsafe class Adapter : IDisposable
     {
-        private const byte BASE_Stackzero = 5;
         private bool _disposed, _continue;
         private readonly int selfToken, remoteToken;
         private readonly Kernel kernel;
@@ -223,11 +222,7 @@ namespace RainScript.DebugAdapter
                         foreach (var line in lines)
                         {
                             var verified = debug.TryGetBreakpoint(fileName, line, out var point);
-                            if (verified && *(code + point) == BASE_Stackzero)
-                            {
-                                var address = (int*)(code + point + 5);
-                                *address = ~Math.Abs(*address);
-                            }
+                            if (verified && *(code + point) == (byte)CommandMacro.BREAKPOINT) *(bool*)(code + point + 1) = true;
                             else verified = false;
                             var breakpoint = new Breakpoint(breakpointIndex++, library.index, point, verified);
                             breakpoints.Add(breakpoint.id, breakpoint);
@@ -566,11 +561,7 @@ namespace RainScript.DebugAdapter
             foreach (var item in breakpoints)
             {
                 var point = la[item.Value.library].code + item.Value.point;
-                if (*point == BASE_Stackzero)
-                {
-                    var p = (int*)(point + 5);
-                    *p = Math.Abs(*p);
-                }
+                if (*point == (byte)CommandMacro.BREAKPOINT) *(bool*)(point + 1) = false;
             }
             breakpoints.Clear();
         }

@@ -26,8 +26,16 @@
         }
         public void WriteSymbol(Anchor anchor)
         {
+            if (!command.generatorSymbolTable) return;
             if (anchor.textInfo != null && anchor.textInfo.TryGetLineInfo(anchor.start, out var line))
                 symbol.WriteLine(generator.Point, (uint)line.number);
+        }
+        public void AddBreakpoint(Anchor anchor)
+        {
+            if (!command.generatorDebugTable) return;
+            debug.AddBreakpoint(anchor, generator.Point);
+            generator.WriteCode(CommandMacro.BREAKPOINT);
+            generator.WriteCode(false);
         }
     }
     internal abstract class Statement
@@ -50,7 +58,8 @@
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
             parameter.WriteSymbol(anchor);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+            parameter.AddBreakpoint(anchor);
+            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
             {
                 var expressionParameter = new Expressions.GeneratorParameter(parameter, expression.returns.Length);
                 expression.Generator(expressionParameter);
@@ -67,8 +76,9 @@
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
             parameter.WriteSymbol(anchor);
+            parameter.AddBreakpoint(anchor);
             if (expression != null)
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var returnParameter = new Expressions.GeneratorParameter(parameter, expression.returns.Length);
                     expression.Generator(returnParameter);
@@ -108,6 +118,7 @@
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
             parameter.WriteSymbol(anchor);
+            parameter.AddBreakpoint(anchor);
             if (condition == null)
             {
                 parameter.generator.WriteCode(CommandMacro.BASE_Jump);
@@ -115,7 +126,7 @@
             }
             else
             {
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);
@@ -137,8 +148,9 @@
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
             parameter.WriteSymbol(anchor);
+            parameter.AddBreakpoint(anchor);
             if (expression == null) parameter.generator.WriteCode(CommandMacro.BASE_Wait);
-            else using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+            else using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var waitParameter = new Expressions.GeneratorParameter(parameter, 1);
                     expression.Generator(waitParameter);
@@ -157,7 +169,8 @@
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
             parameter.WriteSymbol(anchor);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+            parameter.AddBreakpoint(anchor);
+            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
             {
                 var exitParameter = new Expressions.GeneratorParameter(parameter, 1);
                 expression.Generator(exitParameter);

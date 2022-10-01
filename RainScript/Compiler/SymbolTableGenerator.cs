@@ -28,7 +28,6 @@
         }
         public void WriteLine(uint point, uint line)
         {
-            if (!enable) return;
             if (lines.Count == 0 || lines[-1].line != line) lines.Add(new SymbolTable.Line(point, line));
         }
         public SymbolTable Generator()

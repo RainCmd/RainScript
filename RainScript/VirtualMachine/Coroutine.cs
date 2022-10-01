@@ -115,16 +115,6 @@ namespace RainScript.VirtualMachine
                         {
                             var address = stack + bottom + *(uint*)(library.code + point + 1);
                             var size = *(int*)(library.code + point + 5);
-                            if (size < 0)
-                            {
-                                size = ~size;
-                                kernel.OnHitBreakpointEvent();
-                            }
-                            else if (kernel.step)
-                            {
-                                kernel.step = false;
-                                kernel.OnHitBreakpointEvent();
-                            }
                             while (size-- > 0) address[size] = 0;
                         }
                         point += 9;
@@ -2546,6 +2536,14 @@ namespace RainScript.VirtualMachine
                         point += 9;
                         break;
                     #endregion Casting
+                    case CommandMacro.BREAKPOINT:
+                        if (kernel.step|| *(bool*)(library.code + point + 1))
+                        {
+                            kernel.step = false;
+                            kernel.OnHitBreakpointEvent();
+                        }
+                        point += 2;
+                        break;
                     default: throw ExceptionGeneratorVM.InvalidCommand((CommandMacro)library.code[point]);
                 }
             }

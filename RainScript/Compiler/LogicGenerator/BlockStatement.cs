@@ -1,6 +1,7 @@
 ﻿namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
+    using System.Reflection.Emit;
 
     internal class BlockStatement : Statement
     {
@@ -35,7 +36,8 @@
             parameter.WriteSymbol(anchor);
             var endPoint = new Referencable<CodeAddress>(parameter.pool);
             var truePoint = new Referencable<CodeAddress>(parameter.pool);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+            parameter.AddBreakpoint(anchor);
+            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
             {
                 var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                 condition.Generator(conditionParameter);
@@ -102,7 +104,8 @@
             parameter.generator.SetCodeAddress(loopPoint);
             if (condition != null)
             {
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+                parameter.AddBreakpoint(anchor);
+                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);
@@ -141,7 +144,8 @@
             var loopBlockPoint = new Referencable<CodeAddress>(parameter.pool);
             var breakPoint = new Referencable<CodeAddress>(parameter.pool);
             InitJumpTarget(loopBlock, breakPoint, loopPoint);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+            parameter.AddBreakpoint(anchor);
+            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
             {
                 var frontParameter = new Expressions.GeneratorParameter(parameter, front.returns.Length);
                 front.Generator(frontParameter);
@@ -152,15 +156,17 @@
                     parameter.generator.WriteCode(CommandMacro.BASE_Jump);
                     parameter.generator.WriteCode(conditionPoint);
                     parameter.generator.SetCodeAddress(loopPoint);
+                    parameter.AddBreakpoint(anchor);
                     foreach (var back in backs)
-                        using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+                        using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                         {
                             var backParameter = new Expressions.GeneratorParameter(parameter, back.returns.Length);
                             back.Generator(backParameter);
                         }
                     parameter.generator.SetCodeAddress(conditionPoint);
                 }
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, anchor, exitPoint))
+            parameter.AddBreakpoint(anchor);
+            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
             {
                 var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                 condition.Generator(conditionParameter);
