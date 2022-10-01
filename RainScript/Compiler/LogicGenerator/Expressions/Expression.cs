@@ -44,13 +44,6 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             results = new Variable[resultCount];
             for (int i = 0; i < resultCount; i++) results[i] = Variable.INVALID;
         }
-        public void CheckResult(Anchor anchor, params CompilingType[] types)
-        {
-            if (types.Length != results.Length) exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-            else for (var i = 0; i < types.Length; i++)
-                    if (!manager.TryGetMeasure(types[i], results[i].type, out _))
-                        exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-        }
     }
     internal abstract class Expression
     {

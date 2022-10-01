@@ -141,8 +141,8 @@
         public const string IF = "if";
         public const string ELIF = "elif";
         public const string ELSE = "else";
-        public const string LOOP = "loop";
-        public const string FOREACH = "foreach";//暂未实现，保留关键字
+        public const string WHILE = "while";
+        public const string FOR = "for";
         public const string BREAK = "break";
         public const string CONTINUE = "continue";
         public const string RETURN = "return";
@@ -196,8 +196,8 @@
             if (segment == IF) return true;
             if (segment == ELIF) return true;
             if (segment == ELSE) return true;
-            if (segment == LOOP) return true;
-            if (segment == FOREACH) return true;
+            if (segment == WHILE) return true;
+            if (segment == FOR) return true;
             if (segment == BREAK) return true;
             if (segment == CONTINUE) return true;
             if (segment == RETURN) return true;

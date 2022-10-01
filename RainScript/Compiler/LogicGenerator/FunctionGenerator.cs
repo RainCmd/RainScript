@@ -414,16 +414,21 @@ namespace RainScript.Compiler.LogicGenerator
                                         branchStatement.falseBranch.indent = line.indent;
                                         statementStack.Peek().statements.Add(new ElseStatement(anchor, branchStatement.falseBranch));
                                     }
-                                    else if (statements[-1] is LoopStatement loopStatement)
+                                    else if (statements[-1] is WhileStatement loopStatement)
                                     {
                                         loopStatement.elseBlock.indent = line.indent;
                                         statementStack.Peek().statements.Add(new ElseStatement(anchor, loopStatement.elseBlock));
+                                    }
+                                    else if (statements[-1] is ForStatement forStatement)
+                                    {
+                                        forStatement.elseBlock.indent = line.indent;
+                                        statementStack.Peek().statements.Add(new ElseStatement(anchor, forStatement.elseBlock));
                                     }
                                     else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                                 }
                                 else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             }
-                            else if (anchor.Segment == KeyWorld.LOOP)
+                            else if (anchor.Segment == KeyWorld.WHILE)
                             {
                                 if (lexicals.Count > 1)
                                 {
@@ -431,13 +436,26 @@ namespace RainScript.Compiler.LogicGenerator
                                     if (parser.TryParse(lexicals[1, -1], out var condition))
                                     {
                                         if (condition.returns.Length == 1 && condition.returns[0] == RelyKernel.BOOL_TYPE)
-                                            statementStack.Peek().statements.Add(new LoopStatement(anchor, condition, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                                            statementStack.Peek().statements.Add(new WhileStatement(anchor, condition, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
                                         else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                     }
                                 }
-                                else statementStack.Peek().statements.Add(new LoopStatement(anchor, null, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                                else statementStack.Peek().statements.Add(new WhileStatement(anchor, null, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
                             }
-                            else if (anchor.Segment == KeyWorld.FOREACH) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
+                            else if (anchor.Segment == KeyWorld.FOR)
+                            {
+                                if (lexicals.Count > 1)
+                                {
+                                    var parser = new ExpressionParser(parameter, context, localContext, destructor);
+                                    if (parser.TryParseTuple(lexicals[1, -1], out var expressions) && CheckForExpressions(parameter, anchor, expressions))
+                                    {
+                                        var backs = new Expression[expressions.Length - 2];
+                                        System.Array.Copy(expressions, 2, backs, 0, backs.Length);
+                                        statementStack.Peek().statements.Add(new ForStatement(anchor, expressions[0], expressions[1], backs, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                                    }
+                                }
+                                else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                            }
                             else if (anchor.Segment == KeyWorld.BREAK)
                             {
                                 if (lexicals.Count > 1)
@@ -521,6 +539,20 @@ namespace RainScript.Compiler.LogicGenerator
                 }
             }
         }
+        private bool CheckForExpressions(GeneratorParameter parameter, Anchor anchor, Expression[] expressions)
+        {
+            if (expressions.Length < 2)
+            {
+                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                return false;
+            }
+            if (expressions[1].returns.Length != 1 || expressions[1].returns[0] != RelyKernel.BOOL_TYPE)
+            {
+                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                return false;
+            }
+            return true;
+        }
         private bool CheckReturn(Statement statement)
         {
             if (statement is ExitStatement) return true;
@@ -532,7 +564,7 @@ namespace RainScript.Compiler.LogicGenerator
                         return true;
             }
             else if (statement is BranchStatement branchStatement) return CheckReturn(branchStatement.trueBranch) && CheckReturn(branchStatement.falseBranch);
-            else if (statement is LoopStatement loopStatement)
+            else if (statement is WhileStatement loopStatement)
             {
                 var returned = false;
                 foreach (var item in loopStatement.loopBlock.statements)

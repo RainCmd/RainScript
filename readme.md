@@ -35,7 +35,7 @@
 | function | 函数（委托）类型 | coroutine | 协程类型 |
 | array | 所有数组类型的基类 | if | 条件判断 |
 | elif | 跟在if/loop后的条件判断 | else | if/elif/loop判断为false时执行的分支 |
-| loop | 循环 | ~~foreach~~ | 保留关键字 |
+| while | 循环 | for | 循环 |
 | break | 跳出循环 | continue | 跳过循环中后续语句 |
 | return | 函数返回 | is | 尝试类型转换，如果转换成功则返回true，否则返回false |
 | as | 尝试类型转换，如果转换成功则返回对象，否则返回null | start | 开启新的协程 |
@@ -97,6 +97,11 @@ function Func()                     //声明一个函数指针（委托）类型
 coroutine Coro                      //声明一个协程 Coro
 ```
 
+# 循环
+while和for循环后可以跟else和elif语句，当循环的条件表达式为false时会执行，break跳出的循环不会执行
+while省略条件表达式则默认一直循环
+for循环表达式用','号分隔，第二个表达式为循环条件，第三个及后续表达式在循环结束时，循环条件判断前执行，并且可以省略
+
 # 元组
 表示返回值数量不为1的表达式，可以通过[]来取值，也可以组合成新的元组，
 元组的索引必须为常量，索引范围在0到元素数量之间，为负数的话会先加上元素数量后再计算
@@ -134,7 +139,7 @@ class A
 通过*start*关键字可以开启协程执行方法，注意：`协程不能直接执行native方法`
 ```rs
 Func(string n,int i)
-    loop i-->0
+    while i-->0
         wait
         Print(n+":"+i.ToString())
 Entry()
@@ -149,7 +154,7 @@ int,string Func()
     return 123,"abc"
 Entry()
     Coro c=start Func()
-    loop c.GetState()!=2            //协程状态码 0:未开始执行；1:执行中;2:执行完成;3:被主动取消;4:已失效
+    while c.GetState()!=2            //协程状态码 0:未开始执行；1:执行中;2:执行完成;3:被主动取消;4:已失效
         wait
     var a,var b=c[]                 //a的值是 123；b的值是 "abc"
 ```

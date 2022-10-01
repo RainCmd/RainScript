@@ -119,7 +119,6 @@
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);
-                    conditionParameter.CheckResult(condition.anchor, RelyKernel.BOOL_TYPE);
                     parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
                     parameter.generator.WriteCode(conditionParameter.results[0]);
                 }
@@ -143,7 +142,6 @@
                 {
                     var waitParameter = new Expressions.GeneratorParameter(parameter, 1);
                     expression.Generator(waitParameter);
-                    waitParameter.CheckResult(expression.anchor, RelyKernel.INTEGER_TYPE);
                     parameter.generator.WriteCode(CommandMacro.BASE_WaitFrame);
                     parameter.generator.WriteCode(waitParameter.results[0]);
                 }
@@ -163,7 +161,6 @@
             {
                 var exitParameter = new Expressions.GeneratorParameter(parameter, 1);
                 expression.Generator(exitParameter);
-                exitParameter.CheckResult(expression.anchor, RelyKernel.INTEGER_TYPE);
                 parameter.generator.WriteCode(CommandMacro.BASE_Flag_8);
                 parameter.generator.WriteCode(exitParameter.results[0]);
             }
