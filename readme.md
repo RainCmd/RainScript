@@ -34,7 +34,7 @@
 | handle | 句柄类型 class类型/函数/协程/数组 的基类 | entity | 用来表示宿主语言中的对象 |
 | function | 函数（委托）类型 | coroutine | 协程类型 |
 | array | 所有数组类型的基类 | if | 条件判断 |
-| elif | 跟在if/loop后的条件判断 | else | if/elif/loop判断为false时执行的分支 |
+| elif | 跟在if/while/for后的条件判断 | else | if/elif/while/for判断为false时执行的分支 |
 | while | 循环 | for | 循环 |
 | break | 跳出循环 | continue | 跳过循环中后续语句 |
 | return | 函数返回 | is | 尝试类型转换，如果转换成功则返回true，否则返回false |
@@ -275,3 +275,162 @@ Entry()
     f?()                            //不会报空引用错
 ```
 
+## kernel命名空间下的接口
+
+# 全局函数
+```rs
+//求绝对值
+int Abs(int)
+real Abs(real)
+
+//取符号
+int Sign(real)
+
+//取较大值
+int Max(int,int)
+real Max(real,real)
+real2 Max(real2,real2)
+real3 Max(real3,real3)
+real4 Max(real4,real4)
+
+//取较小值
+int Min(int,int)
+real Min(real,real)
+real2 Min(real2,real2)
+real3 Min(real3,real3)
+real4 Min(real4,real4)
+
+//向上取整
+int Ceil(real)
+
+//向下取整
+int Floor(real)
+
+//四舍五入
+int Round(real)
+
+//限制值范围[min,max]内
+real Clamp(real value,real min,real max)
+int Clamp(int value,int min,int max)
+
+//将值限制在[0,1]范围内
+real Clamp01(real)
+
+//插值
+real Lerp(real,real,real)
+real2 Lerp(real2,real2,real)
+real3 Lerp(real3,real3,real)
+real4 Lerp(real4,real4,real)
+
+//触发垃圾回收，返回值为回收后托管堆大小
+int Collect()
+
+//统计当前协程数量
+int CountCoroutine()
+
+//统计当前实体数量
+int CountEntity()
+
+//统计当前托管对象数量
+int CountHandle()
+
+//获取当前托管堆大小
+int HeapTotalMemory()
+
+//求反余弦值（弧度制）
+real Acos(real)
+
+//求反正弦值（弧度制）
+real Asin(real)
+
+//求反正切值（弧度制）
+real Atan(real)
+real Atan2(real y,real x)
+
+//求余弦值（弧度制）
+real Cos(real)
+
+//求正弦值（弧度制）
+real Sin(real)
+
+//求正/余弦值（弧度制）
+real,real SinCos(real)
+
+//开平方
+real Sqrt(real)
+
+//求向量夹角（弧度制）
+real Angle(real2,real2)
+real Angle(real3,real3)
+
+//向量叉乘
+real Cross(real2,real2)
+real3 Cross(real3,real3)
+
+//向量点乘
+real Dot(real2,real2)
+real Dot(real3,real3)
+real Dot(real4,real4)
+
+//获取随机整数
+int GetRandomInt()
+
+//获取随机实数[0,1)
+real GetRandomReal()
+
+//设置随机种子
+SetRandomSeed(int)
+```
+# 定义和成员
+```rs
+class bool
+    string ToString()
+
+class int
+    string ToString()
+
+class real
+    string ToString()
+    
+class real2
+    real2 Normalized()
+    real Magnitude()
+    real SqrMagnitude()
+
+class real3
+    real3 Normalized()
+    real Magnitude()
+    real SqrMagnitude()
+
+class string
+    int GetLength()
+    int GetStringID()
+    bool ToBool()
+    int ToInteger()
+    real ToReal()
+
+class handle
+    int GetHandleID()
+    
+class corouine
+    Abort(int)
+    int GetState()
+    int GetExitCode()
+    bool IsPause()
+    Pause()
+    Resume()
+
+class entity
+    int GetEntityID()
+
+class array
+    int GetLength()
+```
+
+# 常量
+```rs
+const real PI
+const real E
+const real Rad2Deg
+const real Deg2Rad
+```

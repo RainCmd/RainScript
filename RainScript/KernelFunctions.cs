@@ -40,7 +40,7 @@
                 new KernelMethod("CountEntity", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("CountHandle", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("Cross", new Function(new Type[]{ KERNEL_TYPE.REAL2, KERNEL_TYPE.REAL2 }, KERNEL_TYPE.REAL),  new Function(new Type[]{ KERNEL_TYPE.REAL3, KERNEL_TYPE.REAL3 }, KERNEL_TYPE.REAL3)),
-                new KernelMethod("Dot", new Function(new Type[]{ KERNEL_TYPE.REAL2, KERNEL_TYPE.REAL2 }, KERNEL_TYPE.REAL),  new Function(new Type[]{ KERNEL_TYPE.REAL3, KERNEL_TYPE.REAL3 }, KERNEL_TYPE.REAL)),
+                new KernelMethod("Dot", new Function(new Type[]{ KERNEL_TYPE.REAL2, KERNEL_TYPE.REAL2 }, KERNEL_TYPE.REAL),  new Function(new Type[]{ KERNEL_TYPE.REAL3, KERNEL_TYPE.REAL3 }, KERNEL_TYPE.REAL),  new Function(new Type[]{ KERNEL_TYPE.REAL4, KERNEL_TYPE.REAL4 }, KERNEL_TYPE.REAL)),
                 new KernelMethod("Floor", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.INTEGER)),
                 new KernelMethod("GetRandomInt", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("GetRandomReal", new Function(new Type[0], KERNEL_TYPE.REAL)),

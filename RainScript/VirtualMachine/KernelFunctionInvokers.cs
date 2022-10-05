@@ -522,7 +522,7 @@ namespace RainScript.VirtualMachine
                 new KernelMethodInvoker(CountEntity),
                 new KernelMethodInvoker(CountHandle),
                 new KernelMethodInvoker(real2_Cross, real3_Cross),
-                new KernelMethodInvoker(real2_Dot, real3_Dot),
+                new KernelMethodInvoker(real2_Dot, real3_Dot, real4_Dot),
                 new KernelMethodInvoker(real_Floor),
                 new KernelMethodInvoker(integer_GetRandomInt),
                 new KernelMethodInvoker(real_GetRandomReal),
@@ -809,6 +809,13 @@ namespace RainScript.VirtualMachine
             var vector1 = *(Real3*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real3*)(stack + top + Frame.SIZE + 28);
             *(Real3*)(stack + returnPoint) = Real3.Min(vector1, vector2);
+        }
+        private static void real4_Dot(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            var vector1 = *(Real4*)(stack + top + Frame.SIZE + 4);
+            var vector2 = *(Real4*)(stack + top + Frame.SIZE + 36);
+            *(real*)(stack + returnPoint) = Real4.Dot(vector1, vector2);
         }
         private static void real4_Lerp(Kernel kernel, byte* stack, uint top)
         {
