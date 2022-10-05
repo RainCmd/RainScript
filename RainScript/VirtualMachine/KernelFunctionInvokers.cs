@@ -524,11 +524,14 @@ namespace RainScript.VirtualMachine
                 new KernelMethodInvoker(real2_Cross, real3_Cross),
                 new KernelMethodInvoker(real2_Dot, real3_Dot),
                 new KernelMethodInvoker(real_Floor),
+                new KernelMethodInvoker(integer_GetRandomInt),
+                new KernelMethodInvoker(real_GetRandomReal),
                 new KernelMethodInvoker(HeapTotalMemory),
                 new KernelMethodInvoker(real_Lerp, real2_Lerp, real3_Lerp, real4_Lerp),
                 new KernelMethodInvoker(integer_Max, real_Max, real2_Max, real3_Max, real4_Max),
                 new KernelMethodInvoker(integer_Min, real_Min, real2_Min, real3_Min, real4_Min),
                 new KernelMethodInvoker(real_Round),
+                new KernelMethodInvoker(SetRandomSeed),
                 new KernelMethodInvoker(real_Sign),
                 new KernelMethodInvoker(real_Sin),
                 new KernelMethodInvoker(real_SinCos),
@@ -550,6 +553,11 @@ namespace RainScript.VirtualMachine
             var min = *(long*)(stack + top + Frame.SIZE + 4 + TypeCode.Integer.FieldSize());
             var max = *(long*)(stack + top + Frame.SIZE + 4 + TypeCode.Integer.FieldSize() * 2);
             *(long*)(stack + returnPoint) = value < min ? min : value > max ? max : value;
+        }
+        private static void integer_GetRandomInt(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            *(long*)(stack + returnPoint) = kernel.random.Next();
         }
         private static void integer_Max(Kernel kernel, byte* stack, uint top)
         {
@@ -643,6 +651,11 @@ namespace RainScript.VirtualMachine
 #else
             *(long*)(stack + returnPoint) = (long)Math.Floor(value);
 #endif
+        }
+        private static void real_GetRandomReal(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            *(real*)(stack + returnPoint) = kernel.random.NextReal();
         }
         private static void real_Lerp(Kernel kernel, byte* stack, uint top)
         {
@@ -845,6 +858,10 @@ namespace RainScript.VirtualMachine
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.heapAgency.GetHandleCount();
+        }
+        private static void SetRandomSeed(Kernel kernel, byte* stack, uint top)
+        {
+            kernel.random.SetSeed(*(long*)(stack + top + Frame.SIZE + 4));
         }
 #pragma warning restore IDE1006
         #endregion

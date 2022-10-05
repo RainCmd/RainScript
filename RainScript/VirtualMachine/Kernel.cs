@@ -59,6 +59,7 @@ namespace RainScript.VirtualMachine
         internal readonly HeapAgency heapAgency;
         internal readonly CoroutineAgency coroutineAgency;
         internal readonly LibraryAgency libraryAgency;
+        internal readonly Random random = new Random();
         /// <summary>
         /// 携程非正常退出时触发
         /// </summary>
