@@ -39,6 +39,10 @@
                 parameter.generator.WriteCode(parameter.results[0]);
                 parameter.generator.WriteCode(i);
             }
+            if (target is VariableMemberExpression variableMember) variableMember.GeneratorAssignment(targetParameter);
+            else if (target is VariableGlobalExpression variableGlobal) variableGlobal.GeneratorAssignment(targetParameter);
+            else if (target is ArrayEvaluationExpression arrayEvaluation) arrayEvaluation.GeneratorAssignment(targetParameter);
+            else if (target is VectorMemberExpression vectorMember) vectorMember.GeneratorAssignment(targetParameter);
         }
         public static bool TryCreate(Anchor anchor, Expression target, out VectorMemberExpression result)
         {
