@@ -144,7 +144,6 @@
             var loopBlockPoint = new Referencable<CodeAddress>(parameter.pool);
             var breakPoint = new Referencable<CodeAddress>(parameter.pool);
             InitJumpTarget(loopBlock, breakPoint, loopPoint);
-            parameter.AddBreakpoint(anchor);
             using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
             {
                 var frontParameter = new Expressions.GeneratorParameter(parameter, front.returns.Length);
@@ -156,7 +155,6 @@
                     parameter.generator.WriteCode(CommandMacro.BASE_Jump);
                     parameter.generator.WriteCode(conditionPoint);
                     parameter.generator.SetCodeAddress(loopPoint);
-                    parameter.AddBreakpoint(anchor);
                     foreach (var back in backs)
                         using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
                         {
