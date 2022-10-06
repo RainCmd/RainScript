@@ -108,16 +108,16 @@ for循环表达式用','号分隔，第二个表达式为循环条件，第三�
 元组可以当做一组参数直接传给函数。
 函数也可以返回多个返回值，这类函数调用后的表达式也是一个元组。
 ``` js
-int,real,string Func()
-    return 1,2.3,"abc"
+int, real, string Func()
+    return 1, 2.3, "abc"
 
-Func2(int,real,string)
-Func3(real,string,int,string)
+Func2(int, real, string)
+Func3(real, string, int, string)
 
 Entry()
     Func2(Func())                   //函数调用的表达式是个元组，可以直接作为其他函数参数
-    Func3(Func()[1,2,0,2])          //元组重组为新的元组并作为函数参数
-    Func3(.1,Func()[-1,0],"ABC")    //重组的元组与参数一起作为函数参数，-1在编译时会加上元素数量3，最终被当作2来解析
+    Func3(Func()[1, 2, 0, 2])       //元组重组为新的元组并作为函数参数
+    Func3(.1, Func()[-1, 0], "ABC") //重组的元组与参数一起作为函数参数，-1在编译时会加上元素数量3，最终被当作2来解析
 ```
 
 # lambda表达式
@@ -125,69 +125,69 @@ Entry()
 支持闭包，但如果创建闭包会额外创建对象，所以编译时会根据表达式中是否引用到当前上下文的变量来自动判断是否需要创建闭包
 ```rs
 function int Func(int)
-function int,string Func2()
+function int, string Func2()
 
 class A
     public int i
     public MFunc()
-        Func f=v=>v+1               //不会创建闭包
-        f=v=>v+i                    //变量i是成员变量，所以会创建闭包
-        Func2 f2= =>(v(123),"abc")  //变量v是局部变量，所以会创建闭包
+        Func f = v => v + 1         //不会创建闭包
+        f = v => v + i              //变量i是成员变量，所以会创建闭包
+        Func2 f2= =>(v(123), "abc") //变量v是局部变量，所以会创建闭包
 ```
 
 # 协程
 通过*start*关键字可以开启协程执行方法，注意：`协程不能直接执行native方法`
 ```rs
-Func(string n,int i)
-    while i-->0
+Func(string n, int i)
+    while i-- > 0
         wait
-        Print(n+":"+i.ToString())
+        Print(n + ":" + i.ToString())
 Entry()
-    start Func("协程A",4)
-    start Func("协程B",6)
+    start Func("协程A", 4)
+    start Func("协程B", 6)
 ```
 协程执行完成后可以像元组一样取得协程的返回值，方括号内也可以不填任何内容
 ```rs
-coroutine<int,string> Coro
-int,string Func()
+coroutine<int, string> Coro
+int, string Func()
     wait 10
-    return 123,"abc"
+    return 123, "abc"
 Entry()
-    Coro c=start Func()
-    while c.GetState()!=2            //协程状态码 0:未开始执行；1:执行中;2:执行完成;3:被主动取消;4:已失效
+    Coro c = start Func()
+    while c.GetState() != 2         //协程状态码 0:未开始执行；1:执行中;2:执行完成;3:被主动取消;4:已失效
         wait
-    var a,var b=c[]                 //a的值是 123；b的值是 "abc"
+    var a, var b = c[]              //a的值是 123；b的值是 "abc"
 ```
 
 # 常量的声明
 整数和实数常量中间可以用'_'分隔，单引号加字符也可以表示整数，反斜杠可以转义在单引号中同样适用
 ```js
-const int a=1234_5678
-const real b=.1234_5678
-const int c='abc'                   //最终c的值为 0x616263
-const int d='\x12a'                 //最终d的值为 0x1261
-const int e=0x1234
-const int f=0b0111_0010_0110_0001_0110_1001_0110_1110
-const string s="\u4e00\x1b[33mhello word\x1b[0m"
+const int a = 1234_5678
+const real b = .1234_5678
+const int c = 'abc'                 //最终c的值为 0x616263
+const int d = '\x12a'               //最终d的值为 0x1261
+const int e = 0x1234
+const int f = 0b0111_0010_0110_0001_0110_1001_0110_1110
+const string s = "\u4e00\x1b[33mhello word\x1b[0m"
 ```
 
 # 向量的计算
 支持real2/real3/real4向量的基本运算。
 ``` js
-var r4=real4(1,2,3,4)
-var a=r4.xyz+r4.yzw             //变量a会被解析为real3类型，计算结果为(3,5,7)
-var b=r4.xyz*r4.yzw             //变量b的计算结果为(2,6,12)
-var c=r4.xyz/r4.yzw             //变量c的计算结果为(.5,.666666,.75)
-var d=2/r4                      //变量d的计算结果为(2,1,.666666,.5)
+var r4 = real4(1, 2, 3, 4)
+var a = r4.xyz + r4.yzw         //变量a会被解析为real3类型，计算结果为(3,5,7)
+var b = r4.xyz * r4.yzw         //变量b的计算结果为(2,6,12)
+var c = r4.xyz / r4.yzw         //变量c的计算结果为(.5,.666666,.75)
+var d = 2 / r4                  //变量d的计算结果为(2,1,.666666,.5)
 ```
 
 # 字符串和数组
 字符串和数组的索引下标都可以为负数，为负数时会先加一次长度再计算
 当索引数量为2时都是裁剪当前串
 ```js
-var a="hello word"
-var b=a[1]                          //变量b结果为'e'的ascii码
-var c=a[2,-3]                       //变量c结果为字符串 "llo wo"
+var a = "hello word"
+var b = a[1]                        //变量b结果为'e'的ascii码
+var c = a[2, -3]                    //变量c结果为字符串 "llo wo"
 ```
 
 # 继承
@@ -205,15 +205,15 @@ class B A ITestB ITestA
 ```rs
 class A
     public A()
-    public A(int,string)
+    public A(int, string)
 
 Entry()
-    var a=A()
-    a=A(1,"2")
-    var b=A[10]                     //长度为10的A数组
-    var c=A[10][]                   //长度为10的A数组的数组
-    var d=int{1,2,3}                //长度为3，内容为1,2,3的整数数组
-    int[]e={3,2,1}                  //长度为3，内容为3,2,1的整数数组
+    var a = A()
+    a = A(1, "2")
+    var b = A[10]                   //长度为10的A数组
+    var c = A[10][]                 //长度为10的A数组的数组
+    var d = int{1, 2, 3}            //长度为3，内容为1,2,3的整数数组
+    int[] e = {3, 2, 1}             //长度为3，内容为3,2,1的整数数组
 ```
 
 # 类型转换
@@ -224,12 +224,12 @@ class A
 class B A
 
 Entry()
-    A a=B()
-    B b=B&a
-    bool c=a is B bb                //变量名bb非必须
-    B d=a as B                      //变量d不为null
+    A a = B()
+    B b = B& a
+    bool c = a is B bb              //变量名bb非必须
+    B d = a as B                    //变量d不为null
     a=A()
-    B e=a as B                      //变量e为null 
+    B e = a as B                    //变量e为null 
 ```
 
 # 函数的override
@@ -247,23 +247,23 @@ class B A ITest
         Print("MFunc in B")
 
 Entry()
-    ITest i=B()
+    ITest i = B()
     i.IFunc()                       //输出 "IFunc"
-    (B&i).Mfunc()                   //输出 "MFunc in B"
+    (B& i).Mfunc()                  //输出 "MFunc in B"
 ```
 
 # 运算符
 支持的基础运算符有:
-&,&&,&=,|,||,|=,^,^=,<,<=,<<,<<=,>,>=,>>,>>=,+,++,+=,-,--,-=,*,*=,/,/=,%,%=,!,!=,`<br>
+&, &&, &=, |, ||, |=, ^, ^=, <, <=, <<, <<=, >, >=, >>, >>=, +, ++, +=, -, --, -=, *, *=, /, /=, %, %=, !, !=,`<br>
 另外还支持问号条件运算：
 ```js
-var a=true
-var b=a?1:2
+var a = true
+var b = a ? 1 : 2
 a?Func1():Func2()
 ```
 问号点运算：
 ```js
-var a=A()
+var a = A()
 a?.Func()
 ```
 问号括号运算：
@@ -271,7 +271,7 @@ a?.Func()
 function Func
 
 Entry()
-    Func f=null
+    Func f = null
     f?()                            //不会报空引用错
 ```
 
@@ -287,18 +287,18 @@ real Abs(real)
 int Sign(real)
 
 //取较大值
-int Max(int,int)
-real Max(real,real)
-real2 Max(real2,real2)
-real3 Max(real3,real3)
-real4 Max(real4,real4)
+int Max(int, int)
+real Max(real, real)
+real2 Max(real2, real2)
+real3 Max(real3, real3)
+real4 Max(real4, real4)
 
 //取较小值
-int Min(int,int)
-real Min(real,real)
-real2 Min(real2,real2)
-real3 Min(real3,real3)
-real4 Min(real4,real4)
+int Min(int, int)
+real Min(real, real)
+real2 Min(real2, real2)
+real3 Min(real3, real3)
+real4 Min(real4, real4)
 
 //向上取整
 int Ceil(real)
@@ -310,17 +310,17 @@ int Floor(real)
 int Round(real)
 
 //限制值范围[min,max]内
-real Clamp(real value,real min,real max)
-int Clamp(int value,int min,int max)
+real Clamp(real value, real min, real max)
+int Clamp(int value, int min, int max)
 
 //将值限制在[0,1]范围内
 real Clamp01(real)
 
 //插值
-real Lerp(real,real,real)
-real2 Lerp(real2,real2,real)
-real3 Lerp(real3,real3,real)
-real4 Lerp(real4,real4,real)
+real Lerp(real, real, real)
+real2 Lerp(real2, real2, real)
+real3 Lerp(real3, real3, real)
+real4 Lerp(real4, real4, real)
 
 //触发垃圾回收，返回值为回收后托管堆大小
 int Collect()
@@ -345,7 +345,7 @@ real Asin(real)
 
 //求反正切值（弧度制）
 real Atan(real)
-real Atan2(real y,real x)
+real Atan2(real y, real x)
 
 //求余弦值（弧度制）
 real Cos(real)
@@ -360,17 +360,17 @@ real,real SinCos(real)
 real Sqrt(real)
 
 //求向量夹角（弧度制）
-real Angle(real2,real2)
-real Angle(real3,real3)
+real Angle(real2, real2)
+real Angle(real3, real3)
 
 //向量叉乘
-real Cross(real2,real2)
-real3 Cross(real3,real3)
+real Cross(real2, real2)
+real3 Cross(real3, real3)
 
 //向量点乘
-real Dot(real2,real2)
-real Dot(real3,real3)
-real Dot(real4,real4)
+real Dot(real2, real2)
+real Dot(real3, real3)
+real Dot(real4, real4)
 
 //获取随机整数
 int GetRandomInt()

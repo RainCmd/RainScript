@@ -266,7 +266,7 @@
                                 if (segment.Equals('b', index + 1) || segment.Equals('B', index + 1))
                                 {
                                     var i = index + 2;
-                                    while (i < segment.Length && (segment[i] == '0' || segment[i] == '1')) i++;
+                                    while (i < segment.Length && (segment[i] == '0' || segment[i] == '1' || segment[i] == '_')) i++;
                                     lexical = new Lexical(LexicalType.ConstBinary, text, segment[index, i - 1]);
                                     return true;
                                 }
@@ -276,7 +276,7 @@
                                     while (i < segment.Length)
                                     {
                                         var c = segment[i];
-                                        if (char.IsDigit(segment[i])) i++;
+                                        if (char.IsDigit(c) || c == '_') i++;
                                         else
                                         {
                                             c |= (char)0x20u;
