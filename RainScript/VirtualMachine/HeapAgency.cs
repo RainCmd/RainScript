@@ -13,7 +13,7 @@ namespace RainScript.VirtualMachine
         private readonly Kernel kernel;
         private Head[] heads = new Head[16];
         private byte* heap;
-        private uint headTop = 1, free = 0, head = 0, tail = 0, heapTop = 0, heapSize = 64;
+        private uint headTop = 1, free = 0, head = 0, tail = 0, heapTop = 0, heapSize = 512;
         private bool flag = false, gc = false;
         public HeapAgency(Kernel kernel)
         {
@@ -179,7 +179,7 @@ namespace RainScript.VirtualMachine
                         var point = head.point + definition.baseOffset;
                         foreach (var variable in definition.variables)
                         {
-                            if (variable.type.definition.code == TypeCode.Handle || variable.type.definition.code == TypeCode.Function || variable.type.definition.code == TypeCode.Coroutine) Mark(*(uint*)(heap + point));
+                            if (variable.type.dimension > 0 || variable.type.definition.code == TypeCode.Handle || variable.type.definition.code == TypeCode.Interface || variable.type.definition.code == TypeCode.Function || variable.type.definition.code == TypeCode.Coroutine) Mark(*(uint*)(heap + point));
                             point += variable.type.FieldSize;
                         }
                         if (definition.parent == TypeDefinition.INVALID) definition = null;
@@ -269,8 +269,10 @@ namespace RainScript.VirtualMachine
         {
             return heap + heads[handle].point;
         }
+        int i = 0;
         public ExitCode TryGetPoint(uint handle, out byte* point)
         {
+            i++;
             if (IsVaild(handle))
             {
                 point = heap + heads[handle].point;

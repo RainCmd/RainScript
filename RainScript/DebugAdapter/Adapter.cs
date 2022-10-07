@@ -242,8 +242,11 @@ namespace RainScript.DebugAdapter
                         writer.Write(reqID);
                         var list = new List<int>();
                         foreach (var item in kernel.coroutineAgency.GetCoroutines()) list.Add((int)item.instanceID);
-                        var invokingID = (int)kernel.coroutineAgency.invoking.instanceID;
-                        if (!list.Contains(invokingID)) list.Add(invokingID);
+                        if (kernel.coroutineAgency.invoking != null)
+                        {
+                            var invokingID = (int)kernel.coroutineAgency.invoking.instanceID;
+                            if (!list.Contains(invokingID)) list.Add(invokingID);
+                        }
                         writer.Write(list.Count);
                         foreach (var item in list) writer.Write(item);
 

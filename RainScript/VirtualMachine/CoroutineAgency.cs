@@ -100,7 +100,7 @@ namespace RainScript.VirtualMachine
                         while (idx.next != coroutine) idx = idx.next;
                         idx.next = coroutine.next;
                     }
-                    if (idx.exit != 0) idx.Abort();
+                    if (coroutine.exit != 0) coroutine.Abort();
                     Recycle(coroutine);
                 }
                 coroutines[i] = null;

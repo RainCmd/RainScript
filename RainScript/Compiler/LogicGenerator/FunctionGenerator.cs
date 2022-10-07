@@ -43,6 +43,7 @@ namespace RainScript.Compiler.LogicGenerator
                 parameter.debug.AddFunction(anchor.textInfo.path, anchor.StartLine, generator.Point);
                 if (definition != null)
                 {
+                    parameterSize += 4;
                     variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
                     for (uint i = 0; i < parameters.Length; i++)
                     {
@@ -588,6 +589,7 @@ namespace RainScript.Compiler.LogicGenerator
                 parameter.debug.AddFunction(file, line, generator.Point);
                 if (definition != null)
                 {
+                    parameterSize += TypeCode.Handle.FieldSize();
                     var thisVarliable = variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
                     parameter.debug.AddThisVariable(definition.name, generator.Point, thisVarliable.address, parameter.relied.Convert(thisVarliable.type).RuntimeType);
                     for (uint i = 0; i < parameters.Length; i++)

@@ -53,9 +53,8 @@ namespace RainScript.VirtualMachine
             this.invoker = invoker;
             this.ignoreWait = ignoreWait;
             this.point = invoker.handle.entry;
-            bottom = invoker.handle.returnSize;
-            top = invoker.handle.returnSize + Frame.SIZE + (uint)(invoker.handle.function.returns.Length * 4) + invoker.handle.parameterSize;
-            EnsureStackSize(0, top);
+            bottom = top = invoker.handle.returnSize;
+            EnsureStackSize(0, top + Frame.SIZE + (uint)(invoker.handle.function.returns.Length * 4) + invoker.handle.parameterSize);
             for (int i = 0; i < bottom; i++) stack[i] = 0;
             var point = stack + bottom;
             *(Frame*)point = new Frame(LIBRARY.INVALID, 0, 0);
@@ -518,7 +517,11 @@ namespace RainScript.VirtualMachine
                     #region Function
                     case CommandMacro.FUNCTION_Entrance://[1,4]参数空间大小+Frame.SIZE [5,8]函数执行所需要的最大栈空间大小（包括frame.SIZE、返回值列表和参数列表）
                         top += *(uint*)(library.code + point + 5);
-                        EnsureStackSize(bottom + *(uint*)(library.code + point + 1), top);
+                        {
+                            var hold = bottom + *(uint*)(library.code + point + 1);
+                            EnsureStackSize(hold, top);
+                            while (hold < top) stack[hold++] = 0;
+                        }
                         point += 9;
                         break;
                     case CommandMacro.FUNCTION_Ensure://[1,4]目标函数参数空间大小+Frame.SIZE(对于委托调用，默认再加4字节) [5,8]函数返回地址
@@ -1088,7 +1091,7 @@ namespace RainScript.VirtualMachine
                             library.LocalToGlobal(*(uint*)(library.code + point + 5), *(MemberVariable*)(library.code + point + 9), out var globalLibrary, out var globalMemberVaribale);
                             var definition = kernel.libraryAgency[globalLibrary].definitions[globalMemberVaribale.definition];
                             address += definition.baseOffset + definition.variables[globalMemberVaribale.index].offset;
-                            *(ulong*)address = *(ulong*)(stack + bottom + *(uint*)(library.code + point + 17));
+                            *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 17));
                         }
                         point += 21;
                         break;
@@ -2537,7 +2540,7 @@ namespace RainScript.VirtualMachine
                         break;
                     #endregion Casting
                     case CommandMacro.BREAKPOINT:
-                        if (kernel.step|| *(bool*)(library.code + point + 1))
+                        if (kernel.step || *(bool*)(library.code + point + 1))
                         {
                             kernel.step = false;
                             kernel.OnHitBreakpointEvent();
