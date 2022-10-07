@@ -466,7 +466,7 @@ namespace RainScript.DebugAdapter
                                 writer.Write("目标对象");
                                 writer.Write((int)info->target);
                                 writer.Write("HandleID: " + info->target.ToString());
-                                writer.Write(type.ToString());
+                                writer.Write(GetTypeName(type));
                                 return 2;
                             }
                         }
@@ -497,16 +497,16 @@ namespace RainScript.DebugAdapter
                     {
                         var postfix = "";
                         for (int i = 1; i < type.dimension; i++) postfix += "[]";
-                        writer.Write("{0}[{1}]{2}".Format(type.definition, length, postfix));
+                        writer.Write("{0}[{1}]{2}".Format(GetDefinitionName(type.definition), length, postfix));
                     }
-                    else writer.Write(type.ToString());
+                    else writer.Write(GetTypeName(type));
                 }
                 else writer.Write(result.ToString());
             }
             else
             {
                 writer.Write(0);
-                writer.Write(type.ToString());
+                writer.Write(GetDefinitionName(type.definition));
                 if (type == KERNEL_TYPE.BOOL) writer.Write(((bool*)address)->ToString());
                 else if (type == KERNEL_TYPE.INTEGER) writer.Write(((long*)address)->ToString());
                 else if (type == KERNEL_TYPE.REAL) writer.Write(((real*)address)->ToString());
@@ -517,6 +517,42 @@ namespace RainScript.DebugAdapter
                 else if (type == KERNEL_TYPE.ENTITY) writer.Write(((Entity*)address)->ToString());
                 else writer.Write("未知");
             }
+        }
+        private string GetTypeName(Type type)
+        {
+            var postfix = "";
+            for (int i = 0; i < type.dimension; i++) postfix += "[]";
+            return GetDefinitionName(type.definition) + postfix;
+        }
+        private string GetDefinitionName(TypeDefinition definition)
+        {
+            if (definition.library == LIBRARY.KERNEL)
+            {
+                switch (definition.code)
+                {
+                    case TypeCode.Bool: return KeyWorld.BOOL;
+                    case TypeCode.Integer: return KeyWorld.INTEGER;
+                    case TypeCode.Real: return KeyWorld.REAL;
+                    case TypeCode.Real2: return KeyWorld.REAL2;
+                    case TypeCode.Real3: return KeyWorld.REAL3;
+                    case TypeCode.Real4: return KeyWorld.REAL4;
+                    case TypeCode.String: return KeyWorld.STRING;
+                    case TypeCode.Handle: return KeyWorld.HANDLE;
+                    case TypeCode.Interface: return KeyWorld.INTERFACE;
+                    case TypeCode.Function: return KeyWorld.FUNCTION;
+                    case TypeCode.Coroutine: return KeyWorld.COROUTINE;
+                    case TypeCode.Entity: return KeyWorld.ENTITY;
+                }
+            }
+            else if (definition.library == library.index)
+            {
+                switch (definition.code)
+                {
+                    case TypeCode.Handle: return debug.definitions[(int)definition.index];
+                    case TypeCode.Function: return debug.functions[(int)definition.index];
+                }
+            }
+            return definition.ToString();
         }
         private void Send(BufferWriter writer)
         {

@@ -178,6 +178,15 @@ namespace RainScript.Compiler
                                 paramter.debug.RegistGlobalVariable(globalVariable, LIBRARY.SELF, (uint)i, relied.Convert(globalVariable.type).RuntimeType);
                             }
                         libraryGenerator.GeneratorLibrary(paramter, out var code, out var codeStrings, out var dataStrings);
+                        if (command.generatorDebugTable)
+                        {
+                            foreach (var item in manager.library.definitions)
+                                paramter.debug.AddDefinition(manager.GetDeclarationFullName(item.declaration));
+                            foreach (var item in manager.library.delegates)
+                                paramter.debug.AddFunction(manager.GetDeclarationFullName(item.declaration));
+                            foreach (var item in manager.library.coroutines)
+                                paramter.debug.AddCoroutine(manager.GetDeclarationFullName(item.declaration));
+                        }
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LogicGeneratorFail();
                         var library = GeneratorLibrary(manager, manager.library, relied, code, codeStrings, dataStrings);
                         if (exceptions.Count > 0) throw ExceptionGeneratorCompiler.LibraryGeneratorFail();

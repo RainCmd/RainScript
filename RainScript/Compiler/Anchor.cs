@@ -4,12 +4,19 @@
     {
         public readonly TextInfo textInfo;
         public readonly int start, end;//[,]
-        public StringSegment Segment { get { return new StringSegment(textInfo.context, start, end); } }
-        public int StartLine 
+        public StringSegment Segment
         {
-            get 
+            get
             {
-                if((bool)this) return textInfo.TryGetLineInfo(start, out var line) ? line.number : 0; 
+                if (textInfo == null) return new StringSegment("_", 0, 0);
+                return new StringSegment(textInfo.context, start, end);
+            }
+        }
+        public int StartLine
+        {
+            get
+            {
+                if ((bool)this) return textInfo.TryGetLineInfo(start, out var line) ? line.number : 0;
                 else return 0;
             }
         }

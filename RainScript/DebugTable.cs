@@ -132,6 +132,9 @@ namespace RainScript
         internal readonly Dictionary<string, List<Function>> files = new Dictionary<string, List<Function>>();
         internal readonly List<Space> spaces = new List<Space>();
         internal readonly List<GlobalVariable> globalVariables = new List<GlobalVariable>();
+        internal readonly List<string> definitions = new List<string>();
+        internal readonly List<string> functions = new List<string>();
+        internal readonly List<string> coroutines = new List<string>();
 
         internal DebugTable(string name)
         {

@@ -18,6 +18,18 @@ namespace RainScript.Compiler
             return table;
         }
 
+        internal void AddDefinition(string fullName)
+        {
+            table.definitions.Add(fullName);
+        }
+        internal void AddFunction(string fullName)
+        {
+            table.functions.Add(fullName);
+        }
+        internal void AddCoroutine(string fullName)
+        {
+            table.coroutines.Add(fullName);
+        }
         internal void AddFunction(string file, int line, uint point)
         {
             if (table == null) return;
