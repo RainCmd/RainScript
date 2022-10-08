@@ -11,6 +11,7 @@ import { RainBufferGenerator, RainBufferReader, RainSocket } from './RainNet';
 import * as vscode from 'vscode';
 import { Subject } from 'await-notify';
 
+
 /**
  * 此接口描述模拟调试特定的启动属性(不是调试适配器协议的一部分)。
  * 这些属性的模式存在于包中。模拟调试扩展的Json。
@@ -207,10 +208,6 @@ export class RainDebugSession extends LoggingDebugSession {
 	}
 
 	protected async attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments) {
-		return this.launchRequest(response, args);
-	}
-
-	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
 		this._configurationDone.wait(1000);
 		this.sendResponse(response);
 		if(args.libraryName) {
@@ -231,6 +228,10 @@ export class RainDebugSession extends LoggingDebugSession {
 			vscode.window.showErrorMessage("获取当前工程目录失败");
 			this.sendEvent(new TerminatedEvent());
 		}
+	}
+
+	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
+		return this.attachRequest(response, args);
 	}
 
 	protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {

@@ -16,22 +16,6 @@ class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory 
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
-		vscode.commands.registerCommand('雨言调试器.运行', (resource: vscode.Uri) => {
-			let targetResource = resource;
-			if (!targetResource && vscode.window.activeTextEditor) {
-				targetResource = vscode.window.activeTextEditor.document.uri;
-			}
-			if (targetResource) {
-				vscode.debug.startDebugging(undefined, {
-					type: '雨言',
-					name: '运行当前工作区',
-					request: 'launch',
-					program: targetResource.fsPath
-				},
-					{ noDebug: true }
-				);
-			}
-		}),
 		vscode.commands.registerCommand('雨言调试器.远程调试', (resource: vscode.Uri) => {
 			let targetResource = resource;
 			if (!targetResource && vscode.window.activeTextEditor) {
@@ -41,9 +25,8 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.debug.startDebugging(undefined, {
 					type: '雨言',
 					name: '远程调试',
-					request: 'launch',
-					program: targetResource.fsPath,
-					stopOnEntry: true
+					request: 'attach',
+					program: targetResource.fsPath
 				});
 			}
 		}),

@@ -227,7 +227,7 @@ namespace RainScriptRunner
         }
         static void Main(string[] args)
         {
-            if (!TryLoadCfg(out var config)) return;
+            TryLoadCfg(out var config);
             ParseArgs(ref config, args);
             if (!CheckConfig(config)) return;
             if (!TryBuild(config, out var builder)) return;

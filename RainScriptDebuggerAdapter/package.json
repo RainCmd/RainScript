@@ -17,7 +17,9 @@
   },
   "icon": "images/RainLanguage.png",
   "categories": [
-    "Debuggers"
+    "Debuggers",
+    "雨言",
+    "调试器"
   ],
   "private": false,
   "repository": {
@@ -65,7 +67,6 @@
   "activationEvents": [
     "onDebugResolve:雨言",
     "onDebugDynamicConfigurations:雨言",
-    "onCommand:雨言调试器.运行",
     "onCommand:雨言调试器.远程调试",
     "onLanguage:rust"
   ],
@@ -76,11 +77,6 @@
     "menus": {
       "editor/title/run": [
         {
-          "command": "雨言调试器.运行",
-          "when": "resourceLangId == rust",
-          "group": "navigation@1"
-        },
-        {
           "command": "雨言调试器.远程调试",
           "when": "resourceLangId == rust",
           "group": "navigation@2"
@@ -89,10 +85,6 @@
       "commandPalette": [
         {
           "command": "雨言调试器.远程调试",
-          "when": "resourceLangId == rust"
-        },
-        {
-          "command": "雨言调试器.运行",
           "when": "resourceLangId == rust"
         }
       ]
@@ -104,13 +96,6 @@
         "category": "雨言调试器",
         "enablement": "!inDebugMode",
         "icon": "$(debug-alt)"
-      },
-      {
-        "command": "雨言调试器.运行",
-        "title": "运行",
-        "category": "雨言调试器",
-        "enablement": "!inDebugMode",
-        "icon": "$(play)"
       }
     ],
     "breakpoints": [
@@ -128,18 +113,6 @@
         "program": "./out/debugAdapter.js",
         "runtime": "node",
         "configurationAttributes": {
-          "launch": {
-            "required": [
-              "libraryName"
-            ],
-            "properties": {
-              "libraryName": {
-                "type": "string",
-                "description": "当前程序集名",
-                "default": "TestLibrary"
-              }
-            }
-          },
           "attach": {
             "required": [
               "libraryName"
