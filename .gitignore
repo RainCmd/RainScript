@@ -362,7 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-#²âÊÔÏîÄ¿
+#ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿
 Test/
 RainScriptDebuggerTest/
 RainScriptDebuggerAdapter/.vscode/
@@ -370,3 +370,4 @@ RainScriptDebuggerAdapter/dist/
 RainScriptDebuggerAdapter/node_modules/
 RainScriptDebuggerAdapter/TestWorkerspace/
 RainScriptDebuggerAdapter/package-lock.json
+*.vsix

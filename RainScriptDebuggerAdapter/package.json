@@ -1,7 +1,7 @@
 {
   "name": "rainscript-debug",
   "displayName": "雨言调试器",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "publisher": "渴望蓝天",
   "description": "用来调试RainScript的扩展。",
   "author": {
@@ -17,9 +17,7 @@
   },
   "icon": "images/RainLanguage.png",
   "categories": [
-    "Debuggers",
-    "雨言",
-    "调试器"
+    "Debuggers"
   ],
   "private": false,
   "repository": {
@@ -78,14 +76,14 @@
       "editor/title/run": [
         {
           "command": "雨言调试器.远程调试",
-          "when": "resourceLangId == rust",
+          "when": "resourceLangId == rust || resourceLangId == 雨言",
           "group": "navigation@2"
         }
       ],
       "commandPalette": [
         {
           "command": "雨言调试器.远程调试",
-          "when": "resourceLangId == rust"
+          "when": "resourceLangId == rust || resourceLangId == 雨言"
         }
       ]
     },
@@ -101,13 +99,17 @@
     "breakpoints": [
       {
         "language": "rust"
+      },
+      {
+        "language": "雨言"
       }
     ],
     "debuggers": [
       {
         "type": "雨言",
         "languages": [
-          "rust"
+          "rust",
+          "雨言"
         ],
         "label": "雨言调试器",
         "program": "./out/debugAdapter.js",
