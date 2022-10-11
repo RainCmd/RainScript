@@ -1,0 +1,119 @@
+{
+    "scopeName": "source.rain",
+    "patterns": [
+      { "include": "#region" },
+      { "include": "#comment" },
+      { "include": "#string" }, 
+      { "include": "#chars" }, 
+      { "include": "#constreal" }, 
+      { "include": "#constnumberBin" }, 
+      { "include": "#constnumberHex" }, 
+      { "include": "#constnumber" }, 
+      { "include": "#control" }, 
+      { "include": "#languageVariable" }, 
+      { "include": "#languageConst" }, 
+      { "include": "#type" },
+      { "include": "#modifier" },
+      { "include": "#operator" },
+      { "include": "#constant" },
+      { "include": "#function" },
+      { "include": "#variable" },
+      { "include": "#definition" }
+    ],
+    "repository": {
+      "region" : {
+        "match" : "^\\s*(//)\\s*(region|endregion)\\b\\s*(.*)",
+        "captures": {
+          "1": {
+            "name": "comment.line.number-sign"
+          },
+          "2": {
+            "name": "comment.line.number-sign"
+          },
+          "3": {
+            "name": "markup.italic"
+          }
+        }
+      },
+      "comment" : {
+        "match" : "//.*",
+        "name" : "comment.line"
+      },
+      "escape": {
+        "match" : "(\\\\\"|\\\\'|\\\\b|\\\\f|\\\\n|\\\\r|\\\\t|\\\\v|\\\\0|\\\\x..|\\\\u....)",
+        "name": "constant.character.escape"
+      },
+      "string": {
+        "begin" : "\"",
+        "end" : "\"",
+        "name": "string.quoted.double",
+        "patterns" :[
+          {"include" :"#escape"}
+        ]
+      },
+      "chars": {
+        "begin" : "'",
+        "end" : "'",
+        "name": "constant.numeric",
+        "patterns" :[
+          {"include" :"#escape"}
+        ]
+      },
+      "constreal":{
+        "match": "\\b[0-9_]*?\\.[0-9_]+\\b",
+        "name": "constant.numeric"
+      },
+      "constnumberBin":{
+        "match": "\\b(0b|0b)[01_]+\\b",
+        "name": "constant.numeric"
+      },
+      "constnumberHex":{
+        "match": "\\b(0x|0X)[0-9a-fA-F_]+\\b",
+        "name": "constant.numeric"
+      },
+      "constnumber":{
+        "match": "\\b[0-9_]+\\b",
+        "name": "constant.numeric"
+      },
+      "control": {
+        "match": "\\b(if|elif|else|while|for|break|continue|return|start|wait|exit|try|catch|finally)\\b",
+        "name": "keyword.control"
+      },
+      "languageVariable":{
+        "match" : "\\b(base|this|kernel|global)\\b",
+        "name" : "variable.language"
+      },
+      "languageConst" :{
+        "match" : "\\b(true|false|null)\\b",
+        "name" : "constant.language"
+      },
+      "type" : {
+        "match" : "\\b(var|bool|int|real|real2|real3|real4|string|handle|entity|function|coroutine|array)\\b",
+        "name" : "storage.type"
+      },
+      "modifier" : {
+        "match" : "\\b(namespace|import|native|public|internal|space|protected|private|struct|class|interface|new|const)\\b",
+        "name" : "storage.modifier"
+      },
+      "operator" : {
+        "match" : "\\=|\\&|\\&\\&|\\&\\=|\\||\\|\\||\\|\\=|\\^|\\^\\=|<|<\\=|<<|<<\\=|>|>\\=|>>|>>\\=|\\+|\\+\\+|\\+\\=|-|--|-\\=|\\*|\\*\\=|/|/\\=|%|%\\=|!|!\\=|`|\\?|:|\\.|\\bis\\b|\\bas\\b",
+        "name" : "keyword.operator"
+      },
+      "constant" : {
+        "match" : "\\b[A-Z_][A-Z0-9_]*\\b",
+        "name" :"constant.other"
+      },
+      "function" : {
+        "match" : "\\b[a-zA-Z_][a-zA-Z0-9_]*(?=\\()",
+        "name" :"entity.name.function"
+      },
+      "variable" : {
+        "match" : "\\b[a-z][a-zA-Z0-9_]*\\b",
+        "name" : "variable"
+      },
+      "definition" : {
+        "match" : "\\b[A-Z][a-zA-Z0-9_]*\\b",
+        "name" : "entity.name.type"
+      }
+    }
+  }

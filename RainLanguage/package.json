@@ -1,0 +1,51 @@
+{
+    "name": "rain-script",
+    "displayName": "雨言",
+    "description": "对雨言提供语法高亮，代码片段完成，语法提示等功能",
+    "version": "0.0.2",
+    "publisher": "渴望蓝天",
+    "engines": {
+      "vscode": "^1.28.0"
+    },
+    "license": "MIT",
+    "icon": "images/rain.png",
+    "categories": [
+      "Programming Languages"
+    ],
+    "scripts": {
+      "打包": "vsce package"
+    },
+    "contributes": {
+      "languages": [
+        {
+          "id": "雨言",
+          "extensions": [
+            ".rain"
+          ],
+          "aliases": [
+            "RainScript",
+            "雨言"
+          ],
+          "icon": {
+            "dark": "./images/rain-dark.png",
+            "light": "./images/rain-light.png"
+          },
+          "configuration": "./language-configuration.json"
+        }
+      ],
+      "snippets": [
+          {
+              "language": "雨言",
+              "path": "./snippets.json"
+          }
+      ],
+      "grammars": [
+        {
+            "language": "雨言",
+            "scopeName": "source.rain",
+            "path": "./syntaxes/rain.tmLanguage.json"
+        }
+      ]
+    }
+  }
+  
