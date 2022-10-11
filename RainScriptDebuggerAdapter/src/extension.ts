@@ -30,19 +30,19 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 			}
 		}),
-		vscode.debug.registerDebugAdapterDescriptorFactory('雨言',new InlineDebugAdapterFactory()),
-		vscode.debug.registerDebugConfigurationProvider('雨言',{
-			resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration>{
-				if(!config.libraryName){
-					config.libraryName="${workspaceFolderBasename}";
+		vscode.debug.registerDebugAdapterDescriptorFactory('雨言', new InlineDebugAdapterFactory()),
+		vscode.debug.registerDebugConfigurationProvider('雨言', {
+			resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
+				if (!config.libraryName) {
+					config.libraryName = "${workspaceFolderBasename}";
 				}
-				config.projectPath="${workspaceFolder}/";
+				config.projectPath = "${workspaceFolder}/";
 				return config;
 			}
 		}),
-		vscode.languages.registerEvaluatableExpressionProvider('rust',{
+		vscode.languages.registerEvaluatableExpressionProvider('rust', {
 			provideEvaluatableExpression(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.EvaluatableExpression> {
-				return new vscode.EvaluatableExpression(new vscode.Range(position,position),document.fileName+" "+position.line.toString()+" "+position.character.toString());
+				return new vscode.EvaluatableExpression(new vscode.Range(position, position), document.fileName + " " + position.line.toString() + " " + position.character.toString());
 			}
 		})
 	);

@@ -1,5 +1,5 @@
 {
-	"Print to console": {
+	"for循环": {
 		"prefix": "for",
 		"body": [
 			"for var i = 0, i < $1, i++",

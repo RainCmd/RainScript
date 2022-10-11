@@ -66,6 +66,7 @@
     "onDebugResolve:雨言",
     "onDebugDynamicConfigurations:雨言",
     "onCommand:雨言调试器.远程调试",
+    "onLanguage:雨言",
     "onLanguage:rust"
   ],
   "workspaceTrust": {
