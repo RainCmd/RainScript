@@ -35,7 +35,6 @@
             if (!command.generatorDebugTable) return;
             debug.AddBreakpoint(anchor, generator.Point);
             generator.WriteCode(CommandMacro.BREAKPOINT);
-            generator.WriteCode(false);
         }
     }
     internal abstract class Statement

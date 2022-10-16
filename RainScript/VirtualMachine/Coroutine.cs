@@ -2540,12 +2540,16 @@ namespace RainScript.VirtualMachine
                         break;
                     #endregion Casting
                     case CommandMacro.BREAKPOINT:
-                        if (kernel.step || *(bool*)(library.code + point + 1))
+                        if (kernel.step)
                         {
                             kernel.step = false;
-                            kernel.OnHitBreakpointEvent();
+                            goto case CommandMacro.BREAK;
                         }
-                        point += 2;
+                        point++;
+                        break;
+                    case CommandMacro.BREAK:
+                        kernel.OnHitBreakpointEvent();
+                        point++;
                         break;
                     default: throw ExceptionGeneratorVM.InvalidCommand((CommandMacro)library.code[point]);
                 }

@@ -268,5 +268,6 @@
         #endregion casting
 
         BREAKPOINT,
+        BREAK,
     }
 }

@@ -222,7 +222,7 @@ namespace RainScript.DebugAdapter
                         foreach (var line in lines)
                         {
                             var verified = debug.TryGetBreakpoint(fileName, line, out var point);
-                            if (verified && *(code + point) == (byte)CommandMacro.BREAKPOINT) *(bool*)(code + point + 1) = true;
+                            if (verified && *(code + point) == (byte)CommandMacro.BREAKPOINT) *(CommandMacro*)(code + point) = CommandMacro.BREAK;
                             else verified = false;
                             var breakpoint = new Breakpoint(breakpointIndex++, library.index, point, verified);
                             breakpoints.Add(breakpoint.id, breakpoint);
@@ -600,7 +600,7 @@ namespace RainScript.DebugAdapter
             foreach (var item in breakpoints)
             {
                 var point = la[item.Value.library].code + item.Value.point;
-                if (*point == (byte)CommandMacro.BREAKPOINT) *(bool*)(point + 1) = false;
+                if (*point == (byte)CommandMacro.BREAKPOINT) *(CommandMacro*)point = CommandMacro.BREAKPOINT;
             }
             breakpoints.Clear();
         }
