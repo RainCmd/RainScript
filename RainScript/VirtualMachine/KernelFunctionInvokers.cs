@@ -843,7 +843,7 @@ namespace RainScript.VirtualMachine
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var size = kernel.heapAgency.GetHeapTop();
-            kernel.heapAgency.GC();
+            kernel.heapAgency.GC(*(bool*)(stack + top + Frame.SIZE + 4));
             *(long*)(stack + returnPoint) = size - kernel.heapAgency.GetHeapTop();
         }
         private static void HeapTotalMemory(Kernel kernel, byte* stack, uint top)

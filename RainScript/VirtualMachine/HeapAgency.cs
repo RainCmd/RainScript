@@ -6,14 +6,14 @@ namespace RainScript.VirtualMachine
     {
         private struct Head
         {
-            public uint point, reference, size, next;
+            public uint point, reference, softReference, size, next;
             public Type type;
             public bool flag;
         }
         private readonly Kernel kernel;
         private Head[] heads = new Head[16];
         private byte* heap;
-        private uint headTop = 1, free = 0, head = 0, tail = 0, heapTop = 0, heapSize = 512;
+        private uint headTop = 1, free = 0, head = 0, tail = 0, soft = 0, heapTop = 0, heapSize = 512;
         private bool flag = false, gc = false;
         public HeapAgency(Kernel kernel)
         {
@@ -61,14 +61,18 @@ namespace RainScript.VirtualMachine
             }
             if (heapSize < heapTop + size)
             {
-                GC();
+                GC(false);
                 if (heapSize < heapTop + size)
                 {
-                    while (heapSize < heapTop + size) heapSize <<= 1;
-                    var nhs = Tools.MAlloc((int)heapSize);
-                    Tools.Copy(heap, nhs, heapTop);
-                    Tools.Free(heap);
-                    heap = nhs;
+                    GC(true);
+                    if (heapSize < heapTop + size)
+                    {
+                        while (heapSize < heapTop + size) heapSize <<= 1;
+                        var nhs = Tools.MAlloc((int)heapSize);
+                        Tools.Copy(heap, nhs, heapTop);
+                        Tools.Free(heap);
+                        heap = nhs;
+                    }
                 }
             }
             heads[handle].point = heapTop;
@@ -77,11 +81,12 @@ namespace RainScript.VirtualMachine
             heads[handle].size = size;
             heads[handle].next = 0;
             heads[handle].reference = 0;
+            heads[handle].softReference = 0;
             var point = heapTop;
             heapTop += size;
             while (point < heapTop) heap[point++] = 0;
             if (tail > 0) heads[tail].next = handle;
-            else head = handle;
+            else head = soft = handle;
             tail = handle;
             return handle;
         }
@@ -99,7 +104,8 @@ namespace RainScript.VirtualMachine
             point += definition.baseOffset;
             foreach (var variable in definition.variables)
             {
-                if (variable.type.definition.code == TypeCode.String) kernel.stringAgency.Release(*(uint*)(heap + point));
+                if (variable.type.dimension > 0 || variable.type.definition.code == TypeCode.Handle || variable.type.definition.code == TypeCode.Interface || variable.type.definition.code == TypeCode.Function || variable.type.definition.code == TypeCode.Coroutine) SoftRelease(*(uint*)(heap + point));
+                else if (variable.type.definition.code == TypeCode.String) kernel.stringAgency.Release(*(uint*)(heap + point));
                 else if (variable.type.definition.code == TypeCode.Entity) kernel.manipulator.Release(*(Entity*)(heap + point));
                 point += variable.type.FieldSize;
             }
@@ -118,13 +124,15 @@ namespace RainScript.VirtualMachine
                     case TypeCode.Handle:
                         Free(handle, kernel.libraryAgency[type.definition.library].definitions[type.definition.index], point);
                         break;
-                    case TypeCode.Entity:
-                        kernel.manipulator.Release(*(Entity*)(heap + point));
+                    case TypeCode.Function:
+                        SoftRelease(((RuntimeDelegateInfo*)(heap + point))->target);
                         break;
                     case TypeCode.Coroutine:
                         kernel.coroutineAgency.RecycleInternalInvoker(*(ulong*)(heap + point));
                         break;
-
+                    case TypeCode.Entity:
+                        kernel.manipulator.Release(*(Entity*)(heap + point));
+                        break;
                 }
             }
             else if (type.dimension == 1)
@@ -142,6 +150,19 @@ namespace RainScript.VirtualMachine
                             }
                         }
                         break;
+                    case TypeCode.Handle:
+                    case TypeCode.Interface:
+                    case TypeCode.Function:
+                    case TypeCode.Coroutine:
+                        {
+                            var index = (uint*)(heap + point + 4);
+                            while (size-- > 0)
+                            {
+                                SoftRelease(*index);
+                                index++;
+                            }
+                        }
+                        break;
                     case TypeCode.Entity:
                         {
                             var index = (Entity*)(head + point + 4);
@@ -152,6 +173,16 @@ namespace RainScript.VirtualMachine
                             }
                         }
                         break;
+                }
+            }
+            else
+            {
+                var size = *(uint*)(heap + point);
+                var index = (uint*)(heap + point + 4);
+                while (size-- > 0)
+                {
+                    SoftRelease(*index);
+                    index++;
                 }
             }
         }
@@ -189,60 +220,103 @@ namespace RainScript.VirtualMachine
                 else if (type.definition.code == TypeCode.Function) Mark(((RuntimeDelegateInfo*)(heap + head.point))->target);
             }
         }
-        public void GC()
+
+        private bool IsRunningCoroutine(uint handle)
         {
-            gc = true;
+            if (heads[handle].type.dimension == 0 && heads[handle].type.definition.code == TypeCode.Coroutine)
+            {
+                var invoker = kernel.coroutineAgency.GetInternalInvoker(*(ulong*)(heap + heads[handle].point));
+                if (invoker.state == InvokerState.Running) return true;
+            }
+            return false;
+        }
+        private void MemoryMove(uint handle)
+        {
+            if (heads[handle].point == heapTop) heapTop += heads[handle].size;
+            else
+            {
+                var point = heads[handle].point;
+                heads[handle].point = heapTop;
+                var size = heads[handle].size;
+                while (size-- > 0) heap[heapTop++] = heap[point++];
+            }
+        }
+        private uint RecycleHandle(uint handle)
+        {
+            var next = heads[handle].next;
+            Free(handle);
+            heads[handle].next = free;
+            heads[handle].type = Type.INVALID;
+            free = handle;
+            if (tail > 0) heads[tail].next = next;
+            return next;
+        }
+        private void FullGC()
+        {
             flag = !flag;
             var index = head;
             while (index > 0)
             {
-                if (heads[index].reference > 0) Mark(index);
-                else if (heads[index].type.dimension == 0 && heads[index].type.definition.code == TypeCode.Coroutine)
-                {
-                    var invoker = kernel.coroutineAgency.GetInternalInvoker(*(ulong*)(heap + heads[index].point));
-                    if (invoker.state == InvokerState.Running) Mark(index);
-                }
+                if (heads[index].reference > 0 || IsRunningCoroutine(index)) Mark(index);
                 index = heads[index].next;
             }
             index = head;
             heapTop = 0;
-            head = tail = 0;
+            head = tail = soft = 0;
             while (index > 0)
             {
                 if (heads[index].flag == flag)
                 {
                     tail = index;
                     if (head == 0) head = index;
-                    if (heads[index].point == heapTop) heapTop += heads[index].size;
-                    else
-                    {
-                        var point = heads[index].point;
-                        heads[index].point = heapTop;
-                        var size = heads[index].size;
-                        while (size-- > 0) heap[heapTop++] = heap[point++];
-                    }
+                    MemoryMove(index);
                     index = heads[index].next;
                 }
-                else
+                else index = RecycleHandle(index);
+            }
+            soft = tail;
+        }
+        private void FastGC()
+        {
+            if (soft > 0)
+            {
+                heapTop = heads[soft].point + heads[soft].size;
+                tail = soft;
+                var index = heads[soft].next;
+                while (index > 0)
                 {
-                    var next = heads[index].next;
-                    Free(index);
-                    heads[index].next = free;
-                    heads[index].type = Type.INVALID;
-                    free = index;
-                    index = next;
-                    if (tail > 0) heads[tail].next = index;
+                    if (heads[index].reference > 0 || heads[index].softReference > 0 || IsRunningCoroutine(index))
+                    {
+                        tail = index;
+                        MemoryMove(index);
+                        index = heads[index].next;
+                    }
+                    else index = RecycleHandle(index);
                 }
             }
+        }
+        public void GC(bool full)
+        {
+            gc = true;
+            if (full) FullGC();
+            else FastGC();
             gc = false;
         }
         public void Reference(uint handle)
         {
             if (IsVaild(handle)) heads[handle].reference++;
         }
+        public void SoftReference(uint handle)
+        {
+            if (IsVaild(handle)) heads[handle].softReference++;
+        }
         public void Release(uint handle)
         {
             if (IsVaild(handle)) heads[handle].reference--;
+        }
+        public void SoftRelease(uint handle)
+        {
+            if (IsVaild(handle)) heads[handle].softReference--;
         }
         public ExitCode TryGetArrayLength(uint handle, out uint length)
         {

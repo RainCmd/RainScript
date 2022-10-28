@@ -141,9 +141,10 @@ namespace RainScript.VirtualMachine
         /// <summary>
         /// 托管堆回收
         /// </summary>
-        public void Collect()
+        /// <param name="full">完全GC</param>
+        public void Collect(bool full)
         {
-            heapAgency.GC();
+            heapAgency.GC(full);
         }
         internal void OnExitEvent(StackFrame[] stacks, long code)
         {

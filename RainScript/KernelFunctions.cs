@@ -35,7 +35,7 @@
                 new KernelMethod("Clamp", new Function(new Type[]{ KERNEL_TYPE.INTEGER, KERNEL_TYPE.INTEGER, KERNEL_TYPE.INTEGER }, KERNEL_TYPE.INTEGER), new Function(new Type[]{ KERNEL_TYPE.REAL, KERNEL_TYPE.REAL, KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
                 new KernelMethod("Clame01", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
                 new KernelMethod("Cos", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
-                new KernelMethod("Collect", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
+                new KernelMethod("Collect", new Function(new Type[]{ KERNEL_TYPE.BOOL }, KERNEL_TYPE.INTEGER)),
                 new KernelMethod("CountCoroutine", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("CountEntity", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("CountHandle", new Function(new Type[0], KERNEL_TYPE.INTEGER)),

@@ -191,6 +191,7 @@ namespace RainScript.VirtualMachine
                                         {
                                             var function = new DefinitionFunction(new TypeDefinition(libraryIndex, TypeCode.Handle, *(uint*)(library.code + point + 19)), *(Function*)(library.code + point + 23));
                                             *delegateInfo = new RuntimeDelegateInfo(kernel.libraryAgency, library.LocalToGlobal(function), target, functionType);
+                                            kernel.heapAgency.SoftReference(target);
                                         }
                                         else
                                         {
@@ -209,6 +210,7 @@ namespace RainScript.VirtualMachine
                                         invokerFunction = library.LocalToGlobal(invokerFunction);
                                         if (kernel.libraryAgency.GetFunction(invokerFunction, type, out var targetFunction))
                                             *delegateInfo = new RuntimeDelegateInfo(kernel.libraryAgency, targetFunction, target, functionType);
+                                        kernel.heapAgency.SoftReference(target);
                                         point += 35;
                                     }
                                     break;
@@ -221,6 +223,7 @@ namespace RainScript.VirtualMachine
                                         invokerFunction = library.LocalToGlobal(invokerFunction);
                                         if (kernel.libraryAgency.GetFunction(invokerFunction, type, out var targetFunction))
                                             *delegateInfo = new RuntimeDelegateInfo(kernel.libraryAgency, targetFunction, target, functionType);
+                                        kernel.heapAgency.SoftReference(target);
                                         point += 35;
                                     }
                                     break;
@@ -351,7 +354,7 @@ namespace RainScript.VirtualMachine
                                     goto error;
                                 case FunctionType.Member:
                                 case FunctionType.Virtual:
-                                    var target = (long)kernel.heapAgency.TryGetType(delegateInfo->target, out var targetType);
+                                    flag = (long)kernel.heapAgency.TryGetType(delegateInfo->target, out var targetType);
                                     if (flag != 0) goto error;
                                     var invoker = kernel.coroutineAgency.InternalInvoker(kernel.libraryAgency[delegateInfo->library].GetFunctionHandle(targetType.definition, delegateInfo->function));
                                     invoker.SetHeapHandleParameter(0, delegateInfo->target);
@@ -1091,7 +1094,9 @@ namespace RainScript.VirtualMachine
                             library.LocalToGlobal(*(uint*)(library.code + point + 5), *(MemberVariable*)(library.code + point + 9), out var globalLibrary, out var globalMemberVaribale);
                             var definition = kernel.libraryAgency[globalLibrary].definitions[globalMemberVaribale.definition];
                             address += definition.baseOffset + definition.variables[globalMemberVaribale.index].offset;
+                            kernel.heapAgency.SoftRelease(*(uint*)address);
                             *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 17));
+                            kernel.heapAgency.SoftReference(*(uint*)address);
                         }
                         point += 21;
                         break;
@@ -1183,7 +1188,9 @@ namespace RainScript.VirtualMachine
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
+                            kernel.heapAgency.SoftReference(*(uint*)address);
                             *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 9));
+                            kernel.heapAgency.SoftRelease(*(uint*)address);
                         }
                         point += 13;
                         break;

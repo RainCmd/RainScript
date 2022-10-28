@@ -229,7 +229,7 @@ Entry()
     B b = B& a
     bool c = a is B bb              //变量名bb非必须
     B d = a as B                    //变量d不为null
-    a=A()
+    a = A()
     B e = a as B                    //变量e为null 
 ```
 
@@ -324,7 +324,7 @@ real3 Lerp(real3, real3, real)
 real4 Lerp(real4, real4, real)
 
 //触发垃圾回收，返回值为回收后托管堆大小
-int Collect()
+int Collect(bool full)
 
 //统计当前协程数量
 int CountCoroutine()
