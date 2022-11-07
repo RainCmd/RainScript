@@ -58,9 +58,8 @@
         Array = 0x0040,             //数组
         Tuple = 0x0080,             //元组
         Coroutine = 0x0100,         //携程
-        Cast = 0x0200,              //类型转换
-        Type = 0x0400,              //类型
-        Method = 0x0800,            //方法
+        Type = 0x0200,              //类型
+        Method = 0x0400,            //方法
     }
     internal struct Token
     {
