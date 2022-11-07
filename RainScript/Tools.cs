@@ -48,14 +48,5 @@ namespace RainScript
             for (int i = 0; i < length; i++) result[i] = point[i];
             return result;
         }
-        internal static uint MethodFunction(uint methodIndex, uint functionIndex)
-        {
-            return (methodIndex << 8) | (functionIndex & 0xff);
-        }
-        internal static void MethodFunction(uint index, out uint methodIndex, out uint functionIndex)
-        {
-            methodIndex = index >> 8;
-            functionIndex = index & 0xff;
-        }
     }
 }

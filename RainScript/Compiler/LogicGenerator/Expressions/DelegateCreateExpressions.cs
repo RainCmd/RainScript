@@ -122,7 +122,7 @@
             parameter.generator.WriteCode(definition);
             parameter.generator.WriteCode(FunctionType.Global);
             parameter.generator.WriteCode(function.library);
-            parameter.generator.WriteCode(new Function(function.index, 0));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
         }
     }
     internal class DelegateCreateNativeFunctionExpression : Expression
@@ -143,7 +143,7 @@
             parameter.generator.WriteCode(definition);
             parameter.generator.WriteCode(FunctionType.Native);
             parameter.generator.WriteCode(function.library);
-            parameter.generator.WriteCode(new Function(function.index, 0));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
         }
     }
     internal class DelegateCreateMemberFunctionExpression : Expression
@@ -170,7 +170,7 @@
             parameter.generator.WriteCode(FunctionType.Member);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
-            parameter.generator.WriteCode(new Function(function.index, 0));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.WriteCode(sourceParameter.results[0]);
         }
         private static bool IsKernelStructMember(Declaration declaration)
@@ -213,7 +213,7 @@
             parameter.generator.WriteCode(FunctionType.Virtual);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
-            parameter.generator.WriteCode(new Function(function.index, 0));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.WriteCode(sourceParameter.results[0]);
         }
     }
@@ -245,7 +245,7 @@
             parameter.generator.WriteCode(FunctionType.Virtual);
             parameter.generator.WriteCode(function.library);
             parameter.generator.WriteCode(function.definitionIndex);
-            parameter.generator.WriteCode(new Function(function.index, 0));
+            parameter.generator.WriteCode(new Function(function.index, function.overloadIndex));
             parameter.generator.WriteCode(sourceParameter.results[0]);
             parameter.generator.WriteCode(address);
             address.Dispose();

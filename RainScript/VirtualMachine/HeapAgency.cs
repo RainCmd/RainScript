@@ -234,7 +234,7 @@ namespace RainScript.VirtualMachine
         {
             if (heads[handle].point == heapTop) heapTop += heads[handle].size;
             else
-            {
+            { 
                 var point = heads[handle].point;
                 heads[handle].point = heapTop;
                 var size = heads[handle].size;
