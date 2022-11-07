@@ -204,7 +204,7 @@ namespace RainScript.VirtualMachine
         }
         private static void GenerateNative(ILGenerator generator, System.Reflection.MethodInfo method)
         {
-            int pidx = Frame.SIZE;
+            uint pidx = Frame.SIZE;
             var topPoint = generator.DeclareLocal(typeof(byte*));
             generator.Emit(Ldarg_2);
             generator.Emit(Ldarg_3);
@@ -258,61 +258,65 @@ namespace RainScript.VirtualMachine
                 if (type == typeof(bool))
                 {
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldind_U1);
-                    pidx += (int)TypeCode.Bool.FieldSize();
+                    pidx += TypeCode.Bool.FieldSize();
                 }
                 else if (type == typeof(long))
                 {
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldind_I8);
-                    pidx += (int)TypeCode.Integer.FieldSize();
+                    pidx += TypeCode.Integer.FieldSize();
                 }
                 else if (type == typeof(real))
                 {
+                    Tools.MemoryAlignment(ref pidx);
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
 #if FIXED
                     generator.Emit(Ldobj, typeof(real));
 #else
                     generator.Emit(Ldind_R8);
 #endif
-                    pidx += (int)TypeCode.Real.FieldSize();
+                    pidx += TypeCode.Real.FieldSize();
                 }
                 else if (type == typeof(Real2))
                 {
+                    Tools.MemoryAlignment(ref pidx);
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldobj, type);
-                    pidx += (int)TypeCode.Real2.FieldSize();
+                    pidx += TypeCode.Real2.FieldSize();
                 }
                 else if (type == typeof(Real3))
                 {
+                    Tools.MemoryAlignment(ref pidx);
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldobj, type);
-                    pidx += (int)TypeCode.Real3.FieldSize();
+                    pidx += TypeCode.Real3.FieldSize();
                 }
                 else if (type == typeof(Real4))
                 {
+                    Tools.MemoryAlignment(ref pidx);
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldobj, type);
-                    pidx += (int)TypeCode.Real4.FieldSize();
+                    pidx += TypeCode.Real4.FieldSize();
                 }
                 else if (type == typeof(string))
                 {
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_Kernel_stringAgency);
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldind_U4);
                     generator.Emit(Callvirt, method_StringAgency_Get);
@@ -320,18 +324,18 @@ namespace RainScript.VirtualMachine
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_Kernel_stringAgency);
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldind_U4);
                     generator.Emit(Callvirt, method_StringAgency_Release);
-                    pidx += (int)TypeCode.String.FieldSize();
+                    pidx += TypeCode.String.FieldSize();
                 }
                 else if (type == typeof(IEntity))
                 {
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_kernel_manipulator);
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldobj, typeof(Entity));
                     generator.Emit(Callvirt, method_EntityManipulator_Get);
@@ -339,11 +343,11 @@ namespace RainScript.VirtualMachine
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_kernel_manipulator);
                     generator.Emit(Ldloc, topPoint);
-                    generator.Emit(Ldc_I4, pidx);
+                    generator.Emit(Ldc_I4, (int)pidx);
                     generator.Emit(Add);
                     generator.Emit(Ldobj, typeof(Entity));
                     generator.Emit(Callvirt, method_EntityManipulator_Release);
-                    pidx += (int)TypeCode.Entity.FieldSize();
+                    pidx += TypeCode.Entity.FieldSize();
                 }
                 else throw ExceptionGeneratorVM.CommunicationNotSupportedType(method.Name, type.Name);
             }

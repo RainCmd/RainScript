@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace RainScript.VirtualMachine
 {
@@ -20,6 +21,25 @@ namespace RainScript.VirtualMachine
             heap = Tools.MAlloc((int)heapSize);
             this.kernel = kernel;
         }
+        private void EnsureCapacity(uint size)
+        {
+            if (heapSize < heapTop + size)
+            {
+                GC(false);
+                if (heapSize < heapTop + size)
+                {
+                    GC(true);
+                    if (heapSize < heapTop + size)
+                    {
+                        while (heapSize < heapTop + size) heapSize <<= 1;
+                        var nhs = Tools.MAlloc((int)heapSize);
+                        Tools.Copy(heap, nhs, heapTop);
+                        Tools.Free(heap);
+                        heap = nhs;
+                    }
+                }
+            }
+        }
         public uint AllocArray(Type type, uint length)
         {
             var handle = Alloc(type.FieldSize * length + 4);
@@ -40,6 +60,16 @@ namespace RainScript.VirtualMachine
             heads[handle].type = new Type(definition, 0);
             return handle;
         }
+        [Conditional("MEMORY_ALIGNMENT_4")]
+        private void MemoryAlignment()
+        {
+#if MEMORY_ALIGNMENT_4
+            var top = heapTop;
+            Tools.MemoryAlignment(ref top);
+            EnsureCapacity(top - heapTop);
+            heapTop = top;
+#endif
+        }
         private uint Alloc(uint size)
         {
             if (gc) throw ExceptionGeneratorVM.InvalidAllocOperation();
@@ -59,22 +89,8 @@ namespace RainScript.VirtualMachine
                 }
                 handle = headTop++;
             }
-            if (heapSize < heapTop + size)
-            {
-                GC(false);
-                if (heapSize < heapTop + size)
-                {
-                    GC(true);
-                    if (heapSize < heapTop + size)
-                    {
-                        while (heapSize < heapTop + size) heapSize <<= 1;
-                        var nhs = Tools.MAlloc((int)heapSize);
-                        Tools.Copy(heap, nhs, heapTop);
-                        Tools.Free(heap);
-                        heap = nhs;
-                    }
-                }
-            }
+            MemoryAlignment();
+            EnsureCapacity(size);
             heads[handle].point = heapTop;
             heads[handle].flag = flag;
             heads[handle].type = Type.INVALID;
@@ -232,9 +248,10 @@ namespace RainScript.VirtualMachine
         }
         private void MemoryMove(uint handle)
         {
+            Tools.MemoryAlignment(ref heapTop);
             if (heads[handle].point == heapTop) heapTop += heads[handle].size;
             else
-            { 
+            {
                 var point = heads[handle].point;
                 heads[handle].point = heapTop;
                 var size = heads[handle].size;

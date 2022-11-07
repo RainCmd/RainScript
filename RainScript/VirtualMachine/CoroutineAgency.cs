@@ -55,19 +55,6 @@ namespace RainScript.VirtualMachine
             }
             else Recycle(coroutine);
         }
-        private bool Remove(Invoker invoker, ref Coroutine head, out Coroutine coroutine)
-        {
-            for (Coroutine index = head, prev = null; index != null; prev = index, index = index.next)
-                if (index.invoker == invoker)
-                {
-                    if (prev == null) head = index.next;
-                    else prev.next = index.next;
-                    coroutine = index;
-                    return true;
-                }
-            coroutine = default;
-            return false;
-        }
         internal void Update()
         {
             var count = this.count;

@@ -1,15 +1,40 @@
 ﻿namespace RainScript.Compiler.LogicGenerator.Expressions
 {
-    internal class InvokerDelegateExpression : Expression
+    internal abstract class InvokerExpression : Expression
+    {
+        public readonly Expression parameter;
+        protected InvokerExpression(Anchor anchor, Expression parameter, params CompilingType[] returns) : base(anchor, returns)
+        {
+            this.parameter = parameter;
+        }
+        protected uint PushParameter(uint point, Variable variable, Generator generator)
+        {
+            if (variable.type.IsHandle) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
+            else if (variable.type == RelyKernel.BOOL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
+            else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
+            else if (variable.type == RelyKernel.REAL2_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
+            else if (variable.type == RelyKernel.REAL3_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
+            else if (variable.type == RelyKernel.REAL4_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
+            else if (variable.type == RelyKernel.STRING_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
+            else if (variable.type == RelyKernel.ENTITY_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
+            else throw ExceptionGeneratorCompiler.Unknown();
+#if MEMORY_ALIGNMENT_4
+            if (variable.type == RelyKernel.REAL_TYPE || variable.type == RelyKernel.REAL2_TYPE || variable.type == RelyKernel.REAL3_TYPE || variable.type == RelyKernel.REAL4_TYPE)
+                Tools.MemoryAlignment(ref point);
+#endif
+            generator.WriteCode(point);
+            generator.WriteCode(variable);
+            return point + variable.type.FieldSize;
+        }
+    }
+    internal class InvokerDelegateExpression : InvokerExpression
     {
         public readonly Expression invoker;
-        public readonly Expression parameter;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public InvokerDelegateExpression(Anchor anchor, Expression invoker, Expression parameter, CompilingType[] returns) : base(anchor, returns)
+        public InvokerDelegateExpression(Anchor anchor, Expression invoker, Expression parameter, CompilingType[] returns) : base(anchor, parameter, returns)
         {
             this.invoker = invoker;
-            this.parameter = parameter;
             if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
             else attribute = TokenAttribute.Tuple;
         }
@@ -39,37 +64,21 @@
             parameter.generator.WriteCode(CommandMacro.FUNCTION_CustomCallPretreater);
             parameter.generator.WriteCode((uint)returns.Length * 4 + Frame.SIZE);
             parameter.generator.WriteCode(invokerParameter.results[0]);
-            foreach (var variable in parameterParameter.results)
-            {
-                if (variable.type.IsHandle) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-                else if (variable.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
-                else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
-                else if (variable.type == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
-                else if (variable.type == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
-                else if (variable.type == RelyKernel.REAL4_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
-                else if (variable.type == RelyKernel.STRING_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
-                else if (variable.type == RelyKernel.ENTITY_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
-                else throw ExceptionGeneratorCompiler.Unknown();
-                parameter.generator.WriteCode(point);
-                parameter.generator.WriteCode(variable);
-                point += variable.type.FieldSize;
-            }
+            foreach (var variable in parameterParameter.results) point = PushParameter(point, variable, parameter.generator);
             parameter.generator.WriteCode(CommandMacro.FUNCTION_CustomCall);
             parameter.generator.WriteCode(invokerParameter.results[0]);
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }
     }
-    internal class InvokerQuestionDelegateExpression : Expression
+    internal class InvokerQuestionDelegateExpression : InvokerExpression
     {
         public readonly Expression invoker;
-        public readonly Expression parameter;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public InvokerQuestionDelegateExpression(Anchor anchor, Expression invoker, Expression parameter, CompilingType[] returns) : base(anchor, returns)
+        public InvokerQuestionDelegateExpression(Anchor anchor, Expression invoker, Expression parameter, CompilingType[] returns) : base(anchor, parameter, returns)
         {
             this.invoker = invoker;
-            this.parameter = parameter;
             if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
             else attribute = TokenAttribute.Tuple;
         }
@@ -100,21 +109,7 @@
             parameter.generator.WriteCode(CommandMacro.FUNCTION_CustomCallPretreater);
             parameter.generator.WriteCode((uint)returns.Length * 4 + Frame.SIZE);
             parameter.generator.WriteCode(invokerParameter.results[0]);
-            foreach (var variable in parameterParameter.results)
-            {
-                if (variable.type.IsHandle) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-                else if (variable.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
-                else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
-                else if (variable.type == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
-                else if (variable.type == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
-                else if (variable.type == RelyKernel.REAL4_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
-                else if (variable.type == RelyKernel.STRING_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
-                else if (variable.type == RelyKernel.ENTITY_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
-                else throw ExceptionGeneratorCompiler.Unknown();
-                parameter.generator.WriteCode(point);
-                parameter.generator.WriteCode(variable);
-                point += variable.type.FieldSize;
-            }
+            foreach (var variable in parameterParameter.results) point = PushParameter(point, variable, parameter.generator);
             parameter.generator.WriteCode(CommandMacro.FUNCTION_CustomCall);
             parameter.generator.WriteCode(invokerParameter.results[0]);
             parameter.generator.SetCodeAddress(returnPoint);
@@ -122,16 +117,14 @@
             if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
     }
-    internal class InvokerNativeExpression : Expression
+    internal class InvokerNativeExpression : InvokerExpression
     {
         private readonly Declaration declaration;
-        private readonly Expression parameter;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public InvokerNativeExpression(Anchor anchor, Declaration declaration, Expression parameter, CompilingType[] returns) : base(anchor, returns)
+        public InvokerNativeExpression(Anchor anchor, Declaration declaration, Expression parameter, CompilingType[] returns) : base(anchor, parameter, returns)
         {
             this.declaration = declaration;
-            this.parameter = parameter;
             if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
             else attribute = TokenAttribute.Tuple;
         }
@@ -154,21 +147,7 @@
                 parameter.generator.WriteCode(variable);
                 point += 4;
             }
-            foreach (var variable in parameterParameter.results)
-            {
-                if (variable.type.IsHandle) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-                else if (variable.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
-                else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
-                else if (variable.type == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
-                else if (variable.type == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
-                else if (variable.type == RelyKernel.REAL4_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
-                else if (variable.type == RelyKernel.STRING_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
-                else if (variable.type == RelyKernel.ENTITY_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
-                else throw ExceptionGeneratorCompiler.Unknown();
-                parameter.generator.WriteCode(point);
-                parameter.generator.WriteCode(variable);
-                point += variable.type.FieldSize;
-            }
+            foreach (var variable in parameterParameter.results) point = PushParameter(point, variable, parameter.generator);
             parameter.generator.WriteCode(CommandMacro.FUNCTION_NativeCall);
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
@@ -178,16 +157,14 @@
             if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
     }
-    internal class InvokerGlobalExpression : Expression
+    internal class InvokerGlobalExpression : InvokerExpression
     {
         public readonly Declaration declaration;
-        public readonly Expression parameter;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public InvokerGlobalExpression(Anchor anchor, Declaration declaration, Expression parameter, CompilingType[] returns) : base(anchor, returns)
+        public InvokerGlobalExpression(Anchor anchor, Declaration declaration, Expression parameter, CompilingType[] returns) : base(anchor, parameter, returns)
         {
             this.declaration = declaration;
-            this.parameter = parameter;
             if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
             else attribute = TokenAttribute.Tuple;
         }
@@ -210,21 +187,7 @@
                 parameter.generator.WriteCode(variable);
                 point += 4;
             }
-            foreach (var variable in parameterParameter.results)
-            {
-                if (variable.type.IsHandle) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-                else if (variable.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
-                else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
-                else if (variable.type == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
-                else if (variable.type == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
-                else if (variable.type == RelyKernel.REAL4_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
-                else if (variable.type == RelyKernel.STRING_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
-                else if (variable.type == RelyKernel.ENTITY_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
-                else throw ExceptionGeneratorCompiler.Unknown();
-                parameter.generator.WriteCode(point);
-                parameter.generator.WriteCode(variable);
-                point += variable.type.FieldSize;
-            }
+            foreach (var variable in parameterParameter.results) point = PushParameter(point, variable, parameter.generator);
             parameter.generator.WriteCode(CommandMacro.FUNCTION_Call);
             var function = parameter.relied.Convert(declaration);
             parameter.generator.WriteCode(function.library);
@@ -234,17 +197,15 @@
             if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
     }
-    internal class InvokerMemberExpression : Expression
+    internal class InvokerMemberExpression : InvokerExpression
     {
         public readonly Expression target;
-        public readonly Expression parameter;
         public readonly Declaration declaration;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public InvokerMemberExpression(Anchor anchor, Declaration declaration, Expression target, Expression parameter, CompilingType[] returns) : base(anchor, returns)
+        public InvokerMemberExpression(Anchor anchor, Declaration declaration, Expression target, Expression parameter, CompilingType[] returns) : base(anchor, parameter, returns)
         {
             this.target = target;
-            this.parameter = parameter;
             this.declaration = declaration;
             if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
             else attribute = TokenAttribute.Tuple;
@@ -287,33 +248,16 @@
             returnPoint.Dispose();
             if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
-        private uint PushParameter(uint point, Variable variable, Generator generator)
-        {
-            if (variable.type.IsHandle) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-            else if (variable.type == RelyKernel.BOOL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
-            else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
-            else if (variable.type == RelyKernel.REAL2_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
-            else if (variable.type == RelyKernel.REAL3_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
-            else if (variable.type == RelyKernel.REAL4_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
-            else if (variable.type == RelyKernel.STRING_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
-            else if (variable.type == RelyKernel.ENTITY_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
-            else throw ExceptionGeneratorCompiler.Unknown();
-            generator.WriteCode(point);
-            generator.WriteCode(variable);
-            return point + variable.type.FieldSize;
-        }
     }
-    internal class InvokerVirtualMemberExpression : Expression
+    internal class InvokerVirtualMemberExpression : InvokerExpression
     {
         public readonly Expression target;
-        public readonly Expression parameter;
         public readonly Declaration declaration;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public InvokerVirtualMemberExpression(Anchor anchor, Declaration declaration, Expression target, Expression parameter, CompilingType[] returns) : base(anchor, returns)
+        public InvokerVirtualMemberExpression(Anchor anchor, Declaration declaration, Expression target, Expression parameter, CompilingType[] returns) : base(anchor, parameter, returns)
         {
             this.target = target;
-            this.parameter = parameter;
             this.declaration = declaration;
             if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
             else attribute = TokenAttribute.Tuple;
@@ -356,33 +300,16 @@
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
         }
-        private uint PushParameter(uint point, Variable variable, Generator generator)
-        {
-            if (variable.type.IsHandle) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-            else if (variable.type == RelyKernel.BOOL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
-            else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
-            else if (variable.type == RelyKernel.REAL2_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
-            else if (variable.type == RelyKernel.REAL3_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
-            else if (variable.type == RelyKernel.REAL4_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
-            else if (variable.type == RelyKernel.STRING_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
-            else if (variable.type == RelyKernel.ENTITY_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
-            else throw ExceptionGeneratorCompiler.Unknown();
-            generator.WriteCode(point);
-            generator.WriteCode(variable);
-            return point + variable.type.FieldSize;
-        }
     }
-    internal class InvokerQuestionMemberExpression : Expression
+    internal class InvokerQuestionMemberExpression : InvokerExpression
     {
         public readonly Expression target;
-        public readonly Expression parameter;
         public readonly Declaration declaration;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public InvokerQuestionMemberExpression(Anchor anchor, Declaration declaration, Expression target, Expression parameter, CompilingType[] returns) : base(anchor, returns)
+        public InvokerQuestionMemberExpression(Anchor anchor, Declaration declaration, Expression target, Expression parameter, CompilingType[] returns) : base(anchor, parameter, returns)
         {
             this.target = target;
-            this.parameter = parameter;
             this.declaration = declaration;
             if (returns.Length == 1) attribute = TokenAttribute.Value.AddTypeAttribute(returns[0]);
             else attribute = TokenAttribute.Tuple;
@@ -424,32 +351,15 @@
             returnPoint.Dispose();
             if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
         }
-        private uint PushParameter(uint point, Variable variable, Generator generator)
-        {
-            if (variable.type.IsHandle) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-            else if (variable.type == RelyKernel.BOOL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
-            else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
-            else if (variable.type == RelyKernel.REAL2_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
-            else if (variable.type == RelyKernel.REAL3_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
-            else if (variable.type == RelyKernel.REAL4_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
-            else if (variable.type == RelyKernel.STRING_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
-            else if (variable.type == RelyKernel.ENTITY_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
-            else throw ExceptionGeneratorCompiler.Unknown();
-            generator.WriteCode(point);
-            generator.WriteCode(variable);
-            return point + variable.type.FieldSize;
-        }
     }
-    internal class InvokerConstructorExpression : Expression
+    internal class InvokerConstructorExpression : InvokerExpression
     {
         private readonly Declaration declaration;
-        private readonly Expression parameter;
         private readonly TokenAttribute attribute;
         public override TokenAttribute Attribute => attribute;
-        public InvokerConstructorExpression(Anchor anchor, Declaration declaration, Expression parameter, CompilingType type) : base(anchor, type)
+        public InvokerConstructorExpression(Anchor anchor, Declaration declaration, Expression parameter, CompilingType type) : base(anchor, parameter, type)
         {
             this.declaration = declaration;
-            this.parameter = parameter;
             attribute = TokenAttribute.Value.AddTypeAttribute(type);
         }
         public override void Generator(GeneratorParameter parameter)
@@ -477,21 +387,6 @@
             parameter.generator.SetCodeAddress(returnPoint);
             returnPoint.Dispose();
             if (!parameter.command.ignoreExit) parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
-        }
-        private uint PushParameter(uint point, Variable variable, Generator generator)
-        {
-            if (variable.type.IsHandle) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-            else if (variable.type == RelyKernel.BOOL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
-            else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
-            else if (variable.type == RelyKernel.REAL2_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
-            else if (variable.type == RelyKernel.REAL3_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);
-            else if (variable.type == RelyKernel.REAL4_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_32);
-            else if (variable.type == RelyKernel.STRING_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_String);
-            else if (variable.type == RelyKernel.ENTITY_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Entity);
-            else throw ExceptionGeneratorCompiler.Unknown();
-            generator.WriteCode(point);
-            generator.WriteCode(variable);
-            return point + variable.type.FieldSize;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace RainScript.VirtualMachine
 {
@@ -24,6 +25,7 @@ namespace RainScript.VirtualMachine
             returnSize = 0u;
             for (int i = 0; i < function.returns.Length; i++)
             {
+                MemoryAlignment(ref returnSize, function.returns[i]);
                 returnPoints[i] = returnSize;
                 returnSize += function.returns[i].FieldSize;
             }
@@ -31,9 +33,16 @@ namespace RainScript.VirtualMachine
             parameterSize = 0u;
             for (int i = 0; i < function.parameters.Length; i++)
             {
+                MemoryAlignment(ref parameterSize, function.parameters[i]);
                 parameterPoints[i] = parameterSize;
                 parameterSize += function.parameters[i].FieldSize;
             }
+        }
+        [Conditional("MEMORY_ALIGNMENT_4")]
+        private static void MemoryAlignment(ref uint point, Type type)
+        {
+            if (type == KERNEL_TYPE.REAL || type == KERNEL_TYPE.REAL2 || type == KERNEL_TYPE.REAL3 || type == KERNEL_TYPE.REAL4)
+                Tools.MemoryAlignment(ref point);
         }
         internal static FunctionHandle CreateMemberFunctionHandle(RuntimeLibraryInfo library, uint entry, TypeDefinition definition, FunctionInfo function)
         {

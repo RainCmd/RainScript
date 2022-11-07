@@ -2558,6 +2558,9 @@ namespace RainScript.VirtualMachine
                         kernel.OnHitBreakpointEvent();
                         point++;
                         break;
+                    case CommandMacro.NoOperation:
+                        point++;
+                        break;
                     default: throw ExceptionGeneratorVM.InvalidCommand((CommandMacro)library.code[point]);
                 }
             }

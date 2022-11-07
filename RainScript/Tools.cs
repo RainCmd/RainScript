@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Diagnostics;
 
 namespace RainScript
 {
@@ -23,6 +24,13 @@ namespace RainScript
             var point = (uint*)&value;
             Write(stream, point[0]);
             Write(stream, point[1]);
+        }
+        [Conditional("MEMORY_ALIGNMENT_4")]
+        internal static void MemoryAlignment(ref uint point)
+        {
+#if MEMORY_ALIGNMENT_4
+            point = (point + MEMORY_ALIGNMENT) & ~MEMORY_ALIGNMENT;
+#endif
         }
         internal static byte* MAlloc(int count)
         {
@@ -48,5 +56,8 @@ namespace RainScript
             for (int i = 0; i < length; i++) result[i] = point[i];
             return result;
         }
+#if MEMORY_ALIGNMENT_4
+        internal const uint MEMORY_ALIGNMENT = 3;
+#endif
     }
 }

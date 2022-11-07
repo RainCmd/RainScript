@@ -38,6 +38,15 @@ namespace RainScript
         }
         private unsafe static VariableInfo CreateKernelVariablleInfo(Stream stream, Type type, real value)
         {
+#if MEMORY_ALIGNMENT_4
+            if (type == KERNEL_TYPE.REAL || type == KERNEL_TYPE.REAL2 || type == KERNEL_TYPE.REAL3 || type == KERNEL_TYPE.REAL4)
+            {
+                var position = (uint)stream.Position;
+                Tools.MemoryAlignment(ref position);
+                while (position > stream.Position)
+                    stream.WriteByte(0);
+            }
+#endif
             var result = new VariableInfo((uint)stream.Position, KernelConstant.constants[0].type);
             stream.Write(*(ulong*)&value);
             return result;

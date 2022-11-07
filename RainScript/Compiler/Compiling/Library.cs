@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace RainScript.Compiler.Compiling
 {
@@ -349,11 +350,24 @@ namespace RainScript.Compiler.Compiling
         public byte[] ConstantData { get; private set; }
         public uint DataSize { get; private set; }
         public Library(string name) : base(null, name) { }
+        [Conditional("MEMORY_ALIGNMENT_4")]
+        private void MemoryAlignment(CompilingType type)
+        {
+#if MEMORY_ALIGNMENT_4
+            if (type == RelyKernel.REAL_TYPE || type == RelyKernel.REAL2_TYPE || type == RelyKernel.REAL3_TYPE || type == RelyKernel.REAL4_TYPE)
+            {
+                var size = DataSize;
+                Tools.MemoryAlignment(ref size);
+                DataSize = size;
+            }
+#endif
+        }
         public void CalculatedVariableAddress()
         {
             foreach (var item in variables)
                 if (item.constant)
                 {
+                    MemoryAlignment(item.type);
                     item.address = DataSize;
                     if (item.type.dimension > 0) DataSize += TypeCode.Handle.FieldSize();
                     else DataSize += item.type.definition.code.FieldSize();
@@ -362,6 +376,7 @@ namespace RainScript.Compiler.Compiling
             foreach (var item in variables)
                 if (!item.constant)
                 {
+                    MemoryAlignment(item.type);
                     item.address = DataSize;
                     if (item.type.dimension > 0) DataSize += TypeCode.Handle.FieldSize();
                     else DataSize += item.type.definition.code.FieldSize();

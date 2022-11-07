@@ -43,20 +43,20 @@ namespace RainScript.Compiler.LogicGenerator
                 parameter.debug.AddFunction(anchor.textInfo.path, anchor.StartLine, generator.Point);
                 if (definition != null)
                 {
-                    parameterSize += 4;
+                    parameterSize = 4;
                     variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
                     for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i + 1, parameters[i]);
                         parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
-                        parameterSize += parameters[i].FieldSize;
+                        parameterSize = local.address + parameters[i].FieldSize;
                     }
                 }
                 else for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i, parameters[i]);
                         parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
-                        parameterSize += parameters[i].FieldSize;
+                        parameterSize = local.address + parameters[i].FieldSize;
                     }
                 var topValue = new Referencable<uint>(parameter.pool);
                 generator.WriteCode(CommandMacro.FUNCTION_Entrance);
@@ -67,7 +67,9 @@ namespace RainScript.Compiler.LogicGenerator
                     foreach (var statement in statements) statement.Generator(new StatementGeneratorParameter(parameter, generator, variable), finallyPoint);
                     generator.SetCodeAddress(finallyPoint);
                 }
-                topValue.SetValue(generator, variable.Generator(generator));
+                var maxStack = variable.Generator(generator);
+                Tools.MemoryAlignment(ref maxStack);
+                topValue.SetValue(generator, maxStack);
                 topValue.Dispose();
             }
             generator.WriteCode(CommandMacro.FUNCTION_Return);
@@ -589,21 +591,21 @@ namespace RainScript.Compiler.LogicGenerator
                 parameter.debug.AddFunction(file, line, generator.Point);
                 if (definition != null)
                 {
-                    parameterSize += TypeCode.Handle.FieldSize();
+                    parameterSize = TypeCode.Handle.FieldSize();
                     var thisVarliable = variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
                     parameter.debug.AddThisVariable(definition.name, generator.Point, thisVarliable.address, parameter.relied.Convert(thisVarliable.type).RuntimeType);
                     for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i + 1, parameters[i]);
                         parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
-                        parameterSize += parameters[i].FieldSize;
+                        parameterSize = local.address + parameters[i].FieldSize;
                     }
                 }
                 else for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i, parameters[i]);
                         parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
-                        parameterSize += parameters[i].FieldSize;
+                        parameterSize = local.address + parameters[i].FieldSize;
                     }
                 var topValue = new Referencable<uint>(parameter.pool);
                 generator.WriteCode(CommandMacro.FUNCTION_Entrance);
@@ -614,7 +616,9 @@ namespace RainScript.Compiler.LogicGenerator
                     statements.Generator(new StatementGeneratorParameter(parameter, generator, variable), finallyPoint);
                     generator.SetCodeAddress(finallyPoint);
                 }
-                topValue.SetValue(generator, variable.Generator(generator));
+                var maxStack = variable.Generator(generator);
+                Tools.MemoryAlignment(ref maxStack);
+                topValue.SetValue(generator, maxStack);
                 topValue.Dispose();
             }
             generator.WriteCode(CommandMacro.FUNCTION_Return);

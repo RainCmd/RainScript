@@ -17,6 +17,7 @@ namespace RainScript.VirtualMachine
         {
             stream.WriteByte((byte)CommandMacro.FUNCTION_Entrance);
             stream.Write(parameterSize);
+            Tools.MemoryAlignment(ref executeSize);
             stream.Write(executeSize);
             stream.WriteByte((byte)CommandMacro.BASE_Stackzero);
             stream.Write(parameterSize);
@@ -76,6 +77,7 @@ namespace RainScript.VirtualMachine
                         break;
                     default: throw ExceptionGenerator.InvalidTypeCode(type.definition.code);
                 }
+            Tools.MemoryAlignment(ref point);
             stream.Write(point);
             stream.Write(point);
             return point + type.FieldSize;
@@ -92,10 +94,12 @@ namespace RainScript.VirtualMachine
                     case TypeCode.Invalid:
                     case TypeCode.Bool:
                     case TypeCode.Integer:
+                        break;
                     case TypeCode.Real:
                     case TypeCode.Real2:
                     case TypeCode.Real3:
                     case TypeCode.Real4:
+                        Tools.MemoryAlignment(ref point);
                         break;
                     case TypeCode.String:
                         stream.WriteByte((byte)CommandMacro.STRING_Release);

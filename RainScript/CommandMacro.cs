@@ -269,5 +269,6 @@
 
         BREAKPOINT,
         BREAK,
+        NoOperation,
     }
 }

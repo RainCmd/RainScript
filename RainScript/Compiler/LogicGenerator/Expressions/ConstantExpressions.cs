@@ -66,6 +66,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public override void Generator(GeneratorParameter parameter)
         {
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL_TYPE);
+            parameter.generator.MemoryAlignment(1);
             parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_8);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(value);
@@ -87,6 +88,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public override void Generator(GeneratorParameter parameter)
         {
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL2_TYPE);
+            parameter.generator.MemoryAlignment(1);
             parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_16);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(value);
@@ -108,6 +110,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public override void Generator(GeneratorParameter parameter)
         {
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL3_TYPE);
+            parameter.generator.MemoryAlignment(1);
             parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_24);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(value);
@@ -129,6 +132,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         public override void Generator(GeneratorParameter parameter)
         {
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL4_TYPE);
+            parameter.generator.MemoryAlignment(1);
             parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_32);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(value);

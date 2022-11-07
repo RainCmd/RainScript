@@ -1,4 +1,5 @@
 ﻿using RainScript.Vector;
+using System.Diagnostics;
 #if FIXED
 using real = RainScript.Real.Fixed;
 #else
@@ -43,7 +44,7 @@ namespace RainScript.Compiler.LogicGenerator
             codeStrings = pool.GetList<string>();
             dataStrings = pool.GetDictionary<string, ScopeList<uint>>();
         }
-        private void EnsureCodeCapacity(uint size)
+        private void EnsureCapacity(uint size)
         {
             if (codeTop + size > codeSize)
             {
@@ -54,9 +55,19 @@ namespace RainScript.Compiler.LogicGenerator
                 code = nc;
             }
         }
+        [Conditional("MEMORY_ALIGNMENT_4")]
+        public void MemoryAlignment(uint offset)
+        {
+            var top = codeTop + offset;
+#if MEMORY_ALIGNMENT_4
+            top = ((top + Tools.MEMORY_ALIGNMENT) & ~Tools.MEMORY_ALIGNMENT) - top;
+#endif
+            EnsureCapacity(top);
+            while (top-- > 0) code[codeTop++] = (byte)CommandMacro.NoOperation;
+        }
         public void WriteCode<T>(uint size, T value) where T : unmanaged
         {
-            EnsureCodeCapacity(size);
+            EnsureCapacity(size);
             *(T*)(code + codeTop) = value;
             codeTop += size;
         }
@@ -151,7 +162,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public uint AllocationCode(uint size)
         {
-            EnsureCodeCapacity(size);
+            EnsureCapacity(size);
             var point = codeTop;
             codeTop += size;
             return point;

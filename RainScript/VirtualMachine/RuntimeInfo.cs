@@ -56,6 +56,10 @@ namespace RainScript.VirtualMachine
             size = 0;
             for (int i = 0; i < variables.Length; i++)
             {
+#if MEMORY_ALIGNMENT_4
+                if (info.varibales[i] == KERNEL_TYPE.REAL || info.varibales[i] == KERNEL_TYPE.REAL2 || info.varibales[i] == KERNEL_TYPE.REAL3 || info.varibales[i] == KERNEL_TYPE.REAL4)
+                    Tools.MemoryAlignment(ref size);
+#endif
                 variables[i] = new Variable(library.LocalToGlobal(info.varibales[i]), size);
                 size += info.varibales[i].FieldSize;
             }
@@ -690,7 +694,7 @@ namespace RainScript.VirtualMachine
                     if (library.library.TryGetMethod(import.methods[i], out var method) && TryGetFunctions(import.methods[i].functions, library.methods[method.method].infos, method, out var functions))
                         methods[i] = new ImportMethod(method.method, functions);
                     else throw ExceptionGeneratorVM.MissingDefinition(name, library.name, import.methods[i].ToString());
-               
+
                 for (int i = 0; i < interfaces.Length; i++)
                 {
                     var importInterface = import.interfaces[i];

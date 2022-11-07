@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace RainScript.Compiler.LogicGenerator
 {
@@ -40,8 +41,17 @@ namespace RainScript.Compiler.LogicGenerator
             temporaries = pool.GetList<Variable>();
             localTop = new Referencable<uint>(pool);
         }
+        [Conditional("MEMORY_ALIGNMENT_4")]
+        private void MemoryAlignment(ref uint address, CompilingType type)
+        {
+#if MEMORY_ALIGNMENT_4
+            if (type == RelyKernel.REAL_TYPE || type == RelyKernel.REAL2_TYPE || type == RelyKernel.REAL3_TYPE || type == RelyKernel.REAL4_TYPE)
+                Tools.MemoryAlignment(ref address);
+#endif
+        }
         public Variable DecareLocal(uint index, CompilingType type)
         {
+            MemoryAlignment(ref localAddress, type);
             var local = new Variable(localAddress, type);
             localAddress += type.FieldSize;
             locals.Add(index, local);
@@ -53,6 +63,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public Variable DecareTemporary(CollectionPool pool, CompilingType type)
         {
+            MemoryAlignment(ref temporaryAddress, type);
             var temporary = new Variable(pool, temporaryAddress, type);
             temporaryAddress += type.FieldSize;
             temporaries.Add(temporary);
@@ -70,6 +81,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public uint Generator(Generator generator)
         {
+            Tools.MemoryAlignment(ref localAddress);
             localTop.SetValue(generator, localAddress);
             foreach (var temporary in temporaries) temporary.SetAddress(generator, localAddress);
             foreach (var item in locals) ClearVariable(generator, item.Value.address, item.Value.type);
