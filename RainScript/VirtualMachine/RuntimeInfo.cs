@@ -63,6 +63,7 @@ namespace RainScript.VirtualMachine
                 variables[i] = new Variable(library.LocalToGlobal(info.varibales[i]), size);
                 size += info.varibales[i].FieldSize;
             }
+            Tools.MemoryAlignment(ref size);
             methods = new Method[info.methods.Length];
             for (int i = 0; i < methods.Length; i++) methods[i] = new Method(info.methods[i], sourceLibrary.methods[info.methods[i]].functions.Length);
             relocations = new RuntimeRelocationInfo[info.relocations.Length];

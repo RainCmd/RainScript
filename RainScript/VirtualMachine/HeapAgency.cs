@@ -60,16 +60,6 @@ namespace RainScript.VirtualMachine
             heads[handle].type = new Type(definition, 0);
             return handle;
         }
-        [Conditional("MEMORY_ALIGNMENT_4")]
-        private void MemoryAlignment()
-        {
-#if MEMORY_ALIGNMENT_4
-            var top = heapTop;
-            Tools.MemoryAlignment(ref top);
-            EnsureCapacity(top - heapTop);
-            heapTop = top;
-#endif
-        }
         private uint Alloc(uint size)
         {
             if (gc) throw ExceptionGeneratorVM.InvalidAllocOperation();
@@ -89,7 +79,6 @@ namespace RainScript.VirtualMachine
                 }
                 handle = headTop++;
             }
-            MemoryAlignment();
             EnsureCapacity(size);
             heads[handle].point = heapTop;
             heads[handle].flag = flag;
@@ -248,7 +237,6 @@ namespace RainScript.VirtualMachine
         }
         private void MemoryMove(uint handle)
         {
-            Tools.MemoryAlignment(ref heapTop);
             if (heads[handle].point == heapTop) heapTop += heads[handle].size;
             else
             {
