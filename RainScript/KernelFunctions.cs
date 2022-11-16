@@ -2,7 +2,7 @@
 {
     internal class KernelMethod
     {
-        internal struct Function
+        internal readonly struct Function
         {
             internal readonly Type[] parameters;
             internal readonly Type[] returns;

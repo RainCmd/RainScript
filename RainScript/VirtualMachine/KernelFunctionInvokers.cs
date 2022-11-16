@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using RainScript.Vector;
-using System.Net;
 #if FIXED
 using real = RainScript.Real.Fixed;
 using Math = RainScript.Real.Math;

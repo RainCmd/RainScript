@@ -47,7 +47,7 @@ namespace RainScript.Compiler
     /// <summary>
     /// 编译命令选项
     /// </summary>
-    public struct CompilerCommand
+    public readonly struct CompilerCommand
     {
         /// <summary>
         /// 生成符号表

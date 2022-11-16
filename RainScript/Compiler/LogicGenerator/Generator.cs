@@ -8,7 +8,7 @@ using real = System.Double;
 
 namespace RainScript.Compiler.LogicGenerator
 {
-    internal struct GeneratorParameter
+    internal readonly struct GeneratorParameter
     {
         public readonly CompilerCommand command;
         public readonly DeclarationManager manager;

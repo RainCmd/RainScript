@@ -5,7 +5,7 @@ namespace RainScript.VirtualMachine
     /// <summary>
     /// 虚拟机状态
     /// </summary>
-    public struct KernelState
+    public readonly struct KernelState
     {
         /// <summary>
         /// 字符串数量

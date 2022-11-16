@@ -17,7 +17,7 @@ namespace RainScript.VirtualMachine
     }
     internal class RuntimeDefinitionInfo
     {
-        public struct Variable
+        public readonly struct Variable
         {
             public readonly Type type;
             public readonly uint offset;
@@ -96,7 +96,7 @@ namespace RainScript.VirtualMachine
         }
     }
     [StructLayout(LayoutKind.Explicit)]
-    internal struct RuntimeDelegateInfo
+    internal readonly struct RuntimeDelegateInfo
     {
         [FieldOffset(0)]
         public readonly uint library;
@@ -223,7 +223,7 @@ namespace RainScript.VirtualMachine
                         method.characteristics[i] = agency.CreateFunctionCharacteristic();
         }
     }
-    internal struct RuntimeNativeInfo
+    internal readonly struct RuntimeNativeInfo
     {
         public readonly string name;
         public readonly FunctionInfo[] infos;
@@ -239,7 +239,7 @@ namespace RainScript.VirtualMachine
     }
     internal unsafe class RuntimeLibraryInfo : IDisposable
     {
-        private struct ImportDefinition
+        private readonly struct ImportDefinition
         {
             public readonly uint index;
             public readonly uint[] memberVariable;
@@ -251,7 +251,7 @@ namespace RainScript.VirtualMachine
                 this.methods = methods;
             }
         }
-        private struct ImportMethod
+        private readonly struct ImportMethod
         {
             public readonly uint method;
             public readonly uint[] functions;
@@ -261,7 +261,7 @@ namespace RainScript.VirtualMachine
                 this.functions = functions;
             }
         }
-        private struct ImportInterface
+        private readonly struct ImportInterface
         {
             public readonly uint index;
             public readonly ImportMethod[] methods;

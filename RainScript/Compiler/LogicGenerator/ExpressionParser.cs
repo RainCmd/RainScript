@@ -8,7 +8,7 @@ using real = System.Double;
 
 namespace RainScript.Compiler.LogicGenerator
 {
-    internal struct ExpressionParser
+    internal readonly struct ExpressionParser
     {
         public readonly DeclarationManager manager;
         public readonly Context context;
@@ -1824,7 +1824,6 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL2_Equals, left, right, RelyKernel.BOOL_TYPE);
                         }
-
                         else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
                         {
                             if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
@@ -1874,7 +1873,8 @@ namespace RainScript.Compiler.LogicGenerator
                                 return constant.Attribute;
                             }
                             else if (left.returns[0].dimension == 0 && left.returns[0].definition.code == TypeCode.Function && right.returns[0].dimension == 0 && right.returns[0].definition.code == TypeCode.Function) return PushOperationExpression(expressionStack, anchor, CommandMacro.DELEGATE_Equals, left, right, RelyKernel.BOOL_TYPE);
-                            else return PushOperationExpression(expressionStack, anchor, CommandMacro.HANDLE_Equals, left, right, RelyKernel.BOOL_TYPE);
+                            else if (manager.TryGetInherit(left.returns[0], right.returns[0], out _) || manager.TryGetInherit(right.returns[0], left.returns[0], out _)) return PushOperationExpression(expressionStack, anchor, CommandMacro.HANDLE_Equals, left, right, RelyKernel.BOOL_TYPE);
+                            else goto default;
                         }
                         else goto default;
                     }
