@@ -3869,7 +3869,7 @@ namespace RainScript.Compiler.LogicGenerator
                         case LexicalType.ConstHexadecimal:
                             if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                             {
-                                var value = 0;
+                                var value = 0L;
                                 var segment = lexical.anchor.Segment.ToString();
                                 for (int i = 2; i < segment.Length; i++)
                                 {

@@ -1,6 +1,6 @@
 ﻿namespace RainScript.Compiler.LogicGenerator
 {
-    internal struct Local
+    internal readonly struct Local
     {
         public readonly Anchor anchor;
         public readonly uint index;

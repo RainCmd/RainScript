@@ -1,7 +1,7 @@
 ﻿namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
-    internal struct StatementGeneratorParameter
+    internal readonly struct StatementGeneratorParameter
     {
         public readonly CompilerCommand command;
         public readonly DeclarationManager manager;
@@ -58,7 +58,7 @@
         {
             parameter.WriteSymbol(anchor);
             parameter.AddBreakpoint(anchor);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            using (new LogicBlockGenerator(parameter, exitPoint))
             {
                 var expressionParameter = new Expressions.GeneratorParameter(parameter, expression.returns.Length);
                 expression.Generator(expressionParameter);
@@ -77,7 +77,7 @@
             parameter.WriteSymbol(anchor);
             parameter.AddBreakpoint(anchor);
             if (expression != null)
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+                using (new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var returnParameter = new Expressions.GeneratorParameter(parameter, expression.returns.Length);
                     expression.Generator(returnParameter);
@@ -125,7 +125,7 @@
             }
             else
             {
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+                using (new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);
@@ -149,7 +149,7 @@
             parameter.WriteSymbol(anchor);
             parameter.AddBreakpoint(anchor);
             if (expression == null) parameter.generator.WriteCode(CommandMacro.BASE_Wait);
-            else using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            else using (new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var waitParameter = new Expressions.GeneratorParameter(parameter, 1);
                     expression.Generator(waitParameter);
@@ -169,7 +169,7 @@
         {
             parameter.WriteSymbol(anchor);
             parameter.AddBreakpoint(anchor);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            using (new LogicBlockGenerator(parameter, exitPoint))
             {
                 var exitParameter = new Expressions.GeneratorParameter(parameter, 1);
                 expression.Generator(exitParameter);

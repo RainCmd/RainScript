@@ -4,6 +4,8 @@
     {
         #region base
         BASE_Exit,
+        BASE_PushExitCode,
+        BASE_PopExitCode,
         BASE_Finally,
         BASE_ExitJump,
         BASE_Wait,

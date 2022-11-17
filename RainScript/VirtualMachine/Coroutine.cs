@@ -93,6 +93,15 @@ namespace RainScript.VirtualMachine
                         }
                         else point++;
                         break;
+                    case CommandMacro.BASE_PushExitCode:
+                        *(long*)(stack + bottom + *(uint*)(library.code + point + 1)) = exit;
+                        exit = 0;
+                        point += 5;
+                        break;
+                    case CommandMacro.BASE_PopExitCode:
+                        exit = *(long*)(stack + bottom + *(uint*)(library.code + point + 1));
+                        point += 5;
+                        break;
                     case CommandMacro.BASE_Finally:
                         *(uint*)(stack + bottom + Frame.FINALLY) = *(uint*)(library.code + point + 1);
                         point += 5;

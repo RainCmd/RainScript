@@ -71,6 +71,10 @@ namespace RainScript.Compiler
         /// 析构函数中申请托管内存
         /// </summary>
         SYNTAX_DESTRUCTOR_ALLOC,
+        /// <summary>
+        /// IgnoreExit命令编译的代码中不支持try语句
+        /// </summary>
+        SYNTAX_IGNORE_EXIT_NONSUPPORT_TRY,
         #endregion 语法
 
         #region 编译
@@ -189,10 +193,6 @@ namespace RainScript.Compiler
         /// 常量值计算失败
         /// </summary>
         GENERATOR_CONSTANT_EVALUATION_FAIL,
-        /// <summary>
-        /// 未实现的功能
-        /// </summary>
-        GENERATOR_NOT_IMPLEMENTED,
         /// <summary>
         /// 内部函数不能用携程调用
         /// </summary>

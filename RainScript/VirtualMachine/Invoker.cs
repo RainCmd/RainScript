@@ -87,7 +87,7 @@ namespace RainScript.VirtualMachine
     /// <summary>
     /// 调用帧数据
     /// </summary>
-    public struct StackFrame
+    public readonly struct StackFrame
     {
         /// <summary>
         /// 程序集名
@@ -114,7 +114,7 @@ namespace RainScript.VirtualMachine
     /// <summary>
     /// 调用句柄
     /// </summary>
-    public unsafe struct InvokerHandle : IDisposable
+    public readonly unsafe struct InvokerHandle : IDisposable
     {
         private readonly ulong instanceID;
         private readonly Invoker invoker;

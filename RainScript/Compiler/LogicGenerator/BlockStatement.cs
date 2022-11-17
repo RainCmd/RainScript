@@ -1,6 +1,7 @@
 ﻿namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
+    using RainScript.Compiler.File;
     using System.Reflection.Emit;
 
     internal class BlockStatement : Statement
@@ -37,7 +38,7 @@
             var endPoint = new Referencable<CodeAddress>(parameter.pool);
             var truePoint = new Referencable<CodeAddress>(parameter.pool);
             parameter.AddBreakpoint(anchor);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            using (new LogicBlockGenerator(parameter, exitPoint))
             {
                 var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                 condition.Generator(conditionParameter);
@@ -105,7 +106,7 @@
             if (condition != null)
             {
                 parameter.AddBreakpoint(anchor);
-                using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+                using (new LogicBlockGenerator(parameter, exitPoint))
                 {
                     var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                     condition.Generator(conditionParameter);
@@ -144,7 +145,7 @@
             var loopBlockPoint = new Referencable<CodeAddress>(parameter.pool);
             var breakPoint = new Referencable<CodeAddress>(parameter.pool);
             InitJumpTarget(loopBlock, breakPoint, loopPoint);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            using (new LogicBlockGenerator(parameter, exitPoint))
             {
                 var frontParameter = new Expressions.GeneratorParameter(parameter, front.returns.Length);
                 front.Generator(frontParameter);
@@ -156,7 +157,7 @@
                     parameter.generator.WriteCode(conditionPoint);
                     parameter.generator.SetCodeAddress(loopPoint);
                     foreach (var back in backs)
-                        using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+                        using (new LogicBlockGenerator(parameter, exitPoint))
                         {
                             var backParameter = new Expressions.GeneratorParameter(parameter, back.returns.Length);
                             back.Generator(backParameter);
@@ -164,7 +165,7 @@
                     parameter.generator.SetCodeAddress(conditionPoint);
                 }
             parameter.AddBreakpoint(anchor);
-            using (var logicBlockGenerator = new LogicBlockGenerator(parameter, exitPoint))
+            using (new LogicBlockGenerator(parameter, exitPoint))
             {
                 var conditionParameter = new Expressions.GeneratorParameter(parameter, 1);
                 condition.Generator(conditionParameter);
@@ -206,5 +207,116 @@
     internal class ContinueStatement : JumpStatement
     {
         public ContinueStatement(Anchor anchor, Expression condition) : base(anchor, condition) { }
+    }
+    internal class TryStatement : Statement
+    {
+        public readonly BlockStatement tryBlock;
+        public Expression exitcode;
+        public BlockStatement catchBlock, finallyBlock;
+        private readonly uint localIndex;
+        public TryStatement(Anchor anchor, BlockStatement tryBlock, LocalContext localContext) : base(anchor)
+        {
+            this.tryBlock = tryBlock;
+            localIndex = localContext.AddLocal("$exitcode", anchor, RelyKernel.INTEGER_TYPE).index;
+        }
+        private void ClearExitcode(Generator generator, Variable exitcodeVariable)
+        {
+            generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_8);
+            generator.WriteCode(exitcodeVariable);
+            generator.WriteCode(0L);
+        }
+        public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
+        {
+            var finallyPoint = new Referencable<CodeAddress>(parameter.pool);
+            var exitcodeVariable = parameter.variable.DecareLocal(localIndex, RelyKernel.INTEGER_TYPE);
+            tryBlock.Generator(parameter, finallyPoint);
+            if (catchBlock != null)
+            {
+                parameter.generator.SetCodeAddress(finallyPoint);
+                finallyPoint.Dispose();
+                finallyPoint = new Referencable<CodeAddress>(parameter.pool);
+                parameter.generator.WriteCode(CommandMacro.BASE_PushExitCode);
+                parameter.generator.WriteCode(exitcodeVariable);
+                using (new LogicBlockGenerator(parameter, finallyPoint))
+                {
+                    var conditionVariable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.BOOL_TYPE);
+                    var zeroVariable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.INTEGER_TYPE);
+                    parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_8);
+                    parameter.generator.WriteCode(zeroVariable);
+                    parameter.generator.WriteCode(0L);
+                    parameter.generator.WriteCode(CommandMacro.INTEGER_Equals);
+                    parameter.generator.WriteCode(conditionVariable);
+                    parameter.generator.WriteCode(exitcodeVariable);
+                    parameter.generator.WriteCode(zeroVariable);
+                    parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+                    parameter.generator.WriteCode(conditionVariable);
+                }
+                parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+                parameter.generator.WriteCode(finallyPoint);
+                if (exitcode == null)
+                {
+                    ClearExitcode(parameter.generator, exitcodeVariable);
+                    catchBlock.Generator(parameter, finallyPoint);
+                }
+                else if (exitcode.returns.Length == 1 && exitcode.returns[0] == RelyKernel.INTEGER_TYPE)
+                {
+                    if (exitcode.Attribute.ContainAll(TokenAttribute.Assignable))
+                    {
+                        if (exitcode is VariableExpression variableExpression)
+                        {
+                            var exitcodeParameter = new Expressions.GeneratorParameter(parameter, 1);
+                            exitcodeParameter.results[0] = exitcodeVariable;
+                            variableExpression.GeneratorAssignment(exitcodeParameter);
+                            ClearExitcode(parameter.generator, exitcodeVariable);
+                            catchBlock.Generator(parameter, finallyPoint);
+                        }
+                        else parameter.exceptions.Add(exitcode.anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
+                    }
+                    else if (exitcode.Attribute.ContainAll(TokenAttribute.Value))
+                    {
+                        using (new LogicBlockGenerator(parameter, finallyPoint))
+                        {
+                            var conditionVariable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.BOOL_TYPE);
+                            var exitcodeParameter = new Expressions.GeneratorParameter(parameter, 1);
+                            exitcode.Generator(exitcodeParameter);
+                            parameter.generator.WriteCode(CommandMacro.INTEGER_NotEquals);
+                            parameter.generator.WriteCode(conditionVariable);
+                            parameter.generator.WriteCode(exitcodeVariable);
+                            parameter.generator.WriteCode(exitcodeParameter.results[0]);
+                            parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+                            parameter.generator.WriteCode(conditionVariable);
+                        }
+                        var failPoint = new Referencable<CodeAddress>(parameter.pool);
+                        parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+                        parameter.generator.WriteCode(failPoint);
+                        ClearExitcode(parameter.generator, exitcodeVariable);
+                        catchBlock.Generator(parameter, finallyPoint);
+                        parameter.generator.SetCodeAddress(failPoint);
+                        failPoint.Dispose();
+                    }
+                    else parameter.exceptions.Add(exitcode.anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
+                }
+                else parameter.exceptions.Add(exitcode.anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
+                parameter.generator.WriteCode(CommandMacro.BASE_PopExitCode);
+                parameter.generator.WriteCode(exitcodeVariable);
+            }
+            parameter.generator.SetCodeAddress(finallyPoint);
+            finallyPoint.Dispose();
+            if (finallyBlock != null)
+            {
+                parameter.generator.WriteCode(CommandMacro.BASE_PushExitCode);
+                parameter.generator.WriteCode(exitcodeVariable);
+                finallyBlock.Generator(parameter, exitPoint);
+                parameter.generator.WriteCode(CommandMacro.BASE_PopExitCode);
+                parameter.generator.WriteCode(exitcodeVariable);
+            }
+            parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
+        }
+        public override void Dispose()
+        {
+            tryBlock.Dispose();
+            catchBlock?.Dispose();
+            finallyBlock?.Dispose();
+        }
     }
 }

@@ -9,9 +9,6 @@ using real = System.Double;
 namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
-    using System.Security.AccessControl;
-    using static RainScript.SymbolTable;
-
     internal class LambdaFunction : System.IDisposable
     {
         private readonly Definition definition;
@@ -338,6 +335,12 @@ namespace RainScript.Compiler.LogicGenerator
                                 elseStatement.statements.indent = line.indent;
                                 statementStack.Push(elseStatement.statements);
                             }
+                            else if (statement is TryStatement tryStatement)
+                            {
+                                var block = tryStatement.finallyBlock ?? tryStatement.catchBlock ?? tryStatement.tryBlock;
+                                block.indent = line.indent;
+                                statementStack.Push(block);
+                            }
                             else
                             {
                                 var block = new BlockStatement(default, parameter.pool);
@@ -421,11 +424,6 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         loopStatement.elseBlock.indent = line.indent;
                                         statementStack.Peek().statements.Add(new ElseStatement(anchor, loopStatement.elseBlock));
-                                    }
-                                    else if (statements[-1] is ForStatement forStatement)
-                                    {
-                                        forStatement.elseBlock.indent = line.indent;
-                                        statementStack.Peek().statements.Add(new ElseStatement(anchor, forStatement.elseBlock));
                                     }
                                     else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                                 }
@@ -529,9 +527,37 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
                             }
-                            else if (anchor.Segment == KeyWorld.TRY) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
-                            else if (anchor.Segment == KeyWorld.CATCH) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
-                            else if (anchor.Segment == KeyWorld.FINALLY) parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_NOT_IMPLEMENTED);
+                            else if (anchor.Segment == KeyWorld.TRY)
+                            {
+                                if (lexicals.Count > 1) parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                                else if (parameter.command.ignoreExit) parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_IGNORE_EXIT_NONSUPPORT_TRY);
+                                else statementStack.Peek().statements.Add(new TryStatement(anchor, new BlockStatement(anchor, parameter.pool), localContext));
+                            }
+                            else if (anchor.Segment == KeyWorld.CATCH)
+                            {
+                                var statements = statementStack.Peek().statements;
+                                if (statements.Count > 0 && statements[-1] is TryStatement tryStatement && tryStatement.catchBlock == null && tryStatement.finallyBlock == null)
+                                {
+                                    tryStatement.catchBlock = new BlockStatement(anchor, parameter.pool);
+                                    if (lexicals.Count > 1)
+                                    {
+                                        var parser = new ExpressionParser(parameter, context, localContext, destructor);
+                                        if (parser.TryParse(lexicals[1, -1], out var exitcode))
+                                        {
+                                            if (exitcode is BlurryVariableDeclarationExpression blurry) exitcode = new VariableLocalExpression(localContext.AddLocal(blurry.anchor, RelyKernel.INTEGER_TYPE), TokenAttribute.Assignable);
+                                            if (exitcode.returns.Length == 1 && exitcode.returns[0] == RelyKernel.INTEGER_TYPE) tryStatement.exitcode = exitcode;
+                                            else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        }
+                                    }
+                                }
+                                else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
+                            }
+                            else if (anchor.Segment == KeyWorld.FINALLY)
+                            {
+                                var statements = statementStack.Peek().statements;
+                                if (statements.Count > 0 && statements[-1] is TryStatement tryStatement && tryStatement.finallyBlock == null) tryStatement.finallyBlock = new BlockStatement(anchor, parameter.pool);
+                                else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
+                            }
                             else
                             {
                                 var parser = new ExpressionParser(parameter, context, localContext, destructor);

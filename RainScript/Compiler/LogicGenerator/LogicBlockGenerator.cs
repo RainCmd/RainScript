@@ -2,7 +2,7 @@
 
 namespace RainScript.Compiler.LogicGenerator
 {
-    internal class LogicBlockGenerator : IDisposable
+    internal readonly struct LogicBlockGenerator : IDisposable
     {
         private readonly bool ignoreExit;
         private readonly Generator generator;
