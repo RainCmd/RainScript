@@ -1,7 +1,7 @@
 ﻿using RainScript;
 using RainScript.Compiler;
-using RainScript.VirtualMachine;
 using RainScript.DebugAdapter;
+using RainScript.VirtualMachine;
 using System;
 using System.Collections.Generic;
 using System.IO;

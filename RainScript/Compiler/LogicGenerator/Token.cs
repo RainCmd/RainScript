@@ -61,7 +61,7 @@
         Type = 0x0200,              //类型
         Method = 0x0400,            //方法
     }
-    internal struct Token
+    internal readonly struct Token
     {
         public readonly Lexical lexical;
         public readonly TokenType type;
@@ -102,7 +102,7 @@
                 case TokenType.Positive:
                 case TokenType.Negative:
                 case TokenType.IncrementLeft:
-                case TokenType.DecrementLeft: 
+                case TokenType.DecrementLeft:
                 case TokenType.Casting: return TokenPriority.SymbolicOperation;
                 default: return TokenPriority.None;
             }

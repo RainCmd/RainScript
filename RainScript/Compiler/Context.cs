@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using RainScript.Compiler.Compiling;
+﻿using RainScript.Compiler.Compiling;
+using System.Collections.Generic;
 
 namespace RainScript.Compiler
 {

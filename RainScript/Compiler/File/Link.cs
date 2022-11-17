@@ -1,6 +1,4 @@
-﻿using RainScript.Compiler.Compiling;
-
-namespace RainScript.Compiler.File
+﻿namespace RainScript.Compiler.File
 {
     internal partial class Space
     {
@@ -176,7 +174,7 @@ namespace RainScript.Compiler.File
                     if (declaration)
                     {
                         var definition = new CompilingDefinition(declaration);
-                        if ((bool)definition) 
+                        if ((bool)definition)
                         {
                             item.compiling.parameters[i] = new CompilingType(definition, parameter.type.dimension);
                             item.compiling.parameterNames[i] = parameter.name;
@@ -215,7 +213,7 @@ namespace RainScript.Compiler.File
                         if (declaration)
                         {
                             var definition = new CompilingDefinition(declaration);
-                            if ((bool)definition) 
+                            if ((bool)definition)
                             {
                                 function.compiling.parameters[i] = new CompilingType(definition, parameter.type.dimension);
                                 function.compiling.parameterNames[i] = parameter.name;
@@ -247,7 +245,7 @@ namespace RainScript.Compiler.File
                     if (declaration)
                     {
                         var definition = new CompilingDefinition(declaration);
-                        if ((bool)definition) 
+                        if ((bool)definition)
                         {
                             item.compiling.parameters[i] = new CompilingType(definition, parameter.type.dimension);
                             item.compiling.parameterNames[i] = parameter.name;

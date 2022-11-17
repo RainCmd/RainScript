@@ -1,8 +1,6 @@
 ﻿namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
-    using RainScript.Compiler.File;
-    using System.Reflection.Emit;
 
     internal class BlockStatement : Statement
     {

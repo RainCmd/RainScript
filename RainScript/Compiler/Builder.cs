@@ -1,6 +1,6 @@
-﻿using System;
+﻿using RainScript.Compiler.LogicGenerator;
+using System;
 using System.Collections.Generic;
-using RainScript.Compiler.LogicGenerator;
 
 namespace RainScript.Compiler
 {

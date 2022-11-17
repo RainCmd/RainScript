@@ -182,7 +182,7 @@ namespace RainScript.Compiler
                 {
                     case DeclarationCode.Definition: return library.definitions[(int)declaration.index];
                     case DeclarationCode.MemberVariable: return library.definitions[(int)declaration.definitionIndex].variables[(int)declaration.index];
-                    case DeclarationCode.MemberFunction:return library.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]][(int)declaration.overloadIndex];
+                    case DeclarationCode.MemberFunction: return library.methods[(int)library.definitions[(int)declaration.definitionIndex].methods[declaration.index]][(int)declaration.overloadIndex];
                     case DeclarationCode.ConstructorFunction: return library.methods[(int)declaration.index][(int)declaration.overloadIndex];
                     case DeclarationCode.Delegate: return library.delegates[(int)declaration.index];
                     case DeclarationCode.Coroutine: return library.coroutines[(int)declaration.index];

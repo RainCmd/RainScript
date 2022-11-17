@@ -1,6 +1,4 @@
-﻿using RainScript.Compiler.LogicGenerator.Expressions;
-using RainScript.Real;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace RainScript.Compiler
 {

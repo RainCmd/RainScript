@@ -1,9 +1,9 @@
-﻿using System;
+﻿using RainScript.VirtualMachine;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using RainScript.VirtualMachine;
 
 namespace RainScript.DebugAdapter
 {

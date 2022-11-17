@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-#if FIXED
-using real = RainScript.Real.Fixed;
-#else
-using real = System.Double;
-#endif
 
 namespace RainScript
 {

@@ -168,13 +168,13 @@
     {
         public readonly CompilingDefinition definition;
         public readonly uint dimension;
-        public uint FieldSize 
+        public uint FieldSize
         {
             get
             {
                 if (dimension > 0) return TypeCode.Handle.FieldSize();
                 else return definition.code.FieldSize();
-            } 
+            }
         }
         public bool IsHandle
         {
@@ -222,7 +222,7 @@
         {
             return (bool)type.definition;
         }
-        public static bool IsEquals(CompilingType[] lhs, CompilingType[]rhs)
+        public static bool IsEquals(CompilingType[] lhs, CompilingType[] rhs)
         {
             if (lhs.Length != rhs.Length) return false;
             for (int i = 0; i < lhs.Length; i++)

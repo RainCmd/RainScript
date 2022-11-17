@@ -1,5 +1,4 @@
 ﻿#pragma warning disable IDE1006
-using System;
 using System.Runtime.InteropServices;
 #if FIXED
 using real = RainScript.Real.Fixed;

@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 using StreamJsonRpc;
 using System;
-using System.Threading;
 using System.IO;
+using System.Threading;
 
 namespace RainLanguageServer
 {
