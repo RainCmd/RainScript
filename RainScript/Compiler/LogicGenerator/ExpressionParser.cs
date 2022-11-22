@@ -3182,13 +3182,14 @@ namespace RainScript.Compiler.LogicGenerator
                     for (int i = 0; i < method.FunctionCount; i++)
                     {
                         var index = method.GetFunction(i);
-                        if (context.IsVisible(manager, index.Declaration) && TryAssignmentConvert(expressions, index.Parameters, out var indexParameter, out var indexMeasure))
+                        if (context.IsVisible(manager, index.Declaration) && functions.FindIndex(f => CompilingType.IsEquals(f.Parameters, index.Parameters)) < 0 && TryAssignmentConvert(expressions, index.Parameters, out var indexParameter, out var indexMeasure))
                         {
                             if (function == null || indexMeasure < measure)
                             {
                                 function = index;
                                 parameter = indexParameter;
                                 measure = indexMeasure;
+                                functions.Clear();
                                 functions.Add(index);
                             }
                             else if (indexMeasure == measure) functions.Add(index);
