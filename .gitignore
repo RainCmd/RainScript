@@ -364,7 +364,7 @@ FodyWeavers.xsd
 
 #������Ŀ
 Test/
-RainLanguageServer/
+RainLanguage/test.rain
 RainScriptDebuggerTest/
 RainScriptDebuggerAdapter/.vscode/
 RainScriptDebuggerAdapter/dist/

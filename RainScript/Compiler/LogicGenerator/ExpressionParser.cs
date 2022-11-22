@@ -751,7 +751,7 @@ namespace RainScript.Compiler.LogicGenerator
         {
             if (assignmentIndex > 0 && assignmentIndex < lexicals.Count - 1)
             {
-                if (TryParseTuple(lexicals[0, assignmentIndex - 1], out var leftTuple) && TryParseTuple(lexicals[assignmentIndex + 1, -1], out var rightTuple))
+                if (TryParseTuple(lexicals[0, assignmentIndex - 1], out var leftTuple) && TryParse(lexicals[assignmentIndex + 1, -1], out var right))
                 {
                     var attribute = TokenAttribute.Assignable;
                     foreach (var item in leftTuple) attribute &= item.Attribute;
@@ -759,60 +759,34 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         var assignment = lexicals[assignmentIndex];
                         var leftReturnCount = 0;
-                        for (int i = 0, ri = 0, rti = 0; i < leftTuple.Length; i++)
+                        for (int i = 0; i < leftTuple.Length; i++)
                         {
                             if (leftTuple[i] is BlurryVariableDeclarationExpression)
                             {
-                                while (ri < rightTuple.Length)
-                                    if (rti < rightTuple[ri].returns.Length) break;
-                                    else
-                                    {
-                                        rti = 0;
-                                        ri++;
-                                    }
-                                if (ri < rightTuple.Length)
+                                if (leftReturnCount < right.returns.Length)
                                 {
-                                    var rt = rightTuple[ri].returns[rti];
-                                    if (rt != RelyKernel.NULL_TYPE && rt != RelyKernel.BLURRY_TYPE) leftTuple[i] = new VariableLocalExpression(localContext.AddLocal(leftTuple[i].anchor, rt), TokenAttribute.Assignable);
-                                    else
+                                    if (right.returns[leftReturnCount] == RelyKernel.NULL_TYPE || right.returns[leftReturnCount] == RelyKernel.BLURRY_TYPE)
                                     {
                                         exceptions.Add(leftTuple[i].anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
                                         result = default;
                                         return false;
                                     }
+                                    else leftTuple[i] = new VariableLocalExpression(localContext.AddLocal(leftTuple[i].anchor, right.returns[leftReturnCount]), TokenAttribute.Assignable);
                                 }
-                            }
-                            leftReturnCount += leftTuple[i].returns.Length;
-                            var lrc = leftTuple[i].returns.Length;
-                            while (lrc-- > 0)
-                            {
-                                while (ri < rightTuple.Length)
-                                    if (rti < rightTuple[ri].returns.Length)
-                                    {
-                                        rti++;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        rti = 0;
-                                        ri++;
-                                    }
-                                if (ri >= rightTuple.Length)
+                                else
                                 {
                                     exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                     result = default;
                                     return false;
                                 }
                             }
+                            leftReturnCount += leftTuple[i].returns.Length;
                         }
-                        var rightReturnCount = 0;
-                        foreach (var item in rightTuple) rightReturnCount += item.returns.Length;
-                        if (leftReturnCount == rightReturnCount)
+                        if (leftReturnCount == right.returns.Length)
                         {
                             if (leftReturnCount == 1)
                             {
                                 var left = TupleExpression.Combine(leftTuple);
-                                var right = TupleExpression.Combine(rightTuple);
                                 var lrt = left.returns[0];
                                 var rrt = right.returns[0];
                                 switch (assignment.type)
@@ -956,10 +930,15 @@ namespace RainScript.Compiler.LogicGenerator
                                                 goto case LexicalType.Assignment;
                                             }
                                         }
-                                        else if (lrt == RelyKernel.STRING_TYPE && rrt == RelyKernel.STRING_TYPE)
+                                        else if (lrt == RelyKernel.STRING_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            ConvertToString(ref right);
+                                            rrt = right.returns[0];
+                                            if (rrt == RelyKernel.STRING_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.STRING_Combine, left, right, RelyKernel.STRING_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
@@ -1347,7 +1326,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 foreach (var expression in leftTuple)
                                     foreach (var returnType in expression.returns)
                                         leftReturns[leftReturnIndex++] = returnType;
-                                if (TryAssignmentConvert(rightTuple, leftReturns, out var right, out _))
+                                if (TryAssignmentConvert(right, leftReturns, out right, out _))
                                 {
                                     result = new TupleAssignmentExpression(assignment.anchor, TupleExpression.Combine(leftTuple), right, leftReturns);
                                     return true;
@@ -1407,10 +1386,17 @@ namespace RainScript.Compiler.LogicGenerator
                 if (commaIndex + 1 == lexicals.Count) return TryParse(lexicals[0, commaIndex - 1], out result);
                 else if (TryParse(lexicals[0, commaIndex - 1], out var left) && TryParse(lexicals[commaIndex + 1, -1], out var right))
                 {
-                    if (IsDecidedTypes(left.returns) && IsDecidedTypes(right.returns))
+                    var leftDecided = IsDecidedTypes(left.returns);
+                    var rightDecided = IsDecidedTypes(right.returns);
+                    if (leftDecided && rightDecided)
                     {
                         result = TupleExpression.Combine(left, right);
                         return true;
+                    }
+                    else
+                    {
+                        if (!leftDecided) exceptions.Add(left.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
+                        if (!rightDecided) exceptions.Add(right.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
                     }
                 }
             }
@@ -1474,6 +1460,10 @@ namespace RainScript.Compiler.LogicGenerator
                     var leftType = left.returns[0];
                     var rightType = right.returns[0];
                     if (leftType == rightType) return true;
+                    else if (leftType == RelyKernel.BOOL_TYPE)
+                    {
+                        if (rightType == RelyKernel.STRING_TYPE) return true;
+                    }
                     else if (leftType == RelyKernel.INTEGER_TYPE)
                     {
                         if (rightType == RelyKernel.REAL_TYPE || rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE)
@@ -1482,6 +1472,7 @@ namespace RainScript.Compiler.LogicGenerator
                             else left = new IntegerToRealExpression(left.anchor, left);
                             return true;
                         }
+                        else if (rightType == RelyKernel.STRING_TYPE) return true;
                     }
                     else if (leftType == RelyKernel.REAL_TYPE)
                     {
@@ -1491,7 +1482,7 @@ namespace RainScript.Compiler.LogicGenerator
                             else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
-                        else return rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE;
+                        else if (rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE || rightType == RelyKernel.STRING_TYPE) return true;
                     }
                     else if (leftType == RelyKernel.REAL2_TYPE)
                     {
@@ -1553,6 +1544,10 @@ namespace RainScript.Compiler.LogicGenerator
                             return true;
                         }
                     }
+                    else if (leftType == RelyKernel.STRING_TYPE)
+                    {
+                        if (rightType == RelyKernel.BOOL_TYPE || rightType == RelyKernel.INTEGER_TYPE || rightType == RelyKernel.REAL_TYPE || rightType.IsHandle || rightType == RelyKernel.ENTITY_TYPE) return true;
+                    }
                     else if (leftType == RelyKernel.ENTITY_TYPE)
                     {
                         if (right.TryEvaluationNull())
@@ -1560,10 +1555,12 @@ namespace RainScript.Compiler.LogicGenerator
                             right = new ConstantEntityNullExpression(right.anchor);
                             return true;
                         }
+                        else if (rightType == RelyKernel.STRING_TYPE) return true;
                     }
                     else if (leftType.IsHandle)
                     {
                         if (rightType.IsHandle) return true;
+                        else if (rightType == RelyKernel.STRING_TYPE) return true;
                         else if (right.TryEvaluationNull())
                         {
                             right = new ConstantHandleNullExpression(right.anchor, leftType);
@@ -1602,6 +1599,35 @@ namespace RainScript.Compiler.LogicGenerator
             else exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
             expression = default;
             return false;
+        }
+        private void ConvertToString(ref Expression expression)
+        {
+            if (expression.returns.Length != 1) return;
+            if (expression.returns[0].IsHandle)
+            {
+                var getHandleID = RelyKernel.methods[RelyKernel.definitions[RelyKernel.HANDLE.index].methods[0]].functions[0];
+                expression = new InvokerMemberExpression(expression.anchor, getHandleID.declaration, expression, TupleExpression.Combine(), getHandleID.returns);
+            }
+            else if (expression.returns[0] == RelyKernel.ENTITY_TYPE)
+            {
+                var getEntityID = RelyKernel.methods[RelyKernel.definitions[RelyKernel.ENTITY.index].methods[0]].functions[0];
+                expression = new InvokerMemberExpression(expression.anchor, getEntityID.declaration, expression, TupleExpression.Combine(), getEntityID.returns);
+            }
+            if (expression.returns[0] == RelyKernel.BOOL_TYPE)
+            {
+                var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.BOOL.index].methods[0]].functions[0];
+                expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
+            }
+            else if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
+            {
+                var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.INTEGER.index].methods[0]].functions[0];
+                expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
+            }
+            else if (expression.returns[0] == RelyKernel.REAL_TYPE)
+            {
+                var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.REAL.index].methods[0]].functions[0];
+                expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
+            }
         }
         private TokenAttribute PushOperationExpression(ScopeStack<Expression> expressionStack, Anchor anchor, CommandMacro command, Expression left, Expression right, CompilingType type)
         {
@@ -2140,8 +2166,10 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else return PushOperationExpression(expressionStack, anchor, CommandMacro.REAL4_Plus, left, right, RelyKernel.REAL4_TYPE);
                         }
-                        else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE)
+                        else if (left.returns[0] == RelyKernel.STRING_TYPE || right.returns[0] == RelyKernel.STRING_TYPE)
                         {
+                            ConvertToString(ref left); ConvertToString(ref right);
+                            if (left.returns[0] != RelyKernel.STRING_TYPE || right.returns[0] != RelyKernel.STRING_TYPE) goto default;
                             if (left.TryEvaluation(out string leftValue) && right.TryEvaluation(out string rightValue))
                             {
                                 var constant = new ConstantStringExpression(anchor, leftValue + rightValue);

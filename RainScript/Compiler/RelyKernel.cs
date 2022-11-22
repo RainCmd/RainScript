@@ -59,14 +59,14 @@
                 CreateDefinition(KeyWorld.REAL, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Real, 2, 1),
                 CreateDefinition(KeyWorld.REAL2, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Real2, 3, 3),
                 CreateDefinition(KeyWorld.REAL3, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Real3, 6, 3),
-                CreateDefinition(KeyWorld.REAL4, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Real4, 9, 0),
-                CreateDefinition(KeyWorld.STRING, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.String, 9, 5),
-                CreateDefinition(KeyWorld.HANDLE, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Handle, 14, 1),
-                CreateDefinition(KeyWorld.INTERFACE, handleDefinition, DeclarationCode.Definition, TypeCode.Interface, 15, 0),
-                CreateDefinition(KeyWorld.FUNCTION, handleDefinition, DeclarationCode.Definition, TypeCode.Function, 15, 0),
-                CreateDefinition(KeyWorld.COROUTINE, handleDefinition, DeclarationCode.Definition, TypeCode.Coroutine, 15, 6),
-                CreateDefinition(KeyWorld.ENTITY, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Entity, 21, 1),
-                CreateDefinition(KeyWorld.ARRAY, handleDefinition, DeclarationCode.Definition, (TypeCode)13, 22, 1),
+                CreateDefinition(KeyWorld.REAL4, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Real4, 9, 3),
+                CreateDefinition(KeyWorld.STRING, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.String, 12, 5),
+                CreateDefinition(KeyWorld.HANDLE, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Handle, 17, 1),
+                CreateDefinition(KeyWorld.INTERFACE, handleDefinition, DeclarationCode.Definition, TypeCode.Interface, 18, 0),
+                CreateDefinition(KeyWorld.FUNCTION, handleDefinition, DeclarationCode.Definition, TypeCode.Function, 18, 0),
+                CreateDefinition(KeyWorld.COROUTINE, handleDefinition, DeclarationCode.Definition, TypeCode.Coroutine, 18, 6),
+                CreateDefinition(KeyWorld.ENTITY, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Entity, 24, 1),
+                CreateDefinition(KeyWorld.ARRAY, handleDefinition, DeclarationCode.Definition, (TypeCode)13, 25, 1),
             };
             foreach (var item in definitions) kernel.declarations.Add(item.name, item.declaration);
 

@@ -236,6 +236,10 @@ namespace RainScript.VirtualMachine
                 new KernelMemberMethodInvoker(real3_Magnitude),
                 new KernelMemberMethodInvoker(real3_SqrMagnitude),
 
+                new KernelMemberMethodInvoker(real4_Normalized),
+                new KernelMemberMethodInvoker(real4_Magnitude),
+                new KernelMemberMethodInvoker(real4_SqrMagnitude),
+
                 new KernelMemberMethodInvoker(string_GetLength),
                 new KernelMemberMethodInvoker(string_GetStringID),
                 new KernelMemberMethodInvoker(string_ToBool),
@@ -319,6 +323,24 @@ namespace RainScript.VirtualMachine
         {
             var result = (real*)(stack + *(uint*)(stack + top + Frame.SIZE));
             *result = ((Real3*)(stack + top + Frame.SIZE + 4))->sqrMagnitude;
+            return ExitCode.None;
+        }
+        private static ExitCode real4_Normalized(Kernel kernel, byte* stack, uint top)
+        {
+            var result = (Real4*)(stack + *(uint*)(stack + top + Frame.SIZE));
+            *result = ((Real4*)(stack + top + Frame.SIZE + 4))->normalized;
+            return ExitCode.None;
+        }
+        private static ExitCode real4_Magnitude(Kernel kernel, byte* stack, uint top)
+        {
+            var result = (real*)(stack + *(uint*)(stack + top + Frame.SIZE));
+            *result = ((Real4*)(stack + top + Frame.SIZE + 4))->magnitude;
+            return ExitCode.None;
+        }
+        private static ExitCode real4_SqrMagnitude(Kernel kernel, byte* stack, uint top)
+        {
+            var result = (real*)(stack + *(uint*)(stack + top + Frame.SIZE));
+            *result = ((Real4*)(stack + top + Frame.SIZE + 4))->sqrMagnitude;
             return ExitCode.None;
         }
         private static ExitCode string_GetLength(Kernel kernel, byte* stack, uint top)
@@ -524,6 +546,7 @@ namespace RainScript.VirtualMachine
                 new KernelMethodInvoker(CountCoroutine),
                 new KernelMethodInvoker(CountEntity),
                 new KernelMethodInvoker(CountHandle),
+                new KernelMethodInvoker(CountString),
                 new KernelMethodInvoker(real2_Cross, real3_Cross),
                 new KernelMethodInvoker(real2_Dot, real3_Dot, real4_Dot),
                 new KernelMethodInvoker(real_Floor),
@@ -868,6 +891,11 @@ namespace RainScript.VirtualMachine
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.heapAgency.GetHandleCount();
+        }
+        private static void CountString(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            *(long*)(stack + returnPoint) = kernel.stringAgency.GetStringCount();
         }
         private static void SetRandomSeed(Kernel kernel, byte* stack, uint top)
         {

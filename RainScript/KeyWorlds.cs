@@ -1,6 +1,6 @@
 ﻿namespace RainScript
 {
-    internal struct StringSegment
+    internal readonly struct StringSegment
     {
         public readonly string value;
         public readonly int start, end;//[,]
@@ -151,7 +151,6 @@
         public const string START = "start";//开启新的协程
         public const string WAIT = "wait";
         public const string EXIT = "exit";
-        //携程+ExitCode可以实现该功能，所以这个先不实现，但保留关键字
         public const string TRY = "try";
         public const string CATCH = "catch";
         public const string FINALLY = "finally";

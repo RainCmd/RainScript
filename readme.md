@@ -99,15 +99,34 @@ coroutine Coro                      //声明一个协程 Coro
 ```
 
 ## 循环
-while和for循环后可以跟else和elif语句，当循环的条件表达式为false时会执行，break跳出的循环不会执行
-while省略条件表达式则默认一直循环
-for循环表达式用','号分隔，第二个表达式为循环条件，第三个及后续表达式在循环结束时，循环条件判断前执行，并且可以省略
+- while省略条件表达式则默认一直循环
+- for循环表达式用','号分隔，第二个表达式为循环条件，第三个及后续表达式在循环结束时，循环条件判断前执行，并且可以省略，如果第一个表达式要声明多个变量则可以用括号将其组成一个元组表达式
+- while和for循环后可以跟else和elif语句，当循环的条件表达式为false时会执行，break跳出的循环不会执行
+- break和continue后可以跟返回值类型为bool的表达式，只有当表达式返回值为true时才会执行操作，省略表达式则默认为常量true
+```rs
+var i = 0
+while i++ < 10
+    //循环操作
+while
+    break i++ > 10
+    //等价于:
+    //if i++ > 10
+    //   break
+for var i = 0, i < 10, i++
+    //循环操作
+else
+    //i>=10后会执行这里
+for (var x = 0, var y = 0), x < 10 && y < 10, x++, y += x
+    //循环操作
+```
 
 ## 元组
 表示返回值数量不为1的表达式，可以通过[]来取值，也可以组合成新的元组，
 元组的索引必须为常量，索引范围在0到元素数量之间，为负数的话会先加上元素数量后再计算
 元组可以当做一组参数直接传给函数。
 函数也可以返回多个返回值，这类函数调用后的表达式也是一个元组。
+元组的类型列表必须是明确的或可推导的。</br>
+**元组赋值可以用来交换全局变量或成员变量的值，但不能用来交换局部变量的值，因为虚拟机对局部变量的操作过程中不会创建临时变量**
 ``` js
 int, real, string Func()
     return 1, 2.3, "abc"
@@ -115,10 +134,19 @@ int, real, string Func()
 Func2(int, real, string)
 Func3(real, string, int, string)
 
+int glb_a = 10
+int glb_b = 20
 Entry()
     Func2(Func())                   //函数调用的表达式是个元组，可以直接作为其他函数参数
     Func3(Func()[1, 2, 0, 2])       //元组重组为新的元组并作为函数参数
     Func3(.1, Func()[-1, 0], "ABC") //重组的元组与参数一起作为函数参数，-1在编译时会加上元素数量3，最终被当作2来解析
+
+    var a, var b, var c = Func()    //因为各变量类型可以通过函数返回值列表推断，所以不会报错
+    int d, handle e = 1, null       //因为等号右边的null的类型无法推断，所以会编译报错
+
+    glb_a, glb_b = glb_b, glb_a     //可以正常交换值
+    var x, var y = 1, 2
+    x, y = y, x                     //x,y的结果都为2
 ```
 
 ## lambda表达式
@@ -235,6 +263,18 @@ Entry()
     a = A()
     B e = a as B                    //变量e为null 
 ```
+
+
+## 字符串运算的默认转换
+bool,real和int与字符串相加时会自动调用他们的ToString()，handle与字符串相加时会先调用GetHandleID再调用ToString()，entity则会调用GetEntityID()
+```rs
+class A
+Entry()
+    var a = A()
+    var b = true
+    var c = "A.HID = " + a + ", b = " + b  //c的结果是：A.HID = 1, b = true
+```
+
 
 ## 函数的override
 所有成员函数都是虚函数，如果子类中成员函数名和参数类型与父类一致时就会override，如果override函数返回值类型不一致会编译异常
@@ -369,6 +409,9 @@ int CountEntity()
 //统计当前托管对象数量
 int CountHandle()
 
+//统计当前字符串数量
+int CountString()
+
 //获取当前托管堆大小
 int HeapTotalMemory()
 
@@ -431,18 +474,23 @@ class real2
     real2 Normalized()
     real Magnitude()
     real SqrMagnitude()
-
+    
 class real3
     real3 Normalized()
+    real Magnitude()
+    real SqrMagnitude()
+
+class real4
+    real4 Normalized()
     real Magnitude()
     real SqrMagnitude()
 
 class string
     int GetLength()
     int GetStringID()
-    bool ToBool()
-    int ToInteger()
-    real ToReal()
+    bool ToBool()           //解析失败返回false
+    int ToInteger()         //解析失败返回0
+    real ToReal()           //解析失败返回0
 
 class handle
     int GetHandleID()
