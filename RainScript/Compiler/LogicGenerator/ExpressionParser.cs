@@ -650,6 +650,7 @@ namespace RainScript.Compiler.LogicGenerator
                         case LexicalType.PlusAssignment: goto case LexicalType.Assignment;
                         case LexicalType.Minus:
                         case LexicalType.Decrement:
+                        case LexicalType.RealInvoker:
                             break;
                         case LexicalType.MinusAssignment: goto case LexicalType.Assignment;
                         case LexicalType.Mul:
@@ -3703,6 +3704,47 @@ namespace RainScript.Compiler.LogicGenerator
                                 PushToken(expressionStack, tokenStack, new Token(lexical, TokenType.DecrementLeft), attribute);
                                 attribute = TokenAttribute.Operator;
                                 break;
+                            }
+                        case LexicalType.RealInvoker:
+                            //todo 实调用
+                            if (index + 1 < lexicals.Count)
+                            {
+                                lexical = lexicals[++index];
+                                if (lexical.type == LexicalType.Word)
+                                {
+                                    if (attribute.ContainAny(TokenAttribute.Value) && expressionStack.Peek().returns.Length == 1)
+                                    {
+                                        var expression = expressionStack.Pop();
+                                        var type = expression.returns[0];
+                                        if (type.dimension > 0) type = RelyKernel.ARRAY_TYPE;
+                                        if (context.TryFindMemberDeclarartion(manager, lexical.anchor, type.definition, out var declaration, pool))
+                                        {
+                                            if (declaration.code == DeclarationCode.MemberMethod)
+                                            {
+                                                expression = new MethodMemberExpression(lexical.anchor, expression, declaration);
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_NOT_MEMBER_FUNCTION);
+                                                goto parse_fail;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            exceptions.Add(lexical.anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
+                                            goto parse_fail;
+                                        }
+                                    }
+                                }
+                                goto default;
+                            }
+                            else
+                            {
+                                exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
+                                goto parse_fail;
                             }
                         case LexicalType.MinusAssignment: goto default;
                         case LexicalType.Mul:

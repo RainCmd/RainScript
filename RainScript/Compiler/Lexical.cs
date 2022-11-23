@@ -35,6 +35,7 @@
         PlusAssignment,         // +=
         Minus,                  // -
         Decrement,              // --
+        RealInvoker,            // ->
         MinusAssignment,        // -=
         Mul,                    // *
         MulAssignment,          // *=
@@ -167,6 +168,7 @@
                     case '-':
                         if (segment.Equals('=', index + 1)) lexical = new Lexical(LexicalType.MinusAssignment, text, segment[index, index + 1]);
                         else if (segment.Equals('-', index + 1)) lexical = new Lexical(LexicalType.Decrement, text, segment[index, index + 1]);
+                        else if (segment.Equals('>', index + 1)) lexical = new Lexical(LexicalType.RealInvoker, text, segment[index, index + 1]);
                         else lexical = new Lexical(LexicalType.Minus, text, segment[index, index]);
                         return true;
                     case '*':

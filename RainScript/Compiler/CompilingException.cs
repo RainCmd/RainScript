@@ -138,6 +138,10 @@ namespace RainScript.Compiler
         /// 元组类型不明确
         /// </summary>
         COMPILING_TUPLE_TYPE_EQUIVOCAL,
+        /// <summary>
+        /// 不是已实现的成员函数
+        /// </summary>
+        COMPILING_NOT_MEMBER_FUNCTION,
         #endregion 编译
 
         #region 生成

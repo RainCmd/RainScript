@@ -277,7 +277,8 @@ Entry()
 
 
 ## 函数的override
-所有成员函数都是虚函数，如果子类中成员函数名和参数类型与父类一致时就会override，如果override函数返回值类型不一致会编译异常
+所有成员函数都是虚函数，如果子类中成员函数名和参数类型与父类一致时就会override，如果override函数返回值类型不一致会编译异常</br>
+使用‘.’调用成员函数时执行虚调用操作，当函数被子类override时会调用子类的函数，使用‘->’调用则会执行实调用操作，不会被子类的override函数影响
 ```rs
 interface ITest
     IFunc()
@@ -289,11 +290,18 @@ class A
 class B A ITest
     public MFunc()
         Print("MFunc in B")
+class C B
+    public MFunc()
+        Print("MFunc in C")
 
 Entry()
-    ITest i = B()
+    ITest i = C()
     i.IFunc()                       //输出 "IFunc"
-    (B& i).Mfunc()                  //输出 "MFunc in B"
+    var b = B& i
+    b.MFunc()                       //输出 "MFunc in C"
+    b->Mfunc()                      //输出 "MFunc in B"
+    A a = b
+    a->Mfunc()                      //输出 "MFunc in A"
 ```
 
 ## 运算符
