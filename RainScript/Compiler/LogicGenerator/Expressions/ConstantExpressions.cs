@@ -16,7 +16,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.value = value;
         }
-        public override bool TryEvaluation(out bool value)
+        public override bool TryEvaluation(out bool value, EvaluationParameter parameter)
         {
             value = this.value;
             return true;
@@ -37,7 +37,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.value = value;
         }
-        public override bool TryEvaluation(out long value)
+        public override bool TryEvaluation(out long value, EvaluationParameter parameter)
         {
             value = this.value;
             return true;
@@ -58,7 +58,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.value = value;
         }
-        public override bool TryEvaluation(out real value)
+        public override bool TryEvaluation(out real value, EvaluationParameter parameter)
         {
             value = this.value;
             return true;
@@ -80,7 +80,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.value = value;
         }
-        public override bool TryEvaluation(out Real2 value)
+        public override bool TryEvaluation(out Real2 value, EvaluationParameter parameter)
         {
             value = this.value;
             return true;
@@ -102,7 +102,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.value = value;
         }
-        public override bool TryEvaluation(out Real3 value)
+        public override bool TryEvaluation(out Real3 value, EvaluationParameter parameter)
         {
             value = this.value;
             return true;
@@ -124,7 +124,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.value = value;
         }
-        public override bool TryEvaluation(out Real4 value)
+        public override bool TryEvaluation(out Real4 value, EvaluationParameter parameter)
         {
             value = this.value;
             return true;
@@ -146,7 +146,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             this.value = value;
         }
-        public override bool TryEvaluation(out string value)
+        public override bool TryEvaluation(out string value, EvaluationParameter parameter)
         {
             value = this.value;
             return true;
@@ -182,6 +182,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_HandleNull);
             parameter.generator.WriteCode(parameter.results[0]);
         }
+        public override bool TryEvaluationNull()
+        {
+            return true;
+        }
     }
     internal class ConstantEntityNullExpression : Expression
     {
@@ -192,6 +196,10 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_EntityNull);
             parameter.generator.WriteCode(parameter.results[0]);
+        }
+        public override bool TryEvaluationNull()
+        {
+            return true;
         }
     }
 }

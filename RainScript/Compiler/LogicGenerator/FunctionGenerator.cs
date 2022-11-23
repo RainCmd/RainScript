@@ -9,6 +9,7 @@ using real = System.Double;
 namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
+
     internal class LambdaFunction : System.IDisposable
     {
         private readonly Definition definition;
@@ -31,13 +32,13 @@ namespace RainScript.Compiler.LogicGenerator
         {
             returnSize = returnCount * 4;
         }
-        public void Generate(GeneratorParameter parameter, Generator generator)
+        public void Generate(GeneratorParameter parameter)
         {
-            generator.SetCodeAddress(entry);
+            parameter.generator.SetCodeAddress(entry);
             using (var variable = new VariableGenerator(parameter.pool, Frame.SIZE + returnSize))
             {
                 var parameterSize = 0u;
-                parameter.debug.AddFunction(anchor.textInfo.path, anchor.StartLine, generator.Point);
+                parameter.debug.AddFunction(anchor.textInfo.path, anchor.StartLine, parameter.generator.Point);
                 if (definition != null)
                 {
                     parameterSize = 4;
@@ -45,31 +46,31 @@ namespace RainScript.Compiler.LogicGenerator
                     for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i + 1, parameters[i]);
-                        parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
+                        parameter.debug.AddLocalVariable(parameterNames[i], parameter.generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize = local.address + parameters[i].FieldSize;
                     }
                 }
                 else for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i, parameters[i]);
-                        parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
+                        parameter.debug.AddLocalVariable(parameterNames[i], parameter.generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize = local.address + parameters[i].FieldSize;
                     }
                 var topValue = new Referencable<uint>(parameter.pool);
-                generator.WriteCode(CommandMacro.FUNCTION_Entrance);
-                generator.WriteCode(Frame.SIZE + returnSize + parameterSize);
-                generator.WriteCode(topValue);
+                parameter.generator.WriteCode(CommandMacro.FUNCTION_Entrance);
+                parameter.generator.WriteCode(Frame.SIZE + returnSize + parameterSize);
+                parameter.generator.WriteCode(topValue);
                 using (var finallyPoint = new Referencable<CodeAddress>(parameter.pool))
                 {
-                    foreach (var statement in statements) statement.Generator(new StatementGeneratorParameter(parameter, generator, variable), finallyPoint);
-                    generator.SetCodeAddress(finallyPoint);
+                    foreach (var statement in statements) statement.Generator(new StatementGeneratorParameter(parameter, parameter.generator, variable), finallyPoint);
+                    parameter.generator.SetCodeAddress(finallyPoint);
                 }
-                var maxStack = variable.Generator(generator);
+                var maxStack = variable.Generator(parameter.generator);
                 Tools.MemoryAlignment(ref maxStack);
-                topValue.SetValue(generator, maxStack);
+                topValue.SetValue(parameter.generator, maxStack);
                 topValue.Dispose();
             }
-            generator.WriteCode(CommandMacro.FUNCTION_Return);
+            parameter.generator.WriteCode(CommandMacro.FUNCTION_Return);
         }
         public void Dispose()
         {
@@ -87,7 +88,7 @@ namespace RainScript.Compiler.LogicGenerator
         private readonly string file;
         private readonly string fullName;
         private readonly int line;
-        public FunctionGenerator(GeneratorParameter parameter, Generator generator)
+        public FunctionGenerator(GeneratorParameter parameter)
         {
             file = fullName = "";
             parameters = returns = new CompilingType[0];
@@ -108,47 +109,47 @@ namespace RainScript.Compiler.LogicGenerator
                                     {
                                         if (variable.type == RelyKernel.BOOL_TYPE)
                                         {
-                                            if (result.TryEvaluation(out bool value)) generator.WriteData(1, value, variable.address);
+                                            if (result.TryEvaluation(out bool value, new EvaluationParameter(parameter))) parameter.generator.WriteData(1, value, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type == RelyKernel.INTEGER_TYPE)
                                         {
-                                            if (result.TryEvaluation(out long value)) generator.WriteData(8, value, variable.address);
+                                            if (result.TryEvaluation(out long value, new EvaluationParameter(parameter))) parameter.generator.WriteData(8, value, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type == RelyKernel.REAL_TYPE)
                                         {
-                                            if (result.TryEvaluation(out real value)) generator.WriteData(8, value, variable.address);
+                                            if (result.TryEvaluation(out real value, new EvaluationParameter(parameter))) parameter.generator.WriteData(8, value, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type == RelyKernel.REAL2_TYPE)
                                         {
-                                            if (result.TryEvaluation(out Real2 value)) generator.WriteData(16, value, variable.address);
+                                            if (result.TryEvaluation(out Real2 value, new EvaluationParameter(parameter))) parameter.generator.WriteData(16, value, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type == RelyKernel.REAL3_TYPE)
                                         {
-                                            if (result.TryEvaluation(out Real3 value)) generator.WriteData(24, value, variable.address);
+                                            if (result.TryEvaluation(out Real3 value, new EvaluationParameter(parameter))) parameter.generator.WriteData(24, value, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type == RelyKernel.REAL4_TYPE)
                                         {
-                                            if (result.TryEvaluation(out Real4 value)) generator.WriteData(32, value, variable.address);
+                                            if (result.TryEvaluation(out Real4 value, new EvaluationParameter(parameter))) parameter.generator.WriteData(32, value, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type == RelyKernel.STRING_TYPE)
                                         {
-                                            if (result.TryEvaluation(out string value)) generator.WriteData(value, variable.address, parameter.pool);
+                                            if (result.TryEvaluation(out string value, new EvaluationParameter(parameter))) parameter.generator.WriteData(value, variable.address, parameter.pool);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type.IsHandle)
                                         {
-                                            if (result.TryEvaluationNull()) generator.WriteData(4, 0u, variable.address);
+                                            if (result.TryEvaluationNull()) parameter.generator.WriteData(4, 0u, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type == RelyKernel.ENTITY_TYPE)
                                         {
-                                            if (result.TryEvaluationNull()) generator.WriteData(8, Entity.NULL, variable.address);
+                                            if (result.TryEvaluationNull()) parameter.generator.WriteData(8, Entity.NULL, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else parameter.exceptions.Add(variable.name, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
@@ -607,47 +608,47 @@ namespace RainScript.Compiler.LogicGenerator
             }
             return false;
         }
-        public void Generate(GeneratorParameter parameter, Generator generator)
+        public void Generate(GeneratorParameter parameter)
         {
-            parameter.symbol.WriteFunction(generator.Point, file, fullName);
+            parameter.symbol.WriteFunction(parameter.generator.Point, file, fullName);
             var returnSize = (uint)returns.Length * 4;
             using (var variable = new VariableGenerator(parameter.pool, Frame.SIZE + returnSize))
             {
                 var parameterSize = 0u;
-                parameter.debug.AddFunction(file, line, generator.Point);
+                parameter.debug.AddFunction(file, line, parameter.generator.Point);
                 if (definition != null)
                 {
                     parameterSize = TypeCode.Handle.FieldSize();
                     var thisVarliable = variable.DecareLocal(0, new CompilingType(new CompilingDefinition(definition.declaration), 0));
-                    parameter.debug.AddThisVariable(definition.name, generator.Point, thisVarliable.address, parameter.relied.Convert(thisVarliable.type).RuntimeType);
+                    parameter.debug.AddThisVariable(definition.name, parameter.generator.Point, thisVarliable.address, parameter.relied.Convert(thisVarliable.type).RuntimeType);
                     for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i + 1, parameters[i]);
-                        parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
+                        parameter.debug.AddLocalVariable(parameterNames[i], parameter.generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize = local.address + parameters[i].FieldSize;
                     }
                 }
                 else for (uint i = 0; i < parameters.Length; i++)
                     {
                         var local = variable.DecareLocal(i, parameters[i]);
-                        parameter.debug.AddLocalVariable(parameterNames[i], generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
+                        parameter.debug.AddLocalVariable(parameterNames[i], parameter.generator.Point, local.address, parameter.relied.Convert(local.type).RuntimeType);
                         parameterSize = local.address + parameters[i].FieldSize;
                     }
                 var topValue = new Referencable<uint>(parameter.pool);
-                generator.WriteCode(CommandMacro.FUNCTION_Entrance);
-                generator.WriteCode(Frame.SIZE + returnSize + parameterSize);
-                generator.WriteCode(topValue);
+                parameter.generator.WriteCode(CommandMacro.FUNCTION_Entrance);
+                parameter.generator.WriteCode(Frame.SIZE + returnSize + parameterSize);
+                parameter.generator.WriteCode(topValue);
                 using (var finallyPoint = new Referencable<CodeAddress>(parameter.pool))
                 {
-                    statements.Generator(new StatementGeneratorParameter(parameter, generator, variable), finallyPoint);
-                    generator.SetCodeAddress(finallyPoint);
+                    statements.Generator(new StatementGeneratorParameter(parameter, parameter.generator, variable), finallyPoint);
+                    parameter.generator.SetCodeAddress(finallyPoint);
                 }
-                var maxStack = variable.Generator(generator);
+                var maxStack = variable.Generator(parameter.generator);
                 Tools.MemoryAlignment(ref maxStack);
-                topValue.SetValue(generator, maxStack);
+                topValue.SetValue(parameter.generator, maxStack);
                 topValue.Dispose();
             }
-            generator.WriteCode(CommandMacro.FUNCTION_Return);
+            parameter.generator.WriteCode(CommandMacro.FUNCTION_Return);
         }
         public void Dispose()
         {

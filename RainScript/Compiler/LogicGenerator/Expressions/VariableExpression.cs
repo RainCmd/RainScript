@@ -1,4 +1,12 @@
-﻿namespace RainScript.Compiler.LogicGenerator.Expressions
+﻿using RainScript.Vector;
+using System.Net;
+#if FIXED
+using real = RainScript.Real.Fixed;
+#else
+using real = System.Double;
+#endif
+
+namespace RainScript.Compiler.LogicGenerator.Expressions
 {
     internal abstract class VariableExpression : Expression
     {
@@ -102,6 +110,86 @@
             parameter.generator.WriteCode(declaration.library);
             parameter.generator.WriteCode(declaration.index);
             parameter.generator.WriteCode(parameter.results[0]);
+        }
+        private bool TryGetAddress(out uint address, EvaluationParameter parameter)
+        {
+            if (declaration.library == LIBRARY.SELF && Attribute.ContainAny(TokenAttribute.Constant))
+            {
+                address = parameter.manager.library.variables[(int)declaration.index].address;
+                return true;
+            }
+            address = default;
+            return false;
+        }
+        public override bool TryEvaluation(out bool value, EvaluationParameter parameter)
+        {
+            if (TryGetAddress(out var address, parameter))
+            {
+                value = parameter.generator.GetData<bool>(address);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        public override bool TryEvaluation(out long value, EvaluationParameter parameter)
+        {
+            if (TryGetAddress(out var address, parameter))
+            {
+                value = parameter.generator.GetData<long>(address);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        public override bool TryEvaluation(out real value, EvaluationParameter parameter)
+        {
+            if (TryGetAddress(out var address, parameter))
+            {
+                value = parameter.generator.GetData<real>(address);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        public override bool TryEvaluation(out Real2 value, EvaluationParameter parameter)
+        {
+            if (TryGetAddress(out var address, parameter))
+            {
+                value = parameter.generator.GetData<Real2>(address);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        public override bool TryEvaluation(out Real3 value, EvaluationParameter parameter)
+        {
+            if (TryGetAddress(out var address, parameter))
+            {
+                value = parameter.generator.GetData<Real3>(address);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        public override bool TryEvaluation(out Real4 value, EvaluationParameter parameter)
+        {
+            if (TryGetAddress(out var address, parameter))
+            {
+                value = parameter.generator.GetData<Real4>(address);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        public override bool TryEvaluation(out string value, EvaluationParameter parameter)
+        {
+            if (TryGetAddress(out var address, parameter))
+            {
+                value = parameter.generator.GetDataString(address);
+                return true;
+            }
+            value = default;
+            return false;
         }
     }
     internal class VariableMemberExpression : VariableExpression

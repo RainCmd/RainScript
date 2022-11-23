@@ -42,8 +42,6 @@
         }
     }
 
-
-
     internal class ReferenceDeclaration
     {
         public readonly string name;

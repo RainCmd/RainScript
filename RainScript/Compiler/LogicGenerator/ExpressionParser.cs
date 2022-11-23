@@ -10,6 +10,7 @@ namespace RainScript.Compiler.LogicGenerator
 {
     internal readonly struct ExpressionParser
     {
+        public readonly EvaluationParameter evaluationParameter;
         public readonly DeclarationManager manager;
         public readonly Context context;
         public readonly LocalContext localContext;
@@ -17,9 +18,10 @@ namespace RainScript.Compiler.LogicGenerator
         public readonly bool destructor;
         public readonly CollectionPool pool;
         public readonly ExceptionCollector exceptions;
-        public ExpressionParser(GeneratorParameter parameter, Context context, LocalContext localContext, bool destructor) : this(parameter.manager, context, localContext, null, destructor, parameter.pool, parameter.exceptions) { }
-        public ExpressionParser(DeclarationManager manager, Context context, LocalContext localContext, LambdaClosure closure, bool destructor, CollectionPool pool, ExceptionCollector exceptions)
+        public ExpressionParser(GeneratorParameter parameter, Context context, LocalContext localContext, bool destructor) : this(parameter.generator, parameter.manager, context, localContext, null, destructor, parameter.pool, parameter.exceptions) { }
+        public ExpressionParser(Generator generator, DeclarationManager manager, Context context, LocalContext localContext, LambdaClosure closure, bool destructor, CollectionPool pool, ExceptionCollector exceptions)
         {
+            evaluationParameter = new EvaluationParameter(generator, manager);
             this.manager = manager;
             this.context = context;
             this.localContext = localContext;
@@ -350,7 +352,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                 localContext.AddLocal(lambda.parameters[i], parameters[i]);
                                             using (var closure = new LambdaClosure(this))
                                             {
-                                                var parser = new ExpressionParser(manager, context, localContext, closure, destructor, pool, exceptions);
+                                                var parser = new ExpressionParser(evaluationParameter.generator, manager, context, localContext, closure, destructor, pool, exceptions);
                                                 if (parser.TryParseTuple(lambda.body, out var expressions))
                                                 {
                                                     if (closure.Closure != null)
@@ -444,7 +446,7 @@ namespace RainScript.Compiler.LogicGenerator
                 {
                     if (st == RelyKernel.INTEGER_TYPE)
                     {
-                        if (source.TryEvaluation(out long value))
+                        if (source.TryEvaluation(out long value, evaluationParameter))
                         {
                             result = new ConstantRealExpression(source.anchor, value);
                             measure = 0;
@@ -867,7 +869,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -953,7 +955,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1029,7 +1031,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1043,7 +1045,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1072,7 +1074,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1101,7 +1103,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1138,7 +1140,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1152,7 +1154,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1181,7 +1183,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1205,7 +1207,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1232,7 +1234,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1246,7 +1248,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1275,7 +1277,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1299,7 +1301,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         {
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
-                                                if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                                                if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                                                 else right = new IntegerToRealExpression(right.anchor, right);
                                                 rrt = RelyKernel.REAL_TYPE;
                                             }
@@ -1469,7 +1471,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.REAL_TYPE || rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE)
                         {
-                            if (left.TryEvaluation(out long value)) left = new ConstantRealExpression(left.anchor, value);
+                            if (left.TryEvaluation(out long value, evaluationParameter)) left = new ConstantRealExpression(left.anchor, value);
                             else left = new IntegerToRealExpression(left.anchor, left);
                             return true;
                         }
@@ -1479,7 +1481,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
-                            if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                            if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
@@ -1489,7 +1491,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
-                            if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                            if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
@@ -1509,7 +1511,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
-                            if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                            if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
@@ -1529,7 +1531,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
-                            if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, value);
+                            if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
                             return true;
                         }
@@ -1652,7 +1654,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            if (left.TryEvaluation(out bool leftValue))
+                            if (left.TryEvaluation(out bool leftValue, evaluationParameter))
                             {
                                 if (!leftValue)
                                 {
@@ -1680,7 +1682,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            if (left.TryEvaluation(out bool leftValue))
+                            if (left.TryEvaluation(out bool leftValue, evaluationParameter))
                             {
                                 if (leftValue)
                                 {
@@ -1709,7 +1711,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue < rightValue);
                                 expressionStack.Push(constant);
@@ -1719,7 +1721,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue < rightValue);
                                 expressionStack.Push(constant);
@@ -1735,7 +1737,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue > rightValue);
                                 expressionStack.Push(constant);
@@ -1745,7 +1747,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue > rightValue);
                                 expressionStack.Push(constant);
@@ -1761,7 +1763,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue <= rightValue);
                                 expressionStack.Push(constant);
@@ -1771,7 +1773,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue <= rightValue);
                                 expressionStack.Push(constant);
@@ -1787,7 +1789,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue >= rightValue);
                                 expressionStack.Push(constant);
@@ -1797,7 +1799,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue >= rightValue);
                                 expressionStack.Push(constant);
@@ -1813,7 +1815,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            if (left.TryEvaluation(out bool leftValue, evaluationParameter) && right.TryEvaluation(out bool rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
                                 expressionStack.Push(constant);
@@ -1823,7 +1825,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
                                 expressionStack.Push(constant);
@@ -1833,7 +1835,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
                                 expressionStack.Push(constant);
@@ -1843,7 +1845,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE)
                         {
-                            if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                            if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
                                 expressionStack.Push(constant);
@@ -1853,7 +1855,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
                         {
-                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
                                 expressionStack.Push(constant);
@@ -1863,7 +1865,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE)
                         {
-                            if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                            if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
                                 expressionStack.Push(constant);
@@ -1873,7 +1875,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE)
                         {
-                            if (left.TryEvaluation(out string leftValue) && right.TryEvaluation(out string rightValue))
+                            if (left.TryEvaluation(out string leftValue, evaluationParameter) && right.TryEvaluation(out string rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue == rightValue);
                                 expressionStack.Push(constant);
@@ -1911,7 +1913,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            if (left.TryEvaluation(out bool leftValue, evaluationParameter) && right.TryEvaluation(out bool rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
                                 expressionStack.Push(constant);
@@ -1921,7 +1923,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
                                 expressionStack.Push(constant);
@@ -1931,7 +1933,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
                                 expressionStack.Push(constant);
@@ -1941,7 +1943,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE)
                         {
-                            if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                            if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
                                 expressionStack.Push(constant);
@@ -1952,7 +1954,7 @@ namespace RainScript.Compiler.LogicGenerator
 
                         else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
                         {
-                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
                                 expressionStack.Push(constant);
@@ -1962,7 +1964,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE)
                         {
-                            if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                            if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
                                 expressionStack.Push(constant);
@@ -1972,7 +1974,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.STRING_TYPE && right.returns[0] == RelyKernel.STRING_TYPE)
                         {
-                            if (left.TryEvaluation(out string leftValue) && right.TryEvaluation(out string rightValue))
+                            if (left.TryEvaluation(out string leftValue, evaluationParameter) && right.TryEvaluation(out string rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue != rightValue);
                                 expressionStack.Push(constant);
@@ -2009,7 +2011,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            if (left.TryEvaluation(out bool leftValue, evaluationParameter) && right.TryEvaluation(out bool rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue & rightValue);
                                 expressionStack.Push(constant);
@@ -2019,7 +2021,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, leftValue & rightValue);
                                 expressionStack.Push(constant);
@@ -2035,7 +2037,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            if (left.TryEvaluation(out bool leftValue, evaluationParameter) && right.TryEvaluation(out bool rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue | rightValue);
                                 expressionStack.Push(constant);
@@ -2045,7 +2047,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, leftValue | rightValue);
                                 expressionStack.Push(constant);
@@ -2061,7 +2063,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.BOOL_TYPE && right.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            if (left.TryEvaluation(out bool leftValue) && right.TryEvaluation(out bool rightValue))
+                            if (left.TryEvaluation(out bool leftValue, evaluationParameter) && right.TryEvaluation(out bool rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, leftValue ^ rightValue);
                                 expressionStack.Push(constant);
@@ -2071,7 +2073,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, leftValue ^ rightValue);
                                 expressionStack.Push(constant);
@@ -2087,7 +2089,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, leftValue << (int)rightValue);
                                 expressionStack.Push(constant);
@@ -2103,7 +2105,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, leftValue >> (int)rightValue);
                                 expressionStack.Push(constant);
@@ -2119,7 +2121,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, leftValue + rightValue);
                                 expressionStack.Push(constant);
@@ -2129,7 +2131,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantRealExpression(anchor, leftValue + rightValue);
                                 expressionStack.Push(constant);
@@ -2139,7 +2141,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE)
                         {
-                            if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                            if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantReal2Expression(anchor, leftValue + rightValue);
                                 expressionStack.Push(constant);
@@ -2149,7 +2151,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
                         {
-                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantReal3Expression(anchor, leftValue + rightValue);
                                 expressionStack.Push(constant);
@@ -2159,7 +2161,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE)
                         {
-                            if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                            if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantReal4Expression(anchor, leftValue + rightValue);
                                 expressionStack.Push(constant);
@@ -2171,7 +2173,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             ConvertToString(ref left); ConvertToString(ref right);
                             if (left.returns[0] != RelyKernel.STRING_TYPE || right.returns[0] != RelyKernel.STRING_TYPE) goto default;
-                            if (left.TryEvaluation(out string leftValue) && right.TryEvaluation(out string rightValue))
+                            if (left.TryEvaluation(out string leftValue, evaluationParameter) && right.TryEvaluation(out string rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantStringExpression(anchor, leftValue + rightValue);
                                 expressionStack.Push(constant);
@@ -2187,7 +2189,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, leftValue - rightValue);
                                 expressionStack.Push(constant);
@@ -2197,7 +2199,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL_TYPE && right.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                            if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantRealExpression(anchor, leftValue - rightValue);
                                 expressionStack.Push(constant);
@@ -2207,7 +2209,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL2_TYPE && right.returns[0] == RelyKernel.REAL2_TYPE)
                         {
-                            if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                            if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantReal2Expression(anchor, leftValue - rightValue);
                                 expressionStack.Push(constant);
@@ -2217,7 +2219,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL3_TYPE && right.returns[0] == RelyKernel.REAL3_TYPE)
                         {
-                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantReal3Expression(anchor, leftValue - rightValue);
                                 expressionStack.Push(constant);
@@ -2227,7 +2229,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (left.returns[0] == RelyKernel.REAL4_TYPE && right.returns[0] == RelyKernel.REAL4_TYPE)
                         {
-                            if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                            if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantReal3Expression(anchor, leftValue - rightValue);
                                 expressionStack.Push(constant);
@@ -2243,7 +2245,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, leftValue * rightValue);
                                 expressionStack.Push(constant);
@@ -2255,7 +2257,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantRealExpression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2265,7 +2267,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL2_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal2Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2275,7 +2277,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL3_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal3Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2285,7 +2287,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal4Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2298,7 +2300,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal2Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2308,7 +2310,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL2_TYPE)
                             {
-                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal2Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2321,7 +2323,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal3Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2331,7 +2333,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL3_TYPE)
                             {
-                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal3Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2344,7 +2346,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal4Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2354,7 +2356,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                             {
-                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                                 {
                                     var constant = new ConstantReal4Expression(anchor, leftValue * rightValue);
                                     expressionStack.Push(constant);
@@ -2371,7 +2373,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 if (rightValue == 0)
                                 {
@@ -2389,7 +2391,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     if (rightValue == 0)
                                     {
@@ -2405,7 +2407,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL2_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y == 0)
                                     {
@@ -2421,7 +2423,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL3_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y * rightValue.z == 0)
                                     {
@@ -2437,7 +2439,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y * rightValue.z * rightValue.w == 0)
                                     {
@@ -2456,7 +2458,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     if (rightValue == 0)
                                     {
@@ -2472,7 +2474,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL2_TYPE)
                             {
-                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y == 0)
                                     {
@@ -2491,7 +2493,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     if (rightValue == 0)
                                     {
@@ -2507,7 +2509,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL3_TYPE)
                             {
-                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y * rightValue.z == 0)
                                     {
@@ -2526,7 +2528,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     if (rightValue == 0)
                                     {
@@ -2542,7 +2544,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                             {
-                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y * rightValue.z * rightValue.w == 0)
                                     {
@@ -2565,7 +2567,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (left.returns[0] == RelyKernel.INTEGER_TYPE && right.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (left.TryEvaluation(out long leftValue) && right.TryEvaluation(out long rightValue))
+                            if (left.TryEvaluation(out long leftValue, evaluationParameter) && right.TryEvaluation(out long rightValue, evaluationParameter))
                             {
                                 if (rightValue == 0)
                                 {
@@ -2583,7 +2585,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     if (rightValue == 0)
                                     {
@@ -2599,7 +2601,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL2_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y == 0)
                                     {
@@ -2615,7 +2617,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL3_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y * rightValue.z == 0)
                                     {
@@ -2631,7 +2633,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                             {
-                                if (left.TryEvaluation(out real leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                if (left.TryEvaluation(out real leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y * rightValue.z * rightValue.w == 0)
                                     {
@@ -2650,7 +2652,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     if (rightValue == 0)
                                     {
@@ -2666,7 +2668,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL2_TYPE)
                             {
-                                if (left.TryEvaluation(out Real2 leftValue) && right.TryEvaluation(out Real2 rightValue))
+                                if (left.TryEvaluation(out Real2 leftValue, evaluationParameter) && right.TryEvaluation(out Real2 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y == 0)
                                     {
@@ -2685,7 +2687,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     if (rightValue == 0)
                                     {
@@ -2701,7 +2703,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL3_TYPE)
                             {
-                                if (left.TryEvaluation(out Real3 leftValue) && right.TryEvaluation(out Real3 rightValue))
+                                if (left.TryEvaluation(out Real3 leftValue, evaluationParameter) && right.TryEvaluation(out Real3 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y * rightValue.z == 0)
                                     {
@@ -2720,7 +2722,7 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.returns[0] == RelyKernel.REAL_TYPE)
                             {
-                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out real rightValue))
+                                if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out real rightValue, evaluationParameter))
                                 {
                                     if (rightValue == 0)
                                     {
@@ -2736,7 +2738,7 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                             {
-                                if (left.TryEvaluation(out Real4 leftValue) && right.TryEvaluation(out Real4 rightValue))
+                                if (left.TryEvaluation(out Real4 leftValue, evaluationParameter) && right.TryEvaluation(out Real4 rightValue, evaluationParameter))
                                 {
                                     if (rightValue.x * rightValue.y * rightValue.z * rightValue.w == 0)
                                     {
@@ -2759,7 +2761,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (expression.returns[0] == RelyKernel.BOOL_TYPE)
                         {
-                            if (expression.TryEvaluation(out bool value))
+                            if (expression.TryEvaluation(out bool value, evaluationParameter))
                             {
                                 var constant = new ConstantBooleanExpression(anchor, !value);
                                 expressionStack.Push(constant);
@@ -2775,7 +2777,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (expression.TryEvaluation(out long value))
+                            if (expression.TryEvaluation(out long value, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, ~value);
                                 expressionStack.Push(constant);
@@ -2803,7 +2805,7 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
                         {
-                            if (expression.TryEvaluation(out long value))
+                            if (expression.TryEvaluation(out long value, evaluationParameter))
                             {
                                 var constant = new ConstantIntegerExpression(anchor, -value);
                                 expressionStack.Push(constant);
@@ -2813,7 +2815,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (expression.returns[0] == RelyKernel.REAL_TYPE)
                         {
-                            if (expression.TryEvaluation(out real value))
+                            if (expression.TryEvaluation(out real value, evaluationParameter))
                             {
                                 var constant = new ConstantRealExpression(anchor, -value);
                                 expressionStack.Push(constant);
@@ -2823,7 +2825,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (expression.returns[0] == RelyKernel.REAL2_TYPE)
                         {
-                            if (expression.TryEvaluation(out Real2 value))
+                            if (expression.TryEvaluation(out Real2 value, evaluationParameter))
                             {
                                 var constant = new ConstantReal2Expression(anchor, -value);
                                 expressionStack.Push(constant);
@@ -2833,7 +2835,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (expression.returns[0] == RelyKernel.REAL3_TYPE)
                         {
-                            if (expression.TryEvaluation(out Real3 value))
+                            if (expression.TryEvaluation(out Real3 value, evaluationParameter))
                             {
                                 var constant = new ConstantReal3Expression(anchor, -value);
                                 expressionStack.Push(constant);
@@ -2843,7 +2845,7 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                         else if (expression.returns[0] == RelyKernel.REAL4_TYPE)
                         {
-                            if (expression.TryEvaluation(out Real4 value))
+                            if (expression.TryEvaluation(out Real4 value, evaluationParameter))
                             {
                                 var constant = new ConstantReal4Expression(anchor, -value);
                                 expressionStack.Push(constant);
@@ -2914,7 +2916,7 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (right.returns[0] == RelyKernel.REAL_TYPE)
                                 {
-                                    if (right.TryEvaluation(out real value)) right = new ConstantIntegerExpression(right.anchor, (long)value);
+                                    if (right.TryEvaluation(out real value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, (long)value);
                                     else right = new RealToIntegerExpression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
@@ -2924,7 +2926,7 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (right.returns[0] == RelyKernel.INTEGER_TYPE)
                                 {
-                                    if (right.TryEvaluation(out long value)) right = new ConstantRealExpression(right.anchor, (real)value);
+                                    if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, (real)value);
                                     else right = new IntegerToRealExpression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
@@ -2934,14 +2936,14 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (right.returns[0] == RelyKernel.REAL3_TYPE)
                                 {
-                                    if (right.TryEvaluation(out Real3 value)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
+                                    if (right.TryEvaluation(out Real3 value, evaluationParameter)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
                                     else right = new Real2ToReal3Expression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
                                 }
                                 else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                                 {
-                                    if (right.TryEvaluation(out Real4 value)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
+                                    if (right.TryEvaluation(out Real4 value, evaluationParameter)) right = new ConstantReal2Expression(right.anchor, (Real2)value);
                                     else right = new Real2ToReal4Expression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
@@ -2951,14 +2953,14 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (right.returns[0] == RelyKernel.REAL2_TYPE)
                                 {
-                                    if (right.TryEvaluation(out Real2 value)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
+                                    if (right.TryEvaluation(out Real2 value, evaluationParameter)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
                                     else right = new Real3ToReal2Expression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
                                 }
                                 else if (right.returns[0] == RelyKernel.REAL4_TYPE)
                                 {
-                                    if (right.TryEvaluation(out Real4 value)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
+                                    if (right.TryEvaluation(out Real4 value, evaluationParameter)) right = new ConstantReal3Expression(right.anchor, (Real3)value);
                                     else right = new Real3ToReal4Expression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
@@ -2968,14 +2970,14 @@ namespace RainScript.Compiler.LogicGenerator
                             {
                                 if (right.returns[0] == RelyKernel.REAL2_TYPE)
                                 {
-                                    if (right.TryEvaluation(out Real2 value)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
+                                    if (right.TryEvaluation(out Real2 value, evaluationParameter)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
                                     else right = new Real4ToReal2Expression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
                                 }
                                 else if (right.returns[0] == RelyKernel.REAL3_TYPE)
                                 {
-                                    if (right.TryEvaluation(out Real3 value)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
+                                    if (right.TryEvaluation(out Real3 value, evaluationParameter)) right = new ConstantReal4Expression(right.anchor, (Real4)value);
                                     else right = new Real4ToReal3Expression(right.anchor, right);
                                     expressionStack.Push(right);
                                     return right.Attribute;
@@ -3416,7 +3418,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         else using (var elementIndices = pool.GetList<long>())
                                             {
                                                 foreach (var item in expressions)
-                                                    if (item.TryEvaluation(out long value))
+                                                    if (item.TryEvaluation(out long value, evaluationParameter))
                                                     {
                                                         if (value < 0) value += tupleExpression.returns.Length;
                                                         if (value < 0 || value >= tupleExpression.returns.Length)
@@ -3460,7 +3462,7 @@ namespace RainScript.Compiler.LogicGenerator
                                             else using (var elementIndices = pool.GetList<long>())
                                                 {
                                                     foreach (var item in expressions)
-                                                        if (item.TryEvaluation(out long value))
+                                                        if (item.TryEvaluation(out long value, evaluationParameter))
                                                         {
                                                             if (value < 0) value += returns.Length;
                                                             if (value < 0 || value >= returns.Length)
@@ -3706,7 +3708,6 @@ namespace RainScript.Compiler.LogicGenerator
                                 break;
                             }
                         case LexicalType.RealInvoker:
-                            //todo 实调用
                             if (index + 1 < lexicals.Count)
                             {
                                 lexical = lexicals[++index];

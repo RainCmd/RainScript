@@ -170,7 +170,7 @@ namespace RainScript.Compiler
                     using (var libraryGenerator = new Generator(manager.library.ConstantData, pool))
                     {
                         var debug = new DebugTableGenerator(command, name);
-                        var paramter = new GeneratorParameter(command, manager, relied, symbol, debug, pool, exceptions);
+                        var paramter = new GeneratorParameter(command, libraryGenerator, manager, relied, symbol, debug, pool, exceptions);
                         if (command.generatorDebugTable)
                             for (int i = 0; i < manager.library.variables.Count; i++)
                             {

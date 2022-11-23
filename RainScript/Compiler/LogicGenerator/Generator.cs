@@ -11,15 +11,17 @@ namespace RainScript.Compiler.LogicGenerator
     internal readonly struct GeneratorParameter
     {
         public readonly CompilerCommand command;
+        public readonly Generator generator;
         public readonly DeclarationManager manager;
         public readonly ReliedGenerator relied;
         public readonly SymbolTableGenerator symbol;
         public readonly DebugTableGenerator debug;
         public readonly CollectionPool pool;
         public readonly ExceptionCollector exceptions;
-        public GeneratorParameter(CompilerCommand command, DeclarationManager manager, ReliedGenerator relied, SymbolTableGenerator symbol, DebugTableGenerator debug, CollectionPool pool, ExceptionCollector exceptions)
+        public GeneratorParameter(CompilerCommand command, Generator generator, DeclarationManager manager, ReliedGenerator relied, SymbolTableGenerator symbol, DebugTableGenerator debug, CollectionPool pool, ExceptionCollector exceptions)
         {
             this.command = command;
+            this.generator = generator;
             this.manager = manager;
             this.relied = relied;
             this.symbol = symbol;
@@ -187,10 +189,21 @@ namespace RainScript.Compiler.LogicGenerator
             }
             address.Add(point);
         }
+        public T GetData<T>(uint point) where T : unmanaged
+        {
+            fixed (byte* ptr = data) return *(T*)(ptr + point);
+        }
+        public string GetDataString(uint point)
+        {
+            foreach (var item in dataStrings)
+                if (item.Value.Contains(point))
+                    return item.Key;
+            return "";
+        }
 
         public void GeneratorLibrary(GeneratorParameter parameter, out byte[] codes, out string[] codeStrings, out System.Collections.Generic.Dictionary<string, uint[]> dataStrings)
         {
-            using (var libraryCtor = new FunctionGenerator(parameter, this)) libraryCtor.Generate(parameter, this);
+            using (var libraryCtor = new FunctionGenerator(parameter)) libraryCtor.Generate(parameter);
             for (int i = 0, count = parameter.manager.library.methods.Count; i < count; i++)
             {
                 var method = parameter.manager.library.methods[i];
@@ -199,7 +212,7 @@ namespace RainScript.Compiler.LogicGenerator
                         using (var functionGenerator = new FunctionGenerator(parameter, function))
                         {
                             SetCodeAddress(function.entry);
-                            functionGenerator.Generate(parameter, this);
+                            functionGenerator.Generate(parameter);
                         }
             }
             foreach (var definition in parameter.manager.library.definitions)
@@ -207,10 +220,10 @@ namespace RainScript.Compiler.LogicGenerator
                     using (var destructorGenerator = new FunctionGenerator(parameter, definition))
                     {
                         definition.destructorEntry = Point;
-                        destructorGenerator.Generate(parameter, this);
+                        destructorGenerator.Generate(parameter);
                     }
                 else definition.destructorEntry = LIBRARY.ENTRY_INVALID;
-            foreach (var lambda in parameter.manager.lambdas) lambda.Generate(parameter, this);
+            foreach (var lambda in parameter.manager.lambdas) lambda.Generate(parameter);
 
             codes = Tools.P2A(code, codeTop);
             codeStrings = this.codeStrings.ToArray();
