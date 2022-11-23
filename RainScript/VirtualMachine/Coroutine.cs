@@ -2497,17 +2497,16 @@ namespace RainScript.VirtualMachine
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 5));
                             flag = (long)kernel.heapAgency.TryGetType(handle, out var handleType);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            var type = *(Type*)(library.code + point + 9);
-                            if (kernel.libraryAgency.TryGetInheritDepth(type, handleType, out _))
-                            {
-                                flag = (long)ExitCode.InvalidCast;
-                                goto case CommandMacro.BASE_Exit;
-                            }
-                            else
+                            if (kernel.libraryAgency.TryGetInheritDepth(library.LocalToGlobal(*(Type*)(library.code + point + 9)), handleType, out _))
                             {
                                 kernel.heapAgency.Release(*result);
                                 kernel.heapAgency.Reference(handle);
                                 *result = handle;
+                            }
+                            else
+                            {
+                                flag = (long)ExitCode.InvalidCast;
+                                goto case CommandMacro.BASE_Exit;
                             }
                         }
                         point += 22;
