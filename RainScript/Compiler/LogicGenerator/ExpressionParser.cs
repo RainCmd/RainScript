@@ -581,7 +581,7 @@ namespace RainScript.Compiler.LogicGenerator
                             if (stack.Count > 0)
                             {
                                 var breacket = stack.Pop();
-                                if (breacket.type == LexicalType.BracketLeft1)
+                                if (breacket.type == LexicalType.BracketLeft1 || breacket.type == LexicalType.QuestionIndex)
                                 {
                                     if (flag.ContainAny(SplitFlag.Bracket1) && stack.Count == 0) return true;
                                     break;
@@ -677,7 +677,11 @@ namespace RainScript.Compiler.LogicGenerator
                         case LexicalType.QuestionDot:
                             break;
                         case LexicalType.QuestionInvoke:
+                        case LexicalType.QuestionIndex:
                             stack.Push(lexical);
+                            break;
+                        case LexicalType.QuestionNull:
+                            if (stack.Count == 0 && flag.ContainAny(SplitFlag.QuestionNull)) return true;
                             break;
                         case LexicalType.Colon:
                             if (stack.Count > 0)
@@ -1396,14 +1400,36 @@ namespace RainScript.Compiler.LogicGenerator
                         result = TupleExpression.Combine(left, right);
                         return true;
                     }
-                    else
-                    {
-                        if (!leftDecided) exceptions.Add(left.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
-                        if (!rightDecided) exceptions.Add(right.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
-                    }
+                    if (!leftDecided) exceptions.Add(left.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
+                    if (!rightDecided) exceptions.Add(right.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
                 }
             }
             else if (commaIndex + 1 < lexicals.Count) return TryParse(lexicals[1, -1], out result);
+            result = default;
+            return false;
+        }
+        private bool TryParseQuestionNull(ListSegment<Lexical> lexicals, int questionNullIndex, out Expression result)
+        {
+            if (questionNullIndex > 0 && questionNullIndex < lexicals.Count - 1)
+            {
+                if (TryParse(lexicals[0, questionNullIndex - 1], out var left) && TryParse(lexicals[questionNullIndex + 1, -1], out var right))
+                {
+                    var leftVaildReturn = left.returns.Length == 1 && (left.returns[0].IsHandle || left.returns[0] == RelyKernel.ENTITY_TYPE);
+                    var rightVaildReturn = right.returns.Length == 1 && (right.returns[0].IsHandle || right.returns[0] == RelyKernel.ENTITY_TYPE);
+                    if (leftVaildReturn && rightVaildReturn)
+                    {
+                        if (TryAssignmentConvert(right, left.returns[0], out right, out _))
+                        {
+                            result = new QuestionNullExpression(new Anchor(lexicals[0].anchor.textInfo, lexicals[0].anchor.start, lexicals[-1].anchor.end), left, right);
+                            return true;
+                        }
+                        else rightVaildReturn = false;
+                    }
+                    if (!leftVaildReturn) exceptions.Add(left.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                    if (!rightVaildReturn) exceptions.Add(right.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                }
+            }
+            else exceptions.Add(lexicals[questionNullIndex].anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
             result = default;
             return false;
         }
@@ -3232,6 +3258,7 @@ namespace RainScript.Compiler.LogicGenerator
                 else return TryParseAssignment(lexicals, splitIndex, out result);
             }
             else if (TrySub(lexicals, SplitFlag.Comma, out var commaIndex)) return TryParseComma(lexicals, commaIndex, out result);
+            else if (TrySub(lexicals, SplitFlag.QuestionNull, out var questionNullIndex)) return TryParseQuestionNull(lexicals, questionNullIndex, out result);
             using (var expressionStack = pool.GetStack<Expression>())
             using (var tokenStack = pool.GetStack<Token>())
             {
@@ -3896,7 +3923,41 @@ namespace RainScript.Compiler.LogicGenerator
                                     goto parse_fail;
                                 }
                             }
-                            break;
+                            goto default;
+                        case LexicalType.QuestionIndex:
+                            {
+                                if (TryParseBracket(lexicals, SplitFlag.Bracket1, ref index, out var expressions))
+                                {
+                                    foreach (var item in expressions)
+                                        foreach (var returnType in item.returns)
+                                            if (returnType != RelyKernel.INTEGER_TYPE)
+                                            {
+                                                exceptions.Add(item.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                                goto parse_fail;
+                                            }
+                                    if (attribute.ContainAny(TokenAttribute.Array) && TryCombineExpressions(out var expression, expressions))
+                                    {
+                                        var array = expressionStack.Pop();
+                                        if (array.returns[0] == RelyKernel.BLURRY_TYPE)
+                                        {
+                                            exceptions.Add(array.anchor, CompilingExceptionCode.COMPILING_EQUIVOCAL);
+                                            goto parse_fail;
+                                        }
+                                        if (expression.returns.Length == 1)
+                                        {
+                                            if (array.returns[0].dimension > 0)
+                                            {
+                                                expression = new ArrayQuestionEvaluationExpression(lexical.anchor, array, expression, new CompilingType(array.returns[0].definition, array.returns[0].dimension - 1));
+                                                expressionStack.Push(expression);
+                                                attribute = expression.Attribute;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            goto default;
+                        case LexicalType.QuestionNull:
                         case LexicalType.Colon: goto default;
                         #region Constants
                         case LexicalType.ConstReal:

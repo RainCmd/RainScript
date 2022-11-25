@@ -11,6 +11,7 @@
         Question = 0x20,
         Colon = 0x40,
         Lambda = 0x80,
+        QuestionNull = 0x100,
     }
     internal static class SplitFlagExtension
     {

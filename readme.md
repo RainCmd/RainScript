@@ -325,6 +325,16 @@ function Func
 Entry()
     Func f = null
     f?()                            //不会报空引用错
+    int[] arr = null
+    var v = arr?[0]                 //不会报空引用错
+```
+双问号运算：
+```rs
+handle Get()
+    return null
+Entry()
+    handle a = null
+    handle b = a ?? Get()           //当前面表达式返回值为空时返回后面表达式的值
 ```
 
 ## 异常处理

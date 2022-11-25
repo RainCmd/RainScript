@@ -123,6 +123,45 @@
             parameter.generator.WriteCode(parameter.results[0]);
         }
     }
+    internal class ArrayQuestionEvaluationExpression : Expression
+    {
+        private readonly Expression array;
+        private readonly Expression index;
+        private readonly TokenAttribute attribute;
+        public override TokenAttribute Attribute => attribute;
+        public ArrayQuestionEvaluationExpression(Anchor anchor, Expression array, Expression index, CompilingType elementType) : base(anchor, elementType)
+        {
+            this.array = array;
+            this.index = index;
+            attribute = TokenAttribute.Value.AddTypeAttribute(elementType);
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            var address = new Referencable<CodeAddress>(parameter.pool);
+            var arrayParameter = new GeneratorParameter(parameter, 1);
+            array.Generator(arrayParameter);
+            parameter.generator.WriteCode(CommandMacro.BASE_NullJump);
+            parameter.generator.WriteCode(arrayParameter.results[0]);
+            parameter.generator.WriteCode(address);
+            var indexParameter = new GeneratorParameter(parameter, 1);
+            index.Generator(indexParameter);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+            if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_1);
+            else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_8);
+            else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
+            else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
+            else if (returns[0] == RelyKernel.REAL4_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
+            else if (returns[0] == RelyKernel.STRING_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_String);
+            else if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_Handle);
+            else if (returns[0] == RelyKernel.ENTITY_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_Entity);
+            else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(arrayParameter.results[0]);
+            parameter.generator.WriteCode(indexParameter.results[0]);
+            parameter.generator.SetCodeAddress(address);
+            address.Dispose();
+        }
+    }
     internal class StringEvaluationExpression : Expression
     {
         private readonly Expression source;
@@ -135,11 +174,11 @@
         }
         public override void Generator(GeneratorParameter parameter)
         {
-            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             var sourceParameter = new GeneratorParameter(parameter, 1);
             source.Generator(sourceParameter);
             var indexParameter = new GeneratorParameter(parameter, 1);
             index.Generator(indexParameter);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             parameter.generator.WriteCode(CommandMacro.STRING_Element);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(sourceParameter.results[0]);
@@ -162,7 +201,7 @@
             array.Generator(arrayParameter);
             var rangeParameter = new GeneratorParameter(parameter, 2);
             range.Generator(rangeParameter);
-            parameter.variable.DecareTemporary(parameter.pool, returns[0]);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             if (array.returns[0] == RelyKernel.STRING_TYPE) parameter.generator.WriteCode(CommandMacro.STRING_Sub);
             else parameter.generator.WriteCode(CommandMacro.HANDLE_ArrayCut);
             parameter.generator.WriteCode(parameter.results[0]);

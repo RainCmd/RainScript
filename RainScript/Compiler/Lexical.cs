@@ -51,6 +51,8 @@
         Question,               // ?
         QuestionDot,            // ?.
         QuestionInvoke,         // ?(
+        QuestionIndex,          // ?[
+        QuestionNull,           // ??
         Colon,                  // :
         ConstReal,              // 数字(实数)
         ConstNumber,            // 数字(整数)
@@ -208,6 +210,8 @@
                     case '?':
                         if (segment.Equals('.', index + 1)) lexical = new Lexical(LexicalType.QuestionDot, text, segment[index, index + 1]);
                         else if (segment.Equals('(', index + 1)) lexical = new Lexical(LexicalType.QuestionInvoke, text, segment[index, index + 1]);
+                        else if (segment.Equals('[', index + 1)) lexical = new Lexical(LexicalType.QuestionIndex, text, segment[index, index + 1]);
+                        else if (segment.Equals('?', index + 1)) lexical = new Lexical(LexicalType.QuestionNull, text, segment[index, index + 1]);
                         else lexical = new Lexical(LexicalType.Question, text, segment[index, index]);
                         return true;
                     case ':':

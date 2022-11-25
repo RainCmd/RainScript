@@ -105,6 +105,7 @@
     <Compile Include="Compiler\LogicGenerator\Expressions\Expression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\InvokerExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\LogicExpression.cs" />
+    <Compile Include="Compiler\LogicGenerator\Expressions\QuestionNullExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\VectorExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\LocalContext.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\OperationExpression.cs" />
