@@ -29,7 +29,7 @@ namespace RainScript
     }
     [StructLayout(LayoutKind.Explicit)]
     [System.Serializable]
-    internal struct TypeDefinition
+    internal readonly struct TypeDefinition
     {
         [FieldOffset(0)]
         public readonly uint library;
@@ -71,7 +71,7 @@ namespace RainScript
     }
     [StructLayout(LayoutKind.Explicit)]
     [System.Serializable]
-    internal struct Type
+    internal readonly struct Type
     {
         [FieldOffset(0)]
         public readonly TypeDefinition definition;
@@ -129,7 +129,7 @@ namespace RainScript
     }
     [StructLayout(LayoutKind.Explicit)]
     [System.Serializable]
-    internal struct Function
+    internal readonly struct Function
     {
         [FieldOffset(0)]
         public readonly uint method;
@@ -164,7 +164,7 @@ namespace RainScript
     }
     [StructLayout(LayoutKind.Explicit)]
     [System.Serializable]
-    internal struct MemberVariable
+    internal readonly struct MemberVariable
     {
 
         [FieldOffset(0)]
@@ -180,7 +180,7 @@ namespace RainScript
     }
     [StructLayout(LayoutKind.Explicit)]
     [System.Serializable]
-    internal struct MemberFunction
+    internal readonly struct MemberFunction
     {
         [FieldOffset(0)]
         public readonly uint definition;
@@ -220,47 +220,7 @@ namespace RainScript
     }
     [StructLayout(LayoutKind.Explicit)]
     [System.Serializable]
-    internal struct InterfaceFunction
-    {
-        [FieldOffset(0)]
-        public readonly uint definition;
-        [FieldOffset(4)]
-        public readonly uint method;
-        [FieldOffset(8)]
-        public readonly uint index;
-        public InterfaceFunction(uint definition, uint method, uint index)
-        {
-            this.definition = definition;
-            this.method = method;
-            this.index = index;
-        }
-        public static bool operator ==(InterfaceFunction a, InterfaceFunction b)
-        {
-            return a.definition == b.definition && a.method == b.method && a.index == b.index;
-        }
-        public static bool operator !=(InterfaceFunction a, InterfaceFunction b)
-        {
-            return !(a == b);
-        }
-        public override bool Equals(object obj)
-        {
-            return obj is InterfaceFunction function &&
-                   definition == function.definition &&
-                   method == function.method &&
-                   index == function.index;
-        }
-        public override int GetHashCode()
-        {
-            int hashCode = -1253953445;
-            hashCode = hashCode * -1521134295 + definition.GetHashCode();
-            hashCode = hashCode * -1521134295 + method.GetHashCode();
-            hashCode = hashCode * -1521134295 + index.GetHashCode();
-            return hashCode;
-        }
-    }
-    [StructLayout(LayoutKind.Explicit)]
-    [System.Serializable]
-    internal struct DefinitionFunction
+    internal readonly struct DefinitionFunction
     {
         [FieldOffset(0)]
         public readonly TypeDefinition definition;
@@ -429,7 +389,7 @@ namespace RainScript
     internal class ImportDefinitionInfo : ImportInfo
     {
         [System.Serializable]
-        internal struct Variable
+        internal readonly struct Variable
         {
             public readonly string name;
             public readonly Type type;
@@ -531,7 +491,7 @@ namespace RainScript
     #endregion Imports
     #region Exports
     [System.Serializable]
-    internal struct ExportDefinition
+    internal readonly struct ExportDefinition
     {
         internal readonly string name;
         internal readonly uint index;
@@ -546,7 +506,7 @@ namespace RainScript
         }
     }
     [System.Serializable]
-    internal struct ExportIndex
+    internal readonly struct ExportIndex
     {
         internal readonly string name;
         internal readonly uint index;
@@ -557,7 +517,7 @@ namespace RainScript
         }
     }
     [System.Serializable]
-    internal struct ExportMethod
+    internal readonly struct ExportMethod
     {
         internal readonly string name;
         internal readonly uint method;
@@ -570,7 +530,7 @@ namespace RainScript
         }
     }
     [System.Serializable]
-    internal struct ExportInterface
+    internal readonly struct ExportInterface
     {
         internal readonly string name;
         internal readonly uint index;
