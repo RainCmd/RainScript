@@ -113,10 +113,10 @@ namespace RainScript
         public const string SPACE = "space";
         public const string PROTECTED = "protected";
         public const string PRIVATE = "private";
+        public const string ENUM = "enum";//枚举暂未实现，保留关键字
         public const string STRUCT = "struct";//栈对象暂未实现，保留关键字
         public const string CLASS = "class";
         public const string INTERFACE = "interface";
-        public const string NEW = "new";//堆对象和栈对象用class和struct来区别，就不用new了，但是暂时保留
         public const string CONST = "const";
 
         public const string KERNEL = "kernel";
@@ -128,6 +128,7 @@ namespace RainScript
         public const string NULL = "null";
         public const string VAR = "var";
         public const string BOOL = "bool";
+        public const string BYTE = "byte";
         public const string INTEGER = "int";
         public const string REAL = "real";
         public const string REAL2 = "real2";
@@ -167,10 +168,10 @@ namespace RainScript
             if (segment == SPACE) return true;
             if (segment == PROTECTED) return true;
             if (segment == PRIVATE) return true;
+            if (segment == ENUM) return true;
             if (segment == STRUCT) return true;
             if (segment == CLASS) return true;
             if (segment == INTERFACE) return true;
-            if (segment == NEW) return true;
             if (segment == CONST) return true;
 
             if (segment == KERNEL) return true;
@@ -182,6 +183,7 @@ namespace RainScript
             if (segment == NULL) return true;
             if (segment == VAR) return true;
             if (segment == BOOL) return true;
+            if (segment == BYTE) return true;
             if (segment == INTEGER) return true;
             if (segment == REAL) return true;
             if (segment == REAL2) return true;

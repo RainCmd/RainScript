@@ -10,8 +10,14 @@ using Math = System.Math;
 
 namespace RainScript.VirtualMachine
 {
-    internal class KernelInvoker
+    internal unsafe class KernelInvoker
     {
+        internal delegate ExitCode Invoker(Kernel kernel, byte* stack, uint top);
+        internal readonly Invoker[] invokers;
+        protected KernelInvoker(Invoker[] invokers)
+        {
+            this.invokers = invokers;
+        }
         protected static uint PrepareInvoker(Stream stream, uint parameterSize, uint executeSize, KernelMethod.Function info, out uint finallyPoint)
         {
             stream.WriteByte((byte)CommandMacro.FUNCTION_Entrance);
@@ -45,6 +51,9 @@ namespace RainScript.VirtualMachine
                 {
                     case TypeCode.Invalid: goto default;
                     case TypeCode.Bool:
+                        stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_1);
+                        break;
+                    case TypeCode.Byte:
                         stream.WriteByte((byte)CommandMacro.FUNCTION_PushParameter_1);
                         break;
                     case TypeCode.Integer:
@@ -92,6 +101,7 @@ namespace RainScript.VirtualMachine
                 {
                     case TypeCode.Invalid:
                     case TypeCode.Bool:
+                    case TypeCode.Byte:
                     case TypeCode.Integer:
                         break;
                     case TypeCode.Real:
@@ -128,6 +138,9 @@ namespace RainScript.VirtualMachine
                     {
                         case TypeCode.Invalid: goto default;
                         case TypeCode.Bool:
+                            stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_1);
+                            break;
+                        case TypeCode.Byte:
                             stream.WriteByte((byte)CommandMacro.FUNCTION_ReturnPoint_1);
                             break;
                         case TypeCode.Integer:
@@ -173,11 +186,7 @@ namespace RainScript.VirtualMachine
     }
     internal unsafe class KernelMemberMethodInvoker : KernelInvoker
     {
-        internal readonly Invoker[] invokers;
-        private KernelMemberMethodInvoker(params Invoker[] invokers)
-        {
-            this.invokers = invokers;
-        }
+        private KernelMemberMethodInvoker(params Invoker[] invokers) : base(invokers) { }
         internal MethodInfo CreateMethodInfo(MemoryStream stream, Type type, uint index)
         {
             var entries = new uint[invokers.Length];
@@ -203,7 +212,7 @@ namespace RainScript.VirtualMachine
             var parameterPoint = PushParameter(stream, type, returnPoint);
             foreach (var item in info.parameters) parameterPoint = PushParameter(stream, item, parameterPoint);
 
-            stream.WriteByte((byte)CommandMacro.FUNCTION_KernelMemberCall);
+            stream.WriteByte((byte)CommandMacro.FUNCTION_KernelCall);
             stream.Write(method);
             stream.Write(function);
 
@@ -217,12 +226,13 @@ namespace RainScript.VirtualMachine
         /// 对应<see cref="KernelMethod.memberMethods"/>
         /// </summary>
         internal static readonly KernelMemberMethodInvoker[] methods;
-        internal delegate ExitCode Invoker(Kernel kernel, byte* stack, uint top);
         static KernelMemberMethodInvoker()
         {
             methods = new KernelMemberMethodInvoker[]
             {
                 new KernelMemberMethodInvoker(bool_ToString),
+
+                new KernelMemberMethodInvoker(byte_ToString),
 
                 new KernelMemberMethodInvoker(integer_ToString),
 
@@ -266,6 +276,15 @@ namespace RainScript.VirtualMachine
         {
             var result = (uint*)(stack + *(uint*)(stack + top + Frame.SIZE));
             var value = kernel.stringAgency.Add(((bool*)(stack + top + Frame.SIZE + 4))->ToString());
+            kernel.stringAgency.Reference(value);
+            kernel.stringAgency.Release(*result);
+            *result = value;
+            return ExitCode.None;
+        }
+        private static ExitCode byte_ToString(Kernel kernel, byte* stack, uint top)
+        {
+            var result = (uint*)(stack + *(uint*)(stack + top + Frame.SIZE));
+            var value = kernel.stringAgency.Add((stack + top + Frame.SIZE + 4)->ToString());
             kernel.stringAgency.Reference(value);
             kernel.stringAgency.Release(*result);
             *result = value;
@@ -484,11 +503,7 @@ namespace RainScript.VirtualMachine
     }
     internal unsafe class KernelMethodInvoker : KernelInvoker
     {
-        internal readonly Invoker[] invokers;
-        private KernelMethodInvoker(params Invoker[] invokers)
-        {
-            this.invokers = invokers;
-        }
+        private KernelMethodInvoker(params Invoker[] invokers) : base(invokers) { }
         internal MethodInfo CreateMethodInfo(MemoryStream stream, uint index)
         {
             var entries = new uint[invokers.Length];
@@ -527,7 +542,6 @@ namespace RainScript.VirtualMachine
         /// 对应<see cref="KernelMethod.methods"/>
         /// </summary>
         internal static readonly KernelMethodInvoker[] methods;
-        internal delegate void Invoker(Kernel kernel, byte* stack, uint top);
         static KernelMethodInvoker()
         {
             methods = new KernelMethodInvoker[]
@@ -538,6 +552,9 @@ namespace RainScript.VirtualMachine
                 new KernelMethodInvoker(real_Asin),
                 new KernelMethodInvoker(real_Atan),
                 new KernelMethodInvoker(real_Atan2),
+                new KernelMethodInvoker(bytes_Convert8),//BytesToInt
+                new KernelMethodInvoker(bytes_Convert8),//BytesToReal
+                new KernelMethodInvoker(bytes_ConvertString),//BytesToString
                 new KernelMethodInvoker(real_Ceil),
                 new KernelMethodInvoker(integer_Clamp, real_Clamp),
                 new KernelMethodInvoker(real_Clamp01),
@@ -562,75 +579,118 @@ namespace RainScript.VirtualMachine
                 new KernelMethodInvoker(real_Sin),
                 new KernelMethodInvoker(real_SinCos),
                 new KernelMethodInvoker(real_Sqrt),
+                new KernelMethodInvoker(bytes_Convert8, bytes_Convert8, bytes_StringConvert),
             };
         }
         #region 函数实现
 #pragma warning disable IDE1006
-        private static void integer_Abs(Kernel kernel, byte* stack, uint top)
+        private static ExitCode bytes_Convert8(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            *(long*)(stack + returnPoint) = *(long*)(stack + top + Frame.SIZE + 4);
+            return ExitCode.None;
+        }
+        private static ExitCode bytes_ConvertString(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            var handle = *(uint*)(stack + top + Frame.SIZE + 4);
+            var result = kernel.heapAgency.TryGetArrayLength(handle, out var length);
+            if (result != ExitCode.None) return result;
+            var value = kernel.stringAgency.Add(System.Text.Encoding.UTF8.GetString(Tools.P2A(kernel.heapAgency.GetArrayPoint(handle, 0), length)));
+            var address = (uint*)(stack + returnPoint);
+            kernel.stringAgency.Reference(value);
+            kernel.stringAgency.Release(*address);
+            *address = value;
+            return ExitCode.None;
+        }
+        private static ExitCode bytes_StringConvert(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(kernel.stringAgency.Get(*(uint*)(stack + top + Frame.SIZE + 4)));
+            var handle = kernel.heapAgency.AllocArray(KERNEL_TYPE.BYTE, (uint)bytes.Length);
+            var point = kernel.heapAgency.GetArrayPoint(handle, 0);
+            for (int i = 0; i < bytes.Length; i++) point[i] = bytes[i];
+            var address = (uint*)(stack + returnPoint);
+            kernel.heapAgency.Reference(handle);
+            kernel.heapAgency.Release(*address);
+            *address = handle;
+            return ExitCode.None;
+        }
+        private static ExitCode integer_Abs(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(long*)(stack + top + Frame.SIZE + 4);
             *(long*)(stack + returnPoint) = value < 0 ? -value : value;
+            return ExitCode.None;
         }
-        private static void integer_Clamp(Kernel kernel, byte* stack, uint top)
+        private static ExitCode integer_Clamp(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(long*)(stack + top + Frame.SIZE + 4);
             var min = *(long*)(stack + top + Frame.SIZE + 4 + TypeCode.Integer.FieldSize());
             var max = *(long*)(stack + top + Frame.SIZE + 4 + TypeCode.Integer.FieldSize() * 2);
             *(long*)(stack + returnPoint) = value < min ? min : value > max ? max : value;
+            return ExitCode.None;
         }
-        private static void integer_GetRandomInt(Kernel kernel, byte* stack, uint top)
+        private static ExitCode integer_GetRandomInt(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.random.Next();
+            return ExitCode.None;
         }
-        private static void integer_Max(Kernel kernel, byte* stack, uint top)
+        private static ExitCode integer_Max(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var a = *(long*)(stack + top + Frame.SIZE + 4);
             var b = *(long*)(stack + top + Frame.SIZE + 4 + TypeCode.Integer.FieldSize());
             *(long*)(stack + returnPoint) = a > b ? a : b;
+            return ExitCode.None;
         }
-        private static void integer_Min(Kernel kernel, byte* stack, uint top)
+        private static ExitCode integer_Min(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var a = *(long*)(stack + top + Frame.SIZE + 4);
             var b = *(long*)(stack + top + Frame.SIZE + 4 + TypeCode.Integer.FieldSize());
             *(long*)(stack + returnPoint) = a < b ? a : b;
+            return ExitCode.None;
         }
-        private static void real_Abs(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Abs(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Abs(value);
+            return ExitCode.None;
         }
-        private static void real_Acos(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Acos(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Acos(value);
+            return ExitCode.None;
         }
-        private static void real_Asin(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Asin(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Asin(value);
+            return ExitCode.None;
         }
-        private static void real_Atan(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Atan(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Atan(value);
+            return ExitCode.None;
         }
-        private static void real_Atan2(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Atan2(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var x = *(real*)(stack + top + Frame.SIZE + 4);
             var y = *(real*)(stack + top + Frame.SIZE + 4 + TypeCode.Real.FieldSize());
             *(real*)(stack + returnPoint) = Math.Atan2(x, y);
+            return ExitCode.None;
         }
-        private static void real_Ceil(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Ceil(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
@@ -639,8 +699,9 @@ namespace RainScript.VirtualMachine
 #else
             *(long*)(stack + returnPoint) = (long)Math.Ceiling(value);
 #endif
+            return ExitCode.None;
         }
-        private static void real_Clamp(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Clamp(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
@@ -651,8 +712,9 @@ namespace RainScript.VirtualMachine
 #else
             *(real*)(stack + returnPoint) = value < min ? min : value > max ? max : value;
 #endif
+            return ExitCode.None;
         }
-        private static void real_Clamp01(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Clamp01(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
@@ -661,14 +723,16 @@ namespace RainScript.VirtualMachine
 #else
             *(real*)(stack + returnPoint) = value < 0 ? 0 : value > 1 ? 1 : value;
 #endif
+            return ExitCode.None;
         }
-        private static void real_Cos(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Cos(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Cos(value);
+            return ExitCode.None;
         }
-        private static void real_Floor(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Floor(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
@@ -677,13 +741,15 @@ namespace RainScript.VirtualMachine
 #else
             *(long*)(stack + returnPoint) = (long)Math.Floor(value);
 #endif
+            return ExitCode.None;
         }
-        private static void real_GetRandomReal(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_GetRandomReal(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(real*)(stack + returnPoint) = kernel.random.NextReal();
+            return ExitCode.None;
         }
-        private static void real_Lerp(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Lerp(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var a = *(real*)(stack + top + Frame.SIZE + 4);
@@ -694,22 +760,25 @@ namespace RainScript.VirtualMachine
 #else
             *(real*)(stack + returnPoint) = a + (b - a) * l;
 #endif
+            return ExitCode.None;
         }
-        private static void real_Max(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Max(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var a = *(real*)(stack + top + Frame.SIZE + 4);
             var b = *(real*)(stack + top + Frame.SIZE + 4 + TypeCode.Real.FieldSize());
             *(real*)(stack + returnPoint) = Math.Max(a, b);
+            return ExitCode.None;
         }
-        private static void real_Min(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Min(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var a = *(real*)(stack + top + Frame.SIZE + 4);
             var b = *(real*)(stack + top + Frame.SIZE + 4 + TypeCode.Real.FieldSize());
             *(real*)(stack + returnPoint) = Math.Min(a, b);
+            return ExitCode.None;
         }
-        private static void real_Round(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Round(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
@@ -718,188 +787,217 @@ namespace RainScript.VirtualMachine
 #else
             *(long*)(stack + returnPoint) = (long)Math.Round(value);
 #endif
+            return ExitCode.None;
         }
-        private static void real_Sign(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Sign(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(long*)(stack + returnPoint) = Math.Sign(value);
+            return ExitCode.None;
         }
-        private static void real_Sin(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Sin(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Sin(value);
+            return ExitCode.None;
         }
-        private static void real_SinCos(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_SinCos(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = (uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 8);
             *(real*)(stack + returnPoint[0]) = Math.Sin(value);
             *(real*)(stack + returnPoint[1]) = Math.Cos(value);
+            return ExitCode.None;
         }
-        private static void real_Sqrt(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Sqrt(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Sqrt(value);
+            return ExitCode.None;
         }
-        private static void real_Tan(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real_Tan(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var value = *(real*)(stack + top + Frame.SIZE + 4);
             *(real*)(stack + returnPoint) = Math.Tan(value);
+            return ExitCode.None;
         }
-        private static void real2_Angle(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real2_Angle(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real2*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real2*)(stack + top + Frame.SIZE + 20);
             *(real*)(stack + returnPoint) = Real2.Angle(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real2_Cross(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real2_Cross(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real2*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real2*)(stack + top + Frame.SIZE + 20);
             *(real*)(stack + returnPoint) = Real2.Cross(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real2_Dot(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real2_Dot(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real2*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real2*)(stack + top + Frame.SIZE + 20);
             *(real*)(stack + returnPoint) = Real2.Dot(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real2_Lerp(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real2_Lerp(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real2*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real2*)(stack + top + Frame.SIZE + 20);
             var lerp = *(real*)(stack + top + Frame.SIZE + 36);
             *(Real2*)(stack + returnPoint) = Real2.Lerp(vector1, vector2, lerp);
+            return ExitCode.None;
         }
-        private static void real2_Max(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real2_Max(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real2*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real2*)(stack + top + Frame.SIZE + 20);
             *(Real2*)(stack + returnPoint) = Real2.Max(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real2_Min(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real2_Min(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real2*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real2*)(stack + top + Frame.SIZE + 20);
             *(Real2*)(stack + returnPoint) = Real2.Min(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real3_Angle(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real3_Angle(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real3*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real3*)(stack + top + Frame.SIZE + 28);
             *(real*)(stack + returnPoint) = Real3.Angle(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real3_Cross(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real3_Cross(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real3*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real3*)(stack + top + Frame.SIZE + 28);
             *(Real3*)(stack + returnPoint) = Real3.Cross(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real3_Dot(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real3_Dot(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real3*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real3*)(stack + top + Frame.SIZE + 28);
             *(real*)(stack + returnPoint) = Real3.Dot(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real3_Lerp(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real3_Lerp(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real3*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real3*)(stack + top + Frame.SIZE + 28);
             var lerp = *(real*)(stack + top + Frame.SIZE + 52);
             *(Real3*)(stack + returnPoint) = Real3.Lerp(vector1, vector2, lerp);
+            return ExitCode.None;
         }
-        private static void real3_Max(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real3_Max(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real3*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real3*)(stack + top + Frame.SIZE + 28);
             *(Real3*)(stack + returnPoint) = Real3.Max(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real3_Min(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real3_Min(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real3*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real3*)(stack + top + Frame.SIZE + 28);
             *(Real3*)(stack + returnPoint) = Real3.Min(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real4_Dot(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real4_Dot(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real4*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real4*)(stack + top + Frame.SIZE + 36);
             *(real*)(stack + returnPoint) = Real4.Dot(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real4_Lerp(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real4_Lerp(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real4*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real4*)(stack + top + Frame.SIZE + 36);
             var lerp = *(real*)(stack + top + Frame.SIZE + 68);
             *(Real4*)(stack + returnPoint) = Real4.Lerp(vector1, vector2, lerp);
+            return ExitCode.None;
         }
-        private static void real4_Max(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real4_Max(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real4*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real4*)(stack + top + Frame.SIZE + 36);
             *(Real4*)(stack + returnPoint) = Real4.Max(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void real4_Min(Kernel kernel, byte* stack, uint top)
+        private static ExitCode real4_Min(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var vector1 = *(Real4*)(stack + top + Frame.SIZE + 4);
             var vector2 = *(Real4*)(stack + top + Frame.SIZE + 36);
             *(Real4*)(stack + returnPoint) = Real4.Min(vector1, vector2);
+            return ExitCode.None;
         }
-        private static void Collect(Kernel kernel, byte* stack, uint top)
+        private static ExitCode Collect(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var size = kernel.heapAgency.GetHeapTop();
             kernel.heapAgency.GC(*(bool*)(stack + top + Frame.SIZE + 4));
             *(long*)(stack + returnPoint) = size - kernel.heapAgency.GetHeapTop();
+            return ExitCode.None;
         }
-        private static void HeapTotalMemory(Kernel kernel, byte* stack, uint top)
+        private static ExitCode HeapTotalMemory(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.heapAgency.GetHeapTop();
+            return ExitCode.None;
         }
-        private static void CountCoroutine(Kernel kernel, byte* stack, uint top)
+        private static ExitCode CountCoroutine(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.coroutineAgency.GetCoroutineCount();
+            return ExitCode.None;
         }
-        private static void CountEntity(Kernel kernel, byte* stack, uint top)
+        private static ExitCode CountEntity(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.manipulator.GetEntityCount();
+            return ExitCode.None;
         }
-        private static void CountHandle(Kernel kernel, byte* stack, uint top)
+        private static ExitCode CountHandle(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.heapAgency.GetHandleCount();
+            return ExitCode.None;
         }
-        private static void CountString(Kernel kernel, byte* stack, uint top)
+        private static ExitCode CountString(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             *(long*)(stack + returnPoint) = kernel.stringAgency.GetStringCount();
+            return ExitCode.None;
         }
-        private static void SetRandomSeed(Kernel kernel, byte* stack, uint top)
+        private static ExitCode SetRandomSeed(Kernel kernel, byte* stack, uint top)
         {
             kernel.random.SetSeed(*(long*)(stack + top + Frame.SIZE + 4));
+            return ExitCode.None;
         }
 #pragma warning restore IDE1006
         #endregion

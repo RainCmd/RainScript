@@ -95,7 +95,7 @@ namespace RainScript.Compiler.LogicGenerator
             parameterNames = new Anchor[0];
             statements = new BlockStatement(default, parameter.pool);
             foreach (var variable in parameter.manager.library.variables)
-                if (variable.constant)
+                if (variable.constant)//todo 检查常量的循环定义
                     using (var lexicals = parameter.pool.GetList<Lexical>())
                         if (Lexical.TryAnalysis(lexicals, variable.expression.exprssion.textInfo, variable.expression.exprssion.Segment, parameter.exceptions))
                         {
@@ -110,6 +110,11 @@ namespace RainScript.Compiler.LogicGenerator
                                         if (variable.type == RelyKernel.BOOL_TYPE)
                                         {
                                             if (result.TryEvaluation(out bool value, new EvaluationParameter(parameter))) parameter.generator.WriteData(1, value, variable.address);
+                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
+                                        }
+                                        else if (variable.type == RelyKernel.BYTE_TYPE)
+                                        {
+                                            if (result.TryEvaluation(out byte value, new EvaluationParameter(parameter))) parameter.generator.WriteData(1, value, variable.address);
                                             else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
                                         }
                                         else if (variable.type == RelyKernel.INTEGER_TYPE)
@@ -507,8 +512,13 @@ namespace RainScript.Compiler.LogicGenerator
                                     var parser = new ExpressionParser(parameter, context, localContext, destructor);
                                     if (parser.TryParse(lexicals[1, -1], out var condition))
                                     {
-                                        if (condition.returns.Length == 1 && condition.returns[0] == RelyKernel.INTEGER_TYPE)
-                                            statementStack.Peek().statements.Add(new WaitStatement(anchor, condition));
+                                        if (condition.returns.Length == 1)
+                                        {
+                                            if (condition.returns[0] == RelyKernel.BYTE_TYPE) condition = new ByteToIntegerExpression(condition.anchor, condition);
+                                            if (condition.returns[0] == RelyKernel.INTEGER_TYPE)//todo 这里可以适配bool和coroutine
+                                                statementStack.Peek().statements.Add(new WaitStatement(anchor, condition));
+                                            else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                        }
                                         else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                     }
                                 }

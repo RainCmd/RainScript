@@ -408,6 +408,9 @@ namespace RainScript.VirtualMachine
                                 switch ((TypeCode)(*(library.code + point)))
                                 {
                                     case TypeCode.Bool:
+                                        invoker.SetParameter(i, *(bool*)(stack + bottom + *(uint*)(library.code + point + 1)));
+                                        break;
+                                    case TypeCode.Byte:
                                         invoker.SetParameter(i, *(stack + bottom + *(uint*)(library.code + point + 1)));
                                         break;
                                     case TypeCode.Integer:
@@ -463,6 +466,9 @@ namespace RainScript.VirtualMachine
                                 switch ((TypeCode)(*(library.code + point)))
                                 {
                                     case TypeCode.Bool:
+                                        *result = invoker.GetBoolReturnValue(resultIndex);
+                                        break;
+                                    case TypeCode.Byte:
                                         *result = invoker.GetBoolReturnValue(resultIndex);
                                         break;
                                     case TypeCode.Integer:
@@ -771,20 +777,8 @@ namespace RainScript.VirtualMachine
                         try
                         {
                             var function = *(Function*)(library.code + point + 1);
-                            KernelMethodInvoker.methods[function.method].invokers[function.index](library.kernel, stack, top);
-                        }
-                        catch (Exception)
-                        {
-                            flag = (long)ExitCode.Unknown;
-                            goto case CommandMacro.BASE_Exit;
-                        }
-                        point += 9;
-                        break;
-                    case CommandMacro.FUNCTION_KernelMemberCall:
-                        try
-                        {
-                            var function = *(Function*)(library.code + point + 1);
-                            KernelMemberMethodInvoker.methods[function.method].invokers[function.index](kernel, stack, top);
+                            flag = (long)KernelMethodInvoker.methods[function.method].invokers[function.index](kernel, stack, top);
+                            if (flag != 0) goto case CommandMacro.BASE_Exit;
                         }
                         catch (Exception)
                         {
@@ -2550,6 +2544,22 @@ namespace RainScript.VirtualMachine
                             var result = (real*)(stack + bottom + *(uint*)(library.code + point + 1));
                             var value = *(long*)(stack + bottom + *(uint*)(library.code + point + 5));
                             *result = (real)value;
+                        }
+                        point += 9;
+                        break;
+                    case CommandMacro.CASTING_B2I:
+                        {
+                            var result = (long*)(stack + bottom + *(uint*)(library.code + point + 1));
+                            var value = *(byte*)(stack + bottom + *(uint*)(library.code + point + 5));
+                            *result = (long)value;
+                        }
+                        point += 9;
+                        break;
+                    case CommandMacro.CASTING_I2B:
+                        {
+                            var result = (byte*)(stack + bottom + *(uint*)(library.code + point + 1));
+                            var value = *(long*)(stack + bottom + *(uint*)(library.code + point + 5));
+                            *result = (byte)value;
                         }
                         point += 9;
                         break;

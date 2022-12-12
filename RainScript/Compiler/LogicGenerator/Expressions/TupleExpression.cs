@@ -87,8 +87,28 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             source.Generator(sourceParameter);
             foreach (var index in convers)
             {
-                if (returns[index] == RelyKernel.REAL_TYPE)
+                if (returns[index] == RelyKernel.INTEGER_TYPE)
                 {
+                    if (source.returns[index] == RelyKernel.BYTE_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.INTEGER_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.CASTING_B2I);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
+                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH, index.ToString());
+                }
+                else if (returns[index] == RelyKernel.REAL_TYPE)
+                {
+                    if (source.returns[index] == RelyKernel.BYTE_TYPE)
+                    {
+                        var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.INTEGER_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.CASTING_B2I);
+                        parameter.generator.WriteCode(variable);
+                        parameter.generator.WriteCode(sourceParameter.results[index]);
+                        sourceParameter.results[index] = variable;
+                    }
                     if (source.returns[index] == RelyKernel.INTEGER_TYPE)
                     {
                         var variable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL_TYPE);

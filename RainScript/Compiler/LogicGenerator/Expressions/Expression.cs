@@ -77,6 +77,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             value = default;
             return false;
         }
+        public virtual bool TryEvaluation(out byte value, EvaluationParameter parameter)
+        {
+            value = default;
+            return false;
+        }
         public virtual bool TryEvaluation(out long value, EvaluationParameter parameter)
         {
             value = default;

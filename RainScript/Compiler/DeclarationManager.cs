@@ -23,7 +23,7 @@ namespace RainScript.Compiler
         {
             if ((bool)definition)
                 if (definition.library == LIBRARY.KERNEL) return RelyKernel.definitions[definition.index].parent;
-                else if (definition.code == TypeCode.Interface) return RelyKernel.INTEGER;
+                else if (definition.code == TypeCode.Interface) return RelyKernel.INTERFACE;
                 else if (definition.code == TypeCode.Function) return RelyKernel.FUNCTION;
                 else if (definition.code == TypeCode.Coroutine) return RelyKernel.COROUTINE;
                 else if (definition.library == LIBRARY.SELF)
@@ -868,7 +868,15 @@ namespace RainScript.Compiler
                 }
                 return false;
             }
-            if (subType.definition == RelyKernel.INTEGER)
+            if (subType.definition == RelyKernel.BYTE)
+            {
+                if (baseType.definition == RelyKernel.INTEGER || baseType.definition == RelyKernel.REAL)
+                {
+                    measure += 0xff;
+                    return true;
+                }
+            }
+            else if (subType.definition == RelyKernel.INTEGER)
             {
                 if (baseType.definition == RelyKernel.REAL)
                 {

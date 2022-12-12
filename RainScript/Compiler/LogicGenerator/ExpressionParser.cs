@@ -143,7 +143,16 @@ namespace RainScript.Compiler.LogicGenerator
             }
             else if (type == RelyKernel.REAL_TYPE)
             {
-                if (source == RelyKernel.INTEGER_TYPE)
+                if (source == RelyKernel.BYTE_TYPE)
+                {
+                    convert = true;
+                    measure = 0xff;
+                    return true;
+                }
+            }
+            else if (type == RelyKernel.REAL_TYPE)
+            {
+                if (source == RelyKernel.BYTE_TYPE || source == RelyKernel.INTEGER_TYPE)
                 {
                     convert = true;
                     measure = 0xff;
@@ -442,8 +451,39 @@ namespace RainScript.Compiler.LogicGenerator
                     measure = 0;
                     return true;
                 }
+                else if (type == RelyKernel.INTEGER_TYPE)
+                {
+                    if (st == RelyKernel.BYTE_TYPE)
+                    {
+                        if (source.TryEvaluation(out byte value, evaluationParameter))
+                        {
+                            result = new ConstantIntegerExpression(source.anchor, value);
+                            measure = 0;
+                        }
+                        else
+                        {
+                            result = new ByteToIntegerExpression(source.anchor, source);
+                            measure = 0xff;
+                        }
+                        return true;
+                    }
+                }
                 else if (type == RelyKernel.REAL_TYPE)
                 {
+                    if (st == RelyKernel.BYTE_TYPE)
+                    {
+                        if (source.TryEvaluation(out byte value, evaluationParameter))
+                        {
+                            result = new ConstantRealExpression(source.anchor, value);
+                            measure = 0;
+                        }
+                        else
+                        {
+                            result = new IntegerToRealExpression(source.anchor, new ByteToIntegerExpression(source.anchor, source));
+                            measure = 0xff;
+                        }
+                        return true;
+                    }
                     if (st == RelyKernel.INTEGER_TYPE)
                     {
                         if (source.TryEvaluation(out long value, evaluationParameter))
@@ -814,10 +854,19 @@ namespace RainScript.Compiler.LogicGenerator
                                             right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_And, left, right, RelyKernel.BOOL_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
-                                        else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        else if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_And, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
@@ -827,50 +876,96 @@ namespace RainScript.Compiler.LogicGenerator
                                             right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_Or, left, right, RelyKernel.BOOL_TYPE);
                                             goto case LexicalType.Assignment;
                                         }
-                                        else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        else if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Or, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
                                     case LexicalType.BitXorAssignment:
-                                        if (lrt == RelyKernel.BOOL_TYPE && rrt == RelyKernel.BOOL_TYPE)
+                                        if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.BOOL_Xor, left, right, RelyKernel.BOOL_TYPE);
-                                            goto case LexicalType.Assignment;
-                                        }
-                                        else if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
-                                        {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Xor, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
                                     case LexicalType.ShiftLeftAssignment:
-                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_LeftShift, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
                                     case LexicalType.ShiftRightAssignment:
-                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_RightShift, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
                                     case LexicalType.PlusAssignment:
-                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Plus, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         else if (lrt == RelyKernel.REAL_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -950,13 +1045,28 @@ namespace RainScript.Compiler.LogicGenerator
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
                                     case LexicalType.MinusAssignment:
-                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Minus, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         else if (lrt == RelyKernel.REAL_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1026,13 +1136,28 @@ namespace RainScript.Compiler.LogicGenerator
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
                                     case LexicalType.MulAssignment:
-                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Multiply, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         else if (lrt == RelyKernel.REAL_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1047,6 +1172,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL2_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1076,6 +1207,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL3_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1105,6 +1242,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL4_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1135,13 +1278,28 @@ namespace RainScript.Compiler.LogicGenerator
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
                                     case LexicalType.DivAssignment:
-                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Divide, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         else if (lrt == RelyKernel.REAL_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1156,6 +1314,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL2_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1185,6 +1349,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL3_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1209,6 +1379,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL4_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1229,13 +1405,28 @@ namespace RainScript.Compiler.LogicGenerator
                                         exceptions.Add(assignment.anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         break;
                                     case LexicalType.ModAssignment:
-                                        if (lrt == RelyKernel.INTEGER_TYPE && rrt == RelyKernel.INTEGER_TYPE)
+                                        if (lrt == RelyKernel.INTEGER_TYPE)
                                         {
-                                            right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
-                                            goto case LexicalType.Assignment;
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = RelyKernel.INTEGER_TYPE;
+                                            }
+                                            if (rrt == RelyKernel.INTEGER_TYPE)
+                                            {
+                                                right = new BinaryOperationExpression(assignment.anchor, CommandMacro.INTEGER_Mod, left, right, RelyKernel.INTEGER_TYPE);
+                                                goto case LexicalType.Assignment;
+                                            }
                                         }
                                         else if (lrt == RelyKernel.REAL_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1250,6 +1441,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL2_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1279,6 +1476,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL3_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1303,6 +1506,12 @@ namespace RainScript.Compiler.LogicGenerator
                                         }
                                         else if (lrt == RelyKernel.REAL4_TYPE)
                                         {
+                                            if (rrt == RelyKernel.BYTE_TYPE)
+                                            {
+                                                if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                                                else right = new ByteToIntegerExpression(right.anchor, right);
+                                                rrt = right.returns[0];
+                                            }
                                             if (rrt == RelyKernel.INTEGER_TYPE)
                                             {
                                                 if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
@@ -1493,8 +1702,17 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.STRING_TYPE) return true;
                     }
+                    else if (leftType == RelyKernel.BYTE_TYPE)
+                    {
+                        if (rightType == RelyKernel.STRING_TYPE) return true;
+                    }
                     else if (leftType == RelyKernel.INTEGER_TYPE)
                     {
+                        if (rightType == RelyKernel.BYTE_TYPE)
+                        {
+                            if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new ByteToIntegerExpression(right.anchor, right);
+                        }
                         if (rightType == RelyKernel.REAL_TYPE || rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE)
                         {
                             if (left.TryEvaluation(out long value, evaluationParameter)) left = new ConstantRealExpression(left.anchor, value);
@@ -1505,23 +1723,31 @@ namespace RainScript.Compiler.LogicGenerator
                     }
                     else if (leftType == RelyKernel.REAL_TYPE)
                     {
+                        if (rightType == RelyKernel.BYTE_TYPE)
+                        {
+                            if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new ByteToIntegerExpression(right.anchor, right);
+                        }
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
                             if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
-                            return true;
                         }
-                        else if (rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE || rightType == RelyKernel.STRING_TYPE) return true;
+                        if (rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE || rightType == RelyKernel.STRING_TYPE) return true;
                     }
                     else if (leftType == RelyKernel.REAL2_TYPE)
                     {
+                        if (rightType == RelyKernel.BYTE_TYPE)
+                        {
+                            if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new ByteToIntegerExpression(right.anchor, right);
+                        }
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
                             if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
-                            return true;
                         }
-                        else if (rightType == RelyKernel.REAL_TYPE) return true;
+                        if (rightType == RelyKernel.REAL_TYPE) return true;
                         else if (rightType == RelyKernel.REAL3_TYPE)
                         {
                             left = new Real2ToReal3Expression(left.anchor, left);
@@ -1535,13 +1761,17 @@ namespace RainScript.Compiler.LogicGenerator
                     }
                     else if (leftType == RelyKernel.REAL3_TYPE)
                     {
+                        if (rightType == RelyKernel.BYTE_TYPE)
+                        {
+                            if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new ByteToIntegerExpression(right.anchor, right);
+                        }
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
                             if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
-                            return true;
                         }
-                        else if (rightType == RelyKernel.REAL_TYPE) return true;
+                        if (rightType == RelyKernel.REAL_TYPE) return true;
                         else if (rightType == RelyKernel.REAL2_TYPE)
                         {
                             right = new Real2ToReal3Expression(right.anchor, right);
@@ -1555,13 +1785,17 @@ namespace RainScript.Compiler.LogicGenerator
                     }
                     else if (leftType == RelyKernel.REAL4_TYPE)
                     {
+                        if (rightType == RelyKernel.BYTE_TYPE)
+                        {
+                            if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                            else right = new ByteToIntegerExpression(right.anchor, right);
+                        }
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
                             if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
-                            return true;
                         }
-                        else if (rightType == RelyKernel.REAL_TYPE) return true;
+                        if (rightType == RelyKernel.REAL_TYPE) return true;
                         else if (rightType == RelyKernel.REAL2_TYPE)
                         {
                             right = new Real2ToReal4Expression(right.anchor, right);
@@ -1575,7 +1809,7 @@ namespace RainScript.Compiler.LogicGenerator
                     }
                     else if (leftType == RelyKernel.STRING_TYPE)
                     {
-                        if (rightType == RelyKernel.BOOL_TYPE || rightType == RelyKernel.INTEGER_TYPE || rightType == RelyKernel.REAL_TYPE || rightType.IsHandle || rightType == RelyKernel.ENTITY_TYPE) return true;
+                        if (rightType == RelyKernel.BOOL_TYPE || rightType == RelyKernel.BYTE_TYPE || rightType == RelyKernel.INTEGER_TYPE || rightType == RelyKernel.REAL_TYPE || rightType.IsHandle || rightType == RelyKernel.ENTITY_TYPE) return true;
                     }
                     else if (leftType == RelyKernel.ENTITY_TYPE)
                     {
@@ -1645,6 +1879,11 @@ namespace RainScript.Compiler.LogicGenerator
             if (expression.returns[0] == RelyKernel.BOOL_TYPE)
             {
                 var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.BOOL.index].methods[0]].functions[0];
+                expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
+            }
+            else if (expression.returns[0] == RelyKernel.BYTE_TYPE)
+            {
+                var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.BYTE.index].methods[0]].functions[0];
                 expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
             }
             else if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
@@ -2938,9 +3177,33 @@ namespace RainScript.Compiler.LogicGenerator
                                 expressionStack.Push(right);
                                 return right.Attribute;
                             }
+                            else if (typeExpression.type == RelyKernel.BYTE_TYPE)
+                            {
+                                if (right.returns[0] == RelyKernel.INTEGER_TYPE)
+                                {
+                                    if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantByteExpression(right.anchor, (byte)value);
+                                    else right = new IntegerToByteExpression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                                else if (right.returns[0] == RelyKernel.REAL_TYPE)
+                                {
+                                    if (right.TryEvaluation(out real value, evaluationParameter)) right = new ConstantByteExpression(right.anchor, (byte)value);
+                                    else right = new IntegerToByteExpression(right.anchor, new RealToIntegerExpression(right.anchor, right));
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                            }
                             else if (typeExpression.type == RelyKernel.INTEGER_TYPE)
                             {
-                                if (right.returns[0] == RelyKernel.REAL_TYPE)
+                                if (right.returns[0] == RelyKernel.BYTE_TYPE)
+                                {
+                                    if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, (long)value);
+                                    else right = new ByteToIntegerExpression(right.anchor, right);
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                                else if (right.returns[0] == RelyKernel.REAL_TYPE)
                                 {
                                     if (right.TryEvaluation(out real value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, (long)value);
                                     else right = new RealToIntegerExpression(right.anchor, right);
@@ -2950,7 +3213,15 @@ namespace RainScript.Compiler.LogicGenerator
                             }
                             else if (typeExpression.type == RelyKernel.REAL_TYPE)
                             {
-                                if (right.returns[0] == RelyKernel.INTEGER_TYPE)
+
+                                if (right.returns[0] == RelyKernel.BYTE_TYPE)
+                                {
+                                    if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, (real)value);
+                                    else right = new IntegerToRealExpression(right.anchor, new ByteToIntegerExpression(right.anchor, right));
+                                    expressionStack.Push(right);
+                                    return right.Attribute;
+                                }
+                                else if (right.returns[0] == RelyKernel.INTEGER_TYPE)
                                 {
                                     if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, (real)value);
                                     else right = new IntegerToRealExpression(right.anchor, right);
@@ -4321,6 +4592,17 @@ namespace RainScript.Compiler.LogicGenerator
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
                                         var expression = new TypeExpression(lexical.anchor, RelyKernel.BOOL_TYPE);
+                                        expressionStack.Push(expression);
+                                        attribute = expression.Attribute;
+                                        break;
+                                    }
+                                    else goto default;
+                                }
+                                else if (lexical.anchor.Segment == KeyWorld.BYTE)
+                                {
+                                    if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
+                                    {
+                                        var expression = new TypeExpression(lexical.anchor, RelyKernel.BYTE_TYPE);
                                         expressionStack.Push(expression);
                                         attribute = expression.Attribute;
                                         break;

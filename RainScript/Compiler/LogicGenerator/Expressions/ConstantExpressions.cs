@@ -29,6 +29,27 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             parameter.generator.WriteCode(value);
         }
     }
+    internal class ConstantByteExpression : Expression
+    {
+        private readonly byte value;
+        public override TokenAttribute Attribute => TokenAttribute.Constant;
+        public ConstantByteExpression(Anchor anchor, byte value) : base(anchor, RelyKernel.BYTE_TYPE)
+        {
+            this.value = value;
+        }
+        public override bool TryEvaluation(out byte value, EvaluationParameter parameter)
+        {
+            value = this.value;
+            return true;
+        }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.BYTE_TYPE);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_1);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(value);
+        }
+    }
     internal class ConstantIntegerExpression : Expression
     {
         private readonly long value;

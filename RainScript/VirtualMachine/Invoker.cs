@@ -285,7 +285,17 @@ namespace RainScript.VirtualMachine
         public void SetParameter(int index, bool value)
         {
             DisposedAssert();
-            invoker.SetParameter(index, (byte)(value ? 1 : 0));
+            invoker.SetParameter(index, value);
+        }
+        /// <summary>
+        /// 设置字节参数
+        /// </summary>
+        /// <param name="index">参数索引</param>
+        /// <param name="value">参数值</param>
+        public void SetParameter(int index, byte value)
+        {
+            DisposedAssert();
+            invoker.SetParameter(index, value);
         }
         /// <summary>
         /// 设置整数参数
@@ -407,6 +417,11 @@ namespace RainScript.VirtualMachine
             ReturnTypeAssert(index, TypeCode.Bool);
             return data[handle.returnPoints[index]];
         }
+        public byte GetByteReturnValue(int index)
+        {
+            ReturnTypeAssert(index, TypeCode.Byte);
+            return data[handle.returnPoints[index]];
+        }
         public long GetIntegerReturnValue(int index)
         {
             ReturnTypeAssert(index, TypeCode.Integer);
@@ -457,9 +472,14 @@ namespace RainScript.VirtualMachine
             return handle.library.kernel.manipulator.Get(GetEntityReturnValue(index));
         }
 
-        public void SetParameter(int index, byte value)
+        public void SetParameter(int index, bool value)
         {
             ParameterTypeAssert(index, TypeCode.Bool);
+            data[handle.parameterPoints[index]] = *(byte*)&value;
+        }
+        public void SetParameter(int index, byte value)
+        {
+            ParameterTypeAssert(index, TypeCode.Byte);
             data[handle.parameterPoints[index]] = value;
         }
         public void SetParameter(int index, long value)

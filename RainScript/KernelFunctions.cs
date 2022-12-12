@@ -31,6 +31,9 @@
                 new KernelMethod("Asin", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
                 new KernelMethod("Atan", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
                 new KernelMethod("Atan2", new Function(new Type[]{ KERNEL_TYPE.REAL, KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
+                new KernelMethod("BytesToInt", new Function(new Type[]{ KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE }, KERNEL_TYPE.INTEGER)),
+                new KernelMethod("BytesToReal", new Function(new Type[]{ KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE }, KERNEL_TYPE.REAL)),
+                new KernelMethod("BytesToString", new Function(new Type[]{ new Type(KERNEL_TYPE.BYTE.definition, 1) }, KERNEL_TYPE.STRING)),
                 new KernelMethod("Ceil", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.INTEGER)),
                 new KernelMethod("Clamp", new Function(new Type[]{ KERNEL_TYPE.INTEGER, KERNEL_TYPE.INTEGER, KERNEL_TYPE.INTEGER }, KERNEL_TYPE.INTEGER), new Function(new Type[]{ KERNEL_TYPE.REAL, KERNEL_TYPE.REAL, KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
                 new KernelMethod("Clame01", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
@@ -55,10 +58,13 @@
                 new KernelMethod("Sin", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
                 new KernelMethod("SinCos", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL, KERNEL_TYPE.REAL)),
                 new KernelMethod("Sqrt", new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.REAL)),
+                new KernelMethod("ToBytes", new Function(new Type[]{ KERNEL_TYPE.INTEGER }, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE), new Function(new Type[]{ KERNEL_TYPE.REAL }, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE, KERNEL_TYPE.BYTE), new Function(new Type[]{ KERNEL_TYPE.STRING }, new Type(KERNEL_TYPE.BYTE.definition, 1))),
             };
             memberMethods = new KernelMethod[]
             {
                 //bool
+                new KernelMethod("ToString", new Function(new Type[0], KERNEL_TYPE.STRING)),
+                //byte
                 new KernelMethod("ToString", new Function(new Type[0], KERNEL_TYPE.STRING)),
                 //integer
                 new KernelMethod("ToString", new Function(new Type[0], KERNEL_TYPE.STRING)),

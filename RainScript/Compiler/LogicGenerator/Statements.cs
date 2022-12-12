@@ -85,7 +85,7 @@
                     foreach (var item in returnParameter.results)
                     {
                         if (item.type.dimension > 0) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_Handle);
-                        else if (item.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_1);
+                        else if (item.type == RelyKernel.BOOL_TYPE || item.type == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_1);
                         else if (item.type == RelyKernel.INTEGER_TYPE || item.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_8);
                         else if (item.type == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_16);
                         else if (item.type == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.FUNCTION_ReturnPoint_24);

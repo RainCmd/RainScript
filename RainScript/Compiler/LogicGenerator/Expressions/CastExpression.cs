@@ -12,6 +12,32 @@
             if (expression.Attribute.ContainAny(TokenAttribute.Constant)) attribute |= TokenAttribute.Constant;
         }
     }
+    internal class IntegerToByteExpression : CastExpression
+    {
+        public IntegerToByteExpression(Anchor anchor, Expression expression) : base(anchor, expression, RelyKernel.BYTE_TYPE) { }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            var sourceParameter = new GeneratorParameter(parameter, 1);
+            expression.Generator(sourceParameter);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.BYTE_TYPE);
+            parameter.generator.WriteCode(CommandMacro.CASTING_I2B);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(sourceParameter.results[0]);
+        }
+    }
+    internal class ByteToIntegerExpression : CastExpression
+    {
+        public ByteToIntegerExpression(Anchor anchor, Expression expression) : base(anchor, expression, RelyKernel.INTEGER_TYPE) { }
+        public override void Generator(GeneratorParameter parameter)
+        {
+            var sourceParameter = new GeneratorParameter(parameter, 1);
+            expression.Generator(sourceParameter);
+            parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.INTEGER_TYPE);
+            parameter.generator.WriteCode(CommandMacro.CASTING_B2I);
+            parameter.generator.WriteCode(parameter.results[0]);
+            parameter.generator.WriteCode(sourceParameter.results[0]);
+        }
+    }
     internal class IntegerToRealExpression : CastExpression
     {
         public IntegerToRealExpression(Anchor anchor, Expression expression) : base(anchor, expression, RelyKernel.REAL_TYPE) { }

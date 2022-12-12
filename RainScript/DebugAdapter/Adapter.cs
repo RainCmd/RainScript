@@ -534,6 +534,7 @@ namespace RainScript.DebugAdapter
                 switch (definition.code)
                 {
                     case TypeCode.Bool: return KeyWorld.BOOL;
+                    case TypeCode.Byte: return KeyWorld.BYTE;
                     case TypeCode.Integer: return KeyWorld.INTEGER;
                     case TypeCode.Real: return KeyWorld.REAL;
                     case TypeCode.Real2: return KeyWorld.REAL2;

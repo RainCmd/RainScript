@@ -114,7 +114,6 @@
     <Compile Include="Compiler\LogicGenerator\SplitFlag.cs" />
     <Compile Include="Compiler\LogicGenerator\Token.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\TupleExpression.cs" />
-    <Compile Include="Compiler\LogicGenerator\TypeCodeFlag.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\TypeExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\Expressions\VariableExpression.cs" />
     <Compile Include="Compiler\LogicGenerator\FunctionGenerator.cs" />

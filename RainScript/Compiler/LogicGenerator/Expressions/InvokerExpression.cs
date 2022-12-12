@@ -10,7 +10,7 @@
         protected uint PushParameter(uint point, Variable variable, Generator generator)
         {
             if (variable.type.IsHandle) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_Handle);
-            else if (variable.type == RelyKernel.BOOL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
+            else if (variable.type == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_1);
             else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_8);
             else if (variable.type == RelyKernel.REAL2_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_16);
             else if (variable.type == RelyKernel.REAL3_TYPE) generator.WriteCode(CommandMacro.FUNCTION_PushParameter_24);

@@ -39,6 +39,11 @@ namespace RainScript.VirtualMachine
                         parameters[i] = *(bool*)point;
                         point += TypeCode.Bool.FieldSize();
                     }
+                    else if (parameterTypes[i] == typeof(byte))
+                    {
+                        parameters[i] = *point;
+                        point += TypeCode.Byte.FieldSize();
+                    }
                     else if (parameterTypes[i] == typeof(long))
                     {
                         parameters[i] = *(long*)point;
@@ -169,6 +174,9 @@ namespace RainScript.VirtualMachine
                     case TypeCode.Bool:
                         result = typeof(bool);
                         return true;
+                    case TypeCode.Byte:
+                        result = typeof(byte);
+                        return true;
                     case TypeCode.Integer:
                         result = typeof(long);
                         return true;
@@ -262,6 +270,14 @@ namespace RainScript.VirtualMachine
                     generator.Emit(Add);
                     generator.Emit(Ldind_U1);
                     pidx += TypeCode.Bool.FieldSize();
+                }
+                else if (type == typeof(byte))
+                {
+                    generator.Emit(Ldloc, topPoint);
+                    generator.Emit(Ldc_I4, (int)pidx);
+                    generator.Emit(Add);
+                    generator.Emit(Ldind_U1);
+                    pidx += TypeCode.Byte.FieldSize();
                 }
                 else if (type == typeof(long))
                 {

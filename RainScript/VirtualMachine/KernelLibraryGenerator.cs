@@ -71,18 +71,19 @@ namespace RainScript
              {
                 CreateKernelDefinitionInfo(TypeDefinition.INVALID, 0, 0),//TypeCode.Invalid,
                 CreateKernelDefinitionInfo(TypeDefinition.INVALID, 0, 1),//TypeCode.Bool,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 1, 1),//TypeCode.Integer,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 2, 1),//TypeCode.Real,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 3, 3),//TypeCode.Real2,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 6, 3),//TypeCode.Real3,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 9, 3),//TypeCode.Real4,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 12, 5),//TypeCode.String,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 17, 1),//TypeCode.Handle,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 18, 0),//TypeCode.Interface,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 18, 0),//TypeCode.Function,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 18, 6),//TypeCode.Coroutine,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 24, 1),//TypeCode.Entity,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 25, 1),//数组
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 1, 1),//TypeCode.Byte,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 2, 1),//TypeCode.Integer,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 3, 1),//TypeCode.Real,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 4, 3),//TypeCode.Real2,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 7, 3),//TypeCode.Real3,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 10, 3),//TypeCode.Real4,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 13, 5),//TypeCode.String,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 18, 1),//TypeCode.Handle,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 19, 0),//TypeCode.Interface,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 19, 0),//TypeCode.Function,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 19, 6),//TypeCode.Coroutine,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 25, 1),//TypeCode.Entity,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 26, 1),//数组
              };
             var variables = new VariableInfo[KernelConstant.constants.Length];
             variables[0] = CreateKernelVariablleInfo(data, KernelConstant.constants[0].type, Math.PI);

@@ -22,31 +22,32 @@
 | native | 用于和宿主语言交互的函数 | public | 任意位置都可访问 |
 | internal | 当前程序集中任意位置可访问 | space | 仅当前命名空间内可访问 |
 | protected | 当前类和子类可访问 | private | 仅当前类可访问 |
-| ~~struct~~ | 保留关键字 | class | 类 |
-| interface | 接口 | ~~new~~ | 保留关键字 |
+| ~~enum~~ | 枚举 | ~~struct~~ | 保留关键字 |
+| class | 类 | interface | 接口 |
 | const | 常量 | kernel | 一些基本类型和函数所在的命名空间 |
 | global | 程序集命名空间之上的命名空间 | base | 用来访问父对象的成员 |
 | this | 当前对象 | true | TRUE |
 | false | FALSE | null | 表示handle类型或entity类型的空值 |
 | var | 用来隐式申明局部变量 | bool | 布尔类型 |
-| int | 整数类型（64位） | real | 实数类型（双精度浮点数/48位整数16位小数的定点数） |
-| real2 | 实数的二维向量 | real3 | 实数的三维向量 |
-| real4 | 实数的四维向量 | string | 字符串类型（只有长度为0，不可为null） |
-| handle | 句柄类型 class类型/函数/协程/数组 的基类 | entity | 用来表示宿主语言中的对象 |
-| function | 函数（委托）类型 | coroutine | 协程类型 |
-| array | 所有数组类型的基类 | if | 条件判断 |
-| elif | 跟在if/while/for后的条件判断 | else | if/elif/while/for判断为false时执行的分支 |
-| while | 循环 | for | 循环 |
-| break | 跳出循环 | continue | 跳过循环中后续语句 |
-| return | 函数返回 | is | 尝试类型转换，如果转换成功则返回true，否则返回false |
-| as | 尝试类型转换，如果转换成功则返回对象，否则返回null | start | 开启新的协程 |
-| wait | 等待 | exit | 终止协程，终止码必须非0 |
-| try | try语句 | catch | catch语句 |
-| finally | finally语句 |   |   |
+| byte | 字节类型 | int | 整数类型（64位） |
+| real | 实数类型（双精度浮点数/48位整数16位小数的定点数） | real2 | 实数的二维向量 |
+| real3 | 实数的三维向量 | real4 | 实数的四维向量 |
+| string | 字符串类型（只有长度为0，不可为null） | handle | 句柄类型 class类型/函数/协程/数组 的基类 |
+| entity | 用来表示宿主语言中的对象 | function | 函数（委托）类型 |
+| coroutine | 协程类型 | array | 所有数组类型的基类 |
+| if | 条件判断 | elif | 跟在if/while/for后的条件判断 |
+| else | if/elif/while/for判断为false时执行的分支 | while | 循环 |
+| for | 循环 | break | 跳出循环 |
+| continue | 跳过循环中后续语句 | return | 函数返回 |
+| is | 尝试类型转换，如果转换成功则返回true，否则返回false | as | 尝试类型转换，如果转换成功则返回对象，否则返回null |
+| start | 开启新的协程 | wait | 等待 |
+| exit | 终止协程，终止码必须非0 | try | try语句 |
+| catch | catch语句 | finally | finally语句 |
 
 # 数据类型
 
 * `bool`:布尔类型
+* `byte`:字节类型
 * `int`:整数类型（64位）
 * `real`:实数类型（双精度浮点数/48位整数16位小数的定点数）
 * `real2`:实数的二维向量
@@ -476,10 +477,23 @@ real GetRandomReal()
 
 //设置随机种子
 SetRandomSeed(int)
+
+//字节码转基础类型
+int BytesToInt(byte,byte,byte,byte,byte,byte,byte,byte)
+real BytesToReal(byte,byte,byte,byte,byte,byte,byte,byte)
+string BytesToString(byte[])
+
+//基础类型转字节码
+byte,byte,byte,byte,byte,byte,byte,byte ToBytes(int)
+byte,byte,byte,byte,byte,byte,byte,byte ToBytes(real)
+byte[] ToBytes(string)
 ```
 ## 定义和成员
 ```rs
 class bool
+    string ToString()
+
+class byte
     string ToString()
 
 class int

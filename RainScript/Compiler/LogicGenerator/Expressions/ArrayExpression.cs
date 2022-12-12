@@ -61,7 +61,7 @@
         {
             var type = new CompilingType(returns[0].definition, returns[0].dimension - 1);
             if (type.IsHandle) return CommandMacro.ASSIGNMENT_Local2Array_Handle;
-            else if (type == RelyKernel.BOOL_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_1;
+            else if (type == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_1;
             else if (type == RelyKernel.INTEGER_TYPE || type == RelyKernel.REAL_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_8;
             else if (type == RelyKernel.REAL2_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_16;
             else if (type == RelyKernel.REAL3_TYPE) return CommandMacro.ASSIGNMENT_Local2Array_24;
@@ -90,7 +90,7 @@
             var indexParameter = new GeneratorParameter(parameter, 1);
             index.Generator(indexParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
-            if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_1);
+            if (returns[0] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_8);
             else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
             else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
@@ -109,7 +109,7 @@
             array.Generator(arrayParameter);
             var indexParameter = new GeneratorParameter(parameter, 1);
             index.Generator(indexParameter);
-            if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Array_1);
+            if (returns[0] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Array_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Array_8);
             else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Array_16);
             else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Array_16);
@@ -146,7 +146,7 @@
             var indexParameter = new GeneratorParameter(parameter, 1);
             index.Generator(indexParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
-            if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_1);
+            if (returns[0] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_8);
             else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
             else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);

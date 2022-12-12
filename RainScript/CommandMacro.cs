@@ -63,7 +63,6 @@
         FUNCTION_CustomCall,
         FUNCTION_NativeCall,
         FUNCTION_KernelCall,
-        FUNCTION_KernelMemberCall,
         #endregion function
 
         #region assignment
@@ -267,6 +266,8 @@
         CASTING_AS,
         CASTING_R2I,
         CASTING_I2R,
+        CASTING_B2I,
+        CASTING_I2B,
         #endregion casting
 
         BREAKPOINT,

@@ -17,7 +17,8 @@ namespace RainScript
             switch (code)
             {
                 case TypeCode.Invalid: break;
-                case TypeCode.Bool: return 1;
+                case TypeCode.Bool:
+                case TypeCode.Byte: return 1;
                 case TypeCode.Integer:
                 case TypeCode.Real: return 8;
                 case TypeCode.Real2: return 16;
@@ -37,7 +38,8 @@ namespace RainScript
             switch (code)
             {
                 case TypeCode.Invalid: break;
-                case TypeCode.Bool: return 1;
+                case TypeCode.Bool:
+                case TypeCode.Byte: return 1;
                 case TypeCode.Integer:
                 case TypeCode.Real: return 8;
                 case TypeCode.Real2: return 16;
@@ -57,20 +59,21 @@ namespace RainScript
     {
         public static readonly Type INVALID = new Type(LIBRARY.KERNEL, TypeCode.Invalid, 0, 0);
         public static readonly Type BOOL = new Type(LIBRARY.KERNEL, TypeCode.Bool, 1, 0);
-        public static readonly Type INTEGER = new Type(LIBRARY.KERNEL, TypeCode.Integer, 2, 0);
-        public static readonly Type REAL = new Type(LIBRARY.KERNEL, TypeCode.Real, 3, 0);
-        public static readonly Type REAL2 = new Type(LIBRARY.KERNEL, TypeCode.Real2, 4, 0);
-        public static readonly Type REAL3 = new Type(LIBRARY.KERNEL, TypeCode.Real3, 5, 0);
-        public static readonly Type REAL4 = new Type(LIBRARY.KERNEL, TypeCode.Real4, 6, 0);
-        public static readonly Type STRING = new Type(LIBRARY.KERNEL, TypeCode.String, 7, 0);
-        public static readonly Type HANDLE = new Type(LIBRARY.KERNEL, TypeCode.Handle, 8, 0);
-        public static readonly Type INTERFACE = new Type(LIBRARY.KERNEL, TypeCode.Interface, 9, 0);
-        public static readonly Type FUNCTION = new Type(LIBRARY.KERNEL, TypeCode.Function, 10, 0);
-        public static readonly Type COROUTINE = new Type(LIBRARY.KERNEL, TypeCode.Coroutine, 11, 0);
-        public static readonly Type ENTITY = new Type(LIBRARY.KERNEL, TypeCode.Entity, 12, 0);
-        public static readonly Type ARRAY = new Type(LIBRARY.KERNEL, TypeCode.Handle, 13, 0);
-        private static readonly Type[] types = { INVALID, BOOL, INTEGER, REAL, REAL2, REAL3, REAL4, STRING, HANDLE, INTERFACE, FUNCTION, COROUTINE, ENTITY, ARRAY };
-        private static readonly string[] names = { "invalid", KeyWorld.BOOL, KeyWorld.INTEGER, KeyWorld.REAL, KeyWorld.REAL2, KeyWorld.REAL3, KeyWorld.REAL4, KeyWorld.STRING, KeyWorld.HANDLE, KeyWorld.INTERFACE, KeyWorld.FUNCTION, KeyWorld.COROUTINE, KeyWorld.ENTITY, KeyWorld.ARRAY };
+        public static readonly Type BYTE = new Type(LIBRARY.KERNEL, TypeCode.Byte, 2, 0);
+        public static readonly Type INTEGER = new Type(LIBRARY.KERNEL, TypeCode.Integer, 3, 0);
+        public static readonly Type REAL = new Type(LIBRARY.KERNEL, TypeCode.Real, 4, 0);
+        public static readonly Type REAL2 = new Type(LIBRARY.KERNEL, TypeCode.Real2, 5, 0);
+        public static readonly Type REAL3 = new Type(LIBRARY.KERNEL, TypeCode.Real3, 6, 0);
+        public static readonly Type REAL4 = new Type(LIBRARY.KERNEL, TypeCode.Real4, 7, 0);
+        public static readonly Type STRING = new Type(LIBRARY.KERNEL, TypeCode.String, 8, 0);
+        public static readonly Type HANDLE = new Type(LIBRARY.KERNEL, TypeCode.Handle, 9, 0);
+        public static readonly Type INTERFACE = new Type(LIBRARY.KERNEL, TypeCode.Interface, 10, 0);
+        public static readonly Type FUNCTION = new Type(LIBRARY.KERNEL, TypeCode.Function, 11, 0);
+        public static readonly Type COROUTINE = new Type(LIBRARY.KERNEL, TypeCode.Coroutine, 12, 0);
+        public static readonly Type ENTITY = new Type(LIBRARY.KERNEL, TypeCode.Entity, 13, 0);
+        public static readonly Type ARRAY = new Type(LIBRARY.KERNEL, TypeCode.Handle, 14, 0);
+        private static readonly Type[] types = { INVALID, BOOL, BYTE, INTEGER, REAL, REAL2, REAL3, REAL4, STRING, HANDLE, INTERFACE, FUNCTION, COROUTINE, ENTITY, ARRAY };
+        private static readonly string[] names = { "invalid", KeyWorld.BOOL, KeyWorld.BYTE, KeyWorld.INTEGER, KeyWorld.REAL, KeyWorld.REAL2, KeyWorld.REAL3, KeyWorld.REAL4, KeyWorld.STRING, KeyWorld.HANDLE, KeyWorld.INTERFACE, KeyWorld.FUNCTION, KeyWorld.COROUTINE, KeyWorld.ENTITY, KeyWorld.ARRAY };
         public static Type GetType(int index) { return types[index]; }
         public static string GetName(int index) { return names[index]; }
     }

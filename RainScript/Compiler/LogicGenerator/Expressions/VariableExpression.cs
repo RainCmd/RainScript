@@ -42,7 +42,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             var variable = GetVariable(parameter);
             if (variable.type.IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_Handle);
-            else if (variable.type == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_1);
+            else if (variable.type == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_1);
             else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_8);
             else if (variable.type == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
             else if (variable.type == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_24);
@@ -81,7 +81,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             var declaration = parameter.relied.Convert(this.declaration);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Global2Local_Handle);
-            else if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Global2Local_1);
+            else if (returns[0] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Global2Local_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Global2Local_8);
             else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Global2Local_16);
             else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Global2Local_24);
@@ -98,7 +98,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             AddDebugInfo(parameter);
             var declaration = parameter.relied.Convert(this.declaration);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_Handle);
-            else if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_1);
+            else if (returns[0] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_8);
             else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_16);
             else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Global_24);
@@ -125,6 +125,16 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             if (TryGetAddress(out var address, parameter))
             {
                 value = parameter.generator.GetData<bool>(address);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        public override bool TryEvaluation(out byte value, EvaluationParameter parameter)
+        {
+            if (TryGetAddress(out var address, parameter))
+            {
+                value = parameter.generator.GetData<byte>(address);
                 return true;
             }
             value = default;
@@ -210,7 +220,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             var declaration = parameter.relied.Convert(this.declaration);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_Handle);
-            else if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_1);
+            else if (returns[0] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_8);
             else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_16);
             else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_24);
@@ -229,7 +239,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             target.Generator(targetParameter);
             var declaration = parameter.relied.Convert(this.declaration);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_Handle);
-            else if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_1);
+            else if (returns[0] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_8);
             else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_16);
             else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_24);
@@ -266,7 +276,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
             var declaration = parameter.relied.Convert(this.declaration);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
             if (returns[0].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_Handle);
-            else if (returns[0] == RelyKernel.BOOL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_1);
+            else if (returns[0] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_1);
             else if (returns[0] == RelyKernel.INTEGER_TYPE || returns[0] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_8);
             else if (returns[0] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_16);
             else if (returns[0] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_24);

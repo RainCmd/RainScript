@@ -15,6 +15,7 @@ namespace RainScript
     {
         Invalid,
         Bool,
+        Byte,
         Integer,
         Real,
         Real2,
