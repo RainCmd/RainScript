@@ -141,7 +141,6 @@
     <Compile Include="Fixed\Math.cs" />
     <Compile Include="VirtualMachine\Random.cs" />
     <Compile Include="Frame.cs" />
-    <Compile Include="FrameInfo.cs" />
     <Compile Include="Interop.cs" />
     <Compile Include="KernelConstants.cs" />
     <Compile Include="KernelFunctions.cs" />

@@ -44,7 +44,7 @@ namespace RainScript.VirtualMachine
         public readonly uint size;
         public readonly Variable[] variables;
         public readonly Method[] methods;
-        public readonly RuntimeRelocationInfo[] relocations;
+        public readonly Dictionary<uint, DefinitionFunction> relocations;
         public readonly FunctionHandle destructor;
         public RuntimeDefinitionInfo(RuntimeLibraryInfo library, Library sourceLibrary, TypeDefinition definition, DefinitionInfo info)
         {
@@ -66,7 +66,7 @@ namespace RainScript.VirtualMachine
             Tools.MemoryAlignment(ref size);
             methods = new Method[info.methods.Length];
             for (int i = 0; i < methods.Length; i++) methods[i] = new Method(info.methods[i], sourceLibrary.methods[info.methods[i]].functions.Length);
-            relocations = new RuntimeRelocationInfo[info.relocations.Length];
+            relocations = new Dictionary<uint, DefinitionFunction>(info.relocations.Length);
             destructor = info.destructor == LIBRARY.ENTRY_INVALID ? null : FunctionHandle.CreateMemberFunctionHandle(library, info.destructor, definition, FunctionInfo.EMPTY);
         }
         public void CalculateBaseOffset(LibraryAgency agency)
@@ -81,12 +81,11 @@ namespace RainScript.VirtualMachine
         public void RelocationMethods(RuntimeLibraryInfo library, DefinitionInfo definition)
         {
             var agency = library.kernel.libraryAgency;
-            for (int i = 0; i < relocations.Length; i++)
+            foreach (var relocation in definition.relocations)
             {
-                var relocation = definition.relocations[i];
                 var characteristic = agency.GetFunctionCharacteristic(library.LocalToGlobal(relocation.overrideFunction));
                 var realizeFunction = library.LocalToGlobal(relocation.realizeFunction);
-                relocations[i] = new RuntimeRelocationInfo(characteristic, realizeFunction);
+                relocations.Add(characteristic, realizeFunction);
                 if (realizeFunction.definition == this.definition) methods[realizeFunction.funtion.method].characteristic[realizeFunction.funtion.index] = characteristic;
             }
             foreach (var method in methods)

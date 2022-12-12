@@ -253,12 +253,7 @@ namespace RainScript.VirtualMachine
                 {
                     var characteristic = GetFunctionCharacteristic(function);
                     var definition = this[type.definition.library].definitions[type.definition.index];
-                    foreach (var relocation in definition.relocations)
-                        if (relocation.characteristics == characteristic)
-                        {
-                            targetFunction = relocation.function;
-                            return true;
-                        }
+                    if (definition.relocations.TryGetValue(characteristic, out targetFunction)) return true;
                     if (definition.parent != TypeDefinition.INVALID) return GetFunction(function, new Type(definition.parent, 0), out targetFunction);
                 }
                 else
