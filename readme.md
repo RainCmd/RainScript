@@ -183,11 +183,17 @@ int, string Func()
     wait 10
     return 123, "abc"
 Entry()
-    Coro c = start Func()
-    while c.GetState() != 2         //协程状态码 0:未开始执行；1:执行中;2:执行完成;3:被主动取消;4:已失效
-        wait
+    wait start Func()               //当携程状态码不为 0 或 1 时才会继续往下执行
     var a, var b = c[]              //a的值是 123；b的值是 "abc"
+
 ```
+
+## wait 关键字
+wait后可以跟下列类型的表达式
+- bool:会每帧表达式直到表达式的结果为false
+- int:只会执行一次表达式，并等待表达式返回值的帧数
+- coroutine:会等待直到携程的状态码不为 0 或 1
+- 没有表达式则等待一帧
 
 ## 常量的声明
 整数和实数常量中间可以用'_'分隔，单引号加字符也可以表示整数，反斜杠可以转义在单引号中同样适用
@@ -529,8 +535,8 @@ class handle
     
 class corouine
     Abort(int)
-    int GetState()
-    int GetExitCode()
+    int GetState()          //协程状态码 0:未开始执行；1:执行中; 2:执行完成; 3:被主动取消; 4:已失效
+    int GetExitCode()       //当携程执行出现异常时可以通过该函数获取异常代码
     bool IsPause()
     Pause()
     Resume()

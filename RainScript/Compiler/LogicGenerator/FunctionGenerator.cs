@@ -515,7 +515,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         if (condition.returns.Length == 1)
                                         {
                                             if (condition.returns[0] == RelyKernel.BYTE_TYPE) condition = new ByteToIntegerExpression(condition.anchor, condition);
-                                            if (condition.returns[0] == RelyKernel.INTEGER_TYPE)//todo 这里可以适配bool和coroutine
+                                            if (condition.returns[0] == RelyKernel.BOOL_TYPE || condition.returns[0] == RelyKernel.INTEGER_TYPE || condition.returns[0].definition.code == TypeCode.Coroutine || condition is BlurryCoroutineExpression)
                                                 statementStack.Peek().statements.Add(new WaitStatement(anchor, condition));
                                             else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                         }

@@ -139,6 +139,23 @@
     }
     internal class WaitStatement : Statement
     {
+        internal class VariableTempExpression : VariableExpression
+        {
+            private readonly Variable variable;
+            public override TokenAttribute Attribute => default;
+            public VariableTempExpression(Anchor anchor, Variable variable) : base(anchor, variable.type)
+            {
+                this.variable = variable;
+            }
+            public override void Generator(Expressions.GeneratorParameter parameter)
+            {
+                parameter.results[0] = variable;
+            }
+            public override void GeneratorAssignment(Expressions.GeneratorParameter parameter)
+            {
+                throw new System.NotImplementedException();
+            }
+        }
         private readonly Expression expression;
         public WaitStatement(Anchor anchor, Expression expression) : base(anchor)
         {
@@ -151,10 +168,69 @@
             if (expression == null) parameter.generator.WriteCode(CommandMacro.BASE_Wait);
             else using (new LogicBlockGenerator(parameter, exitPoint))
                 {
-                    var waitParameter = new Expressions.GeneratorParameter(parameter, 1);
-                    expression.Generator(waitParameter);
-                    parameter.generator.WriteCode(CommandMacro.BASE_WaitFrame);
-                    parameter.generator.WriteCode(waitParameter.results[0]);
+                    if (expression.returns[0] == RelyKernel.BOOL_TYPE)
+                    {
+                        var loopAddress = new Referencable<CodeAddress>(parameter.pool);
+                        var continueAddress = new Referencable<CodeAddress>(parameter.pool);
+                        var waitParameter = new Expressions.GeneratorParameter(parameter, 1);
+                        parameter.generator.SetCodeAddress(loopAddress);
+                        new UnaryOperationExpression(expression.anchor, CommandMacro.BOOL_Not, expression).Generator(waitParameter);
+                        parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+                        parameter.generator.WriteCode(waitParameter.results[0]);
+                        parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+                        parameter.generator.WriteCode(continueAddress);
+                        parameter.generator.WriteCode(CommandMacro.BASE_Wait);
+                        parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+                        parameter.generator.WriteCode(loopAddress);
+                        parameter.generator.SetCodeAddress(continueAddress);
+                        loopAddress.Dispose();
+                        continueAddress.Dispose();
+                    }
+                    else if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
+                    {
+                        var waitParameter = new Expressions.GeneratorParameter(parameter, 1);
+                        expression.Generator(waitParameter);
+                        parameter.generator.WriteCode(CommandMacro.BASE_WaitFrame);
+                        parameter.generator.WriteCode(waitParameter.results[0]);
+                    }
+                    else
+                    {
+                        var completeState = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.INTEGER_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_8);
+                        parameter.generator.WriteCode(completeState);
+#pragma warning disable CS1587 // XML 注释没有放在有效语言元素上
+                        parameter.generator.WriteCode(2L);///<see cref="RainScript.VirtualMachine.InvokerState.Completed"/>
+#pragma warning restore CS1587 // XML 注释没有放在有效语言元素上
+
+                        var loopAddress = new Referencable<CodeAddress>(parameter.pool);
+                        var continueAddress = new Referencable<CodeAddress>(parameter.pool);
+
+                        var coroutineParameter = new Expressions.GeneratorParameter(parameter, 1);
+                        expression.Generator(coroutineParameter);
+                        parameter.generator.WriteCode(CommandMacro.HANDLE_CheckNull);
+                        parameter.generator.WriteCode(coroutineParameter.results[0]);
+
+                        parameter.generator.SetCodeAddress(loopAddress);
+                        var getState = RelyKernel.methods[RelyKernel.definitions[RelyKernel.COROUTINE.index].methods[4]].functions[0];
+                        var invokerExpression = new InvokerMemberExpression(expression.anchor, getState.declaration, new VariableTempExpression(expression.anchor, coroutineParameter.results[0]), TupleExpression.Combine(), getState.returns);
+                        var invokerParameter = new Expressions.GeneratorParameter(parameter, getState.returns.Length);
+                        invokerExpression.Generator(invokerParameter);
+                        var waitCondition = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.BOOL_TYPE);
+                        parameter.generator.WriteCode(CommandMacro.INTEGER_GraterThanOrEquals);
+                        parameter.generator.WriteCode(waitCondition);
+                        parameter.generator.WriteCode(invokerParameter.results[0]);
+                        parameter.generator.WriteCode(completeState);
+                        parameter.generator.WriteCode(CommandMacro.BASE_Flag_1);
+                        parameter.generator.WriteCode(waitCondition);
+                        parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
+                        parameter.generator.WriteCode(continueAddress);
+                        parameter.generator.WriteCode(CommandMacro.BASE_Wait);
+                        parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+                        parameter.generator.WriteCode(loopAddress);
+                        parameter.generator.SetCodeAddress(continueAddress);
+                        loopAddress.Dispose();
+                        continueAddress.Dispose();
+                    }
                 }
         }
     }
