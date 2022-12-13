@@ -552,8 +552,8 @@ namespace RainScript.VirtualMachine
                 new KernelMethodInvoker(real_Asin),
                 new KernelMethodInvoker(real_Atan),
                 new KernelMethodInvoker(real_Atan2),
-                new KernelMethodInvoker(bytes_Convert8),//BytesToInt
-                new KernelMethodInvoker(bytes_Convert8),//BytesToReal
+                new KernelMethodInvoker(bytes_8Convert),//BytesToInt
+                new KernelMethodInvoker(bytes_8Convert),//BytesToReal
                 new KernelMethodInvoker(bytes_ConvertString),//BytesToString
                 new KernelMethodInvoker(real_Ceil),
                 new KernelMethodInvoker(integer_Clamp, real_Clamp),
@@ -584,10 +584,18 @@ namespace RainScript.VirtualMachine
         }
         #region 函数实现
 #pragma warning disable IDE1006
+        private static ExitCode bytes_8Convert(Kernel kernel, byte* stack, uint top)
+        {
+            var returnPoint = *(uint*)(stack + top + Frame.SIZE);
+            var value = *(ulong*)(stack + top + Frame.SIZE + 4);
+            *(ulong*)(stack + returnPoint) = value;
+            return ExitCode.None;
+        }
         private static ExitCode bytes_Convert8(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
-            *(long*)(stack + returnPoint) = *(long*)(stack + top + Frame.SIZE + 4);
+            var value = *(ulong*)(stack + top + Frame.SIZE + 32);
+            *(ulong*)(stack + returnPoint) = value;
             return ExitCode.None;
         }
         private static ExitCode bytes_ConvertString(Kernel kernel, byte* stack, uint top)

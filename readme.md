@@ -22,7 +22,7 @@
 | native | 用于和宿主语言交互的函数 | public | 任意位置都可访问 |
 | internal | 当前程序集中任意位置可访问 | space | 仅当前命名空间内可访问 |
 | protected | 当前类和子类可访问 | private | 仅当前类可访问 |
-| ~~enum~~ | 枚举 | ~~struct~~ | 保留关键字 |
+| ~~enum~~ | 保留关键字 | ~~struct~~ | 保留关键字 |
 | class | 类 | interface | 接口 |
 | const | 常量 | kernel | 一些基本类型和函数所在的命名空间 |
 | global | 程序集命名空间之上的命名空间 | base | 用来访问父对象的成员 |
@@ -481,12 +481,12 @@ SetRandomSeed(int)
 //字节码转基础类型
 int BytesToInt(byte,byte,byte,byte,byte,byte,byte,byte)
 real BytesToReal(byte,byte,byte,byte,byte,byte,byte,byte)
-string BytesToString(byte[])
+string BytesToString(byte[])                                //UTF8编码
 
 //基础类型转字节码
 byte,byte,byte,byte,byte,byte,byte,byte ToBytes(int)
 byte,byte,byte,byte,byte,byte,byte,byte ToBytes(real)
-byte[] ToBytes(string)
+byte[] ToBytes(string)                                      //UTF8编码
 ```
 ## 定义和成员
 ```rs
