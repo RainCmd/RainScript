@@ -78,12 +78,12 @@ namespace RainScript
                 CreateKernelDefinitionInfo(TypeDefinition.INVALID, 7, 3),//TypeCode.Real3,
                 CreateKernelDefinitionInfo(TypeDefinition.INVALID, 10, 3),//TypeCode.Real4,
                 CreateKernelDefinitionInfo(TypeDefinition.INVALID, 13, 5),//TypeCode.String,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 18, 1),//TypeCode.Handle,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 19, 0),//TypeCode.Interface,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 19, 0),//TypeCode.Function,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 19, 6),//TypeCode.Coroutine,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 25, 1),//TypeCode.Entity,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 26, 1),//数组
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 18, 2),//TypeCode.Handle,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 20, 0),//TypeCode.Interface,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 20, 0),//TypeCode.Function,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 20, 6),//TypeCode.Coroutine,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 26, 1),//TypeCode.Entity,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 27, 1),//数组
              };
             var variables = new VariableInfo[KernelConstant.constants.Length];
             variables[0] = CreateKernelVariablleInfo(data, KernelConstant.constants[0].type, Math.PI);

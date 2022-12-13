@@ -273,13 +273,15 @@ Entry()
 
 
 ## 字符串运算的默认转换
-bool,real和int与字符串相加时会自动调用他们的ToString()，handle与字符串相加时会先调用GetHandleID再调用ToString()，entity则会调用GetEntityID()
+bool/int/real和handle与字符串相加时会自动调用他们的ToString()，handle的ToString函数可以重写，entity则会调用GetEntityID()
 ```rs
 class A
+    public string ToString()
+        return "A.ToStr"
 Entry()
     var a = A()
     var b = true
-    var c = "A.HID = " + a + ", b = " + b  //c的结果是：A.HID = 1, b = true
+    var c = "a = " + a + ", b = " + b  //c的结果是：a = A.ToStr, b = true
 ```
 
 
@@ -318,7 +320,7 @@ Entry()
 ```js
 var a = true
 var b = a ? 1 : 2
-a?Func1():Func2()
+a ? Func1() : Func2()
 ```
 问号点运算：
 ```js
@@ -347,11 +349,12 @@ Entry()
 ## 异常处理
 支持try、catch和finally语句来处理运行过程中的异常，
 当try语句块中发生异常或使用exit语句退出时，
-catch语句可以捕获抛出的异常并执行catch语句中的代码，
-catch语句后无表达式则会捕获任意异常，
-如果有可赋值表达式也会捕获任意异常并将异常代码赋值给表达式，
-如果有不可赋值表示，则只会捕获异常代码与表达式计算结果相等的异常。
-finally语句块中的代码无论try块中是否抛出异常都会执行。
+catch语句可以捕获抛出的异常并执行catch语句中的代码。
+finally语句块中的代码无论try块中是否抛出异常都会执行。</br>
+catch语句后可以跟随的表达式类型有：
+- 可赋值表达式：捕获任意异常并将异常代码赋值给表达式。
+- 不可赋值表示：捕获异常代码与表达式计算结果相等的异常。
+- 无表达式：会捕获任意异常。
 
 ```js
 Entry()
@@ -359,7 +362,7 @@ Entry()
         var a = 0
         var b = 0
         var c = a / b
-    catch 0x7000000000000003
+    catch 0x7000_0000_0000_0003
         Print("捕获除0报错")
     finally
         Print("必然会执行的代码")
@@ -532,6 +535,7 @@ class string
 
 class handle
     int GetHandleID()
+    string ToString()
     
 class corouine
     Abort(int)

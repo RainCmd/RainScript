@@ -37,6 +37,13 @@
         public static readonly RelyDefinition[] definitions;
         public static readonly RelyVariable[] variables;
         public static readonly RelyMethod[] methods;
+        public static RelyMethod GetMethod(CompilingDefinition definition, string name)
+        {
+            foreach (var methodIndex in definitions[definition.index].methods)
+                if (methods[methodIndex].name == name)
+                    return methods[methodIndex];
+            return null;
+        }
         private static RelyDefinition CreateDefinition(string name, CompilingDefinition parent, DeclarationCode code, TypeCode type, uint memberMethodStart, uint memberMethodCount)
         {
             var methods = new uint[memberMethodCount];
@@ -64,12 +71,12 @@
                 CreateDefinition(KeyWorld.REAL3, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Real3, 7, 3),
                 CreateDefinition(KeyWorld.REAL4, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Real4, 10, 3),
                 CreateDefinition(KeyWorld.STRING, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.String, 13, 5),
-                CreateDefinition(KeyWorld.HANDLE, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Handle, 18, 1),
-                CreateDefinition(KeyWorld.INTERFACE, handleDefinition, DeclarationCode.Definition, TypeCode.Interface, 19, 0),
-                CreateDefinition(KeyWorld.FUNCTION, handleDefinition, DeclarationCode.Definition, TypeCode.Function, 19, 0),
-                CreateDefinition(KeyWorld.COROUTINE, handleDefinition, DeclarationCode.Definition, TypeCode.Coroutine, 19, 6),
-                CreateDefinition(KeyWorld.ENTITY, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Entity, 25, 1),
-                CreateDefinition(KeyWorld.ARRAY, handleDefinition, DeclarationCode.Definition, (TypeCode)14, 26, 1),
+                CreateDefinition(KeyWorld.HANDLE, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Handle, 18, 2),
+                CreateDefinition(KeyWorld.INTERFACE, handleDefinition, DeclarationCode.Definition, TypeCode.Interface, 20, 0),
+                CreateDefinition(KeyWorld.FUNCTION, handleDefinition, DeclarationCode.Definition, TypeCode.Function, 20, 0),
+                CreateDefinition(KeyWorld.COROUTINE, handleDefinition, DeclarationCode.Definition, TypeCode.Coroutine, 20, 6),
+                CreateDefinition(KeyWorld.ENTITY, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Entity, 26, 1),
+                CreateDefinition(KeyWorld.ARRAY, handleDefinition, DeclarationCode.Definition, (TypeCode)14, 27, 1),
             };
             foreach (var item in definitions) kernel.declarations.Add(item.name, item.declaration);
 

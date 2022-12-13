@@ -1866,35 +1866,35 @@ namespace RainScript.Compiler.LogicGenerator
         private void ConvertToString(ref Expression expression)
         {
             if (expression.returns.Length != 1) return;
-            if (expression.returns[0].IsHandle)
+            if (expression.returns[0] == RelyKernel.ENTITY_TYPE)
             {
-                var getHandleID = RelyKernel.methods[RelyKernel.definitions[RelyKernel.HANDLE.index].methods[0]].functions[0];
-                expression = new InvokerMemberExpression(expression.anchor, getHandleID.declaration, expression, TupleExpression.Combine(), getHandleID.returns);
-            }
-            else if (expression.returns[0] == RelyKernel.ENTITY_TYPE)
-            {
-                var getEntityID = RelyKernel.methods[RelyKernel.definitions[RelyKernel.ENTITY.index].methods[0]].functions[0];
+                var getEntityID = RelyKernel.GetMethod(RelyKernel.ENTITY, "GetEntityID").functions[0];
                 expression = new InvokerMemberExpression(expression.anchor, getEntityID.declaration, expression, TupleExpression.Combine(), getEntityID.returns);
             }
             if (expression.returns[0] == RelyKernel.BOOL_TYPE)
             {
-                var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.BOOL.index].methods[0]].functions[0];
+                var toString = RelyKernel.GetMethod(RelyKernel.BOOL, "ToString").functions[0];
                 expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
             }
             else if (expression.returns[0] == RelyKernel.BYTE_TYPE)
             {
-                var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.BYTE.index].methods[0]].functions[0];
+                var toString = RelyKernel.GetMethod(RelyKernel.BYTE, "ToString").functions[0];
                 expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
             }
             else if (expression.returns[0] == RelyKernel.INTEGER_TYPE)
             {
-                var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.INTEGER.index].methods[0]].functions[0];
+                var toString = RelyKernel.GetMethod(RelyKernel.INTEGER, "ToString").functions[0];
                 expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
             }
             else if (expression.returns[0] == RelyKernel.REAL_TYPE)
             {
-                var toString = RelyKernel.methods[RelyKernel.definitions[RelyKernel.REAL.index].methods[0]].functions[0];
+                var toString = RelyKernel.GetMethod(RelyKernel.REAL, "ToString").functions[0];
                 expression = new InvokerMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
+            }
+            else if (expression.returns[0].IsHandle)
+            {
+                var toString = RelyKernel.GetMethod(RelyKernel.HANDLE, "ToString").functions[0];
+                expression = new InvokerVirtualMemberExpression(expression.anchor, toString.declaration, expression, TupleExpression.Combine(), toString.returns);
             }
         }
         private TokenAttribute PushOperationExpression(ScopeStack<Expression> expressionStack, Anchor anchor, CommandMacro command, Expression left, Expression right, CompilingType type)

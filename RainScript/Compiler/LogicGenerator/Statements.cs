@@ -211,7 +211,7 @@
                         parameter.generator.WriteCode(coroutineParameter.results[0]);
 
                         parameter.generator.SetCodeAddress(loopAddress);
-                        var getState = RelyKernel.methods[RelyKernel.definitions[RelyKernel.COROUTINE.index].methods[4]].functions[0];
+                        var getState = RelyKernel.GetMethod(RelyKernel.COROUTINE, "GetState").functions[0];
                         var invokerExpression = new InvokerMemberExpression(expression.anchor, getState.declaration, new VariableTempExpression(expression.anchor, coroutineParameter.results[0]), TupleExpression.Combine(), getState.returns);
                         var invokerParameter = new Expressions.GeneratorParameter(parameter, getState.returns.Length);
                         invokerExpression.Generator(invokerParameter);

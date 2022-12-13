@@ -257,6 +257,7 @@ namespace RainScript.VirtualMachine
                 new KernelMemberMethodInvoker(string_ToReal),
 
                 new KernelMemberMethodInvoker(handle_GetHandleID),
+                new KernelMemberMethodInvoker(handle_ToString),
 
                 new KernelMemberMethodInvoker(coroutine_Abort),
                 new KernelMemberMethodInvoker(coroutine_GetState),
@@ -415,6 +416,15 @@ namespace RainScript.VirtualMachine
             var handle = *(uint*)(stack + top + Frame.SIZE + 4);
             *result = handle;
             kernel.heapAgency.Release(handle);
+            return ExitCode.None;
+        }
+        private static ExitCode handle_ToString(Kernel kernel, byte* stack, uint top)
+        {
+            var result = (uint*)(stack + *(uint*)(stack + top + Frame.SIZE));
+            var value = kernel.stringAgency.Add(((uint*)(stack + top + Frame.SIZE + 4))->ToString());
+            kernel.stringAgency.Reference(value);
+            kernel.stringAgency.Release(*result);
+            *result = value;
             return ExitCode.None;
         }
         private static ExitCode coroutine_Abort(Kernel kernel, byte* stack, uint top)
