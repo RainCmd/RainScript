@@ -63,6 +63,7 @@
         FUNCTION_CustomCall,
         FUNCTION_NativeCall,
         FUNCTION_KernelCall,
+        FUNCTION_KernelMemberCall,
         #endregion function
 
         #region assignment

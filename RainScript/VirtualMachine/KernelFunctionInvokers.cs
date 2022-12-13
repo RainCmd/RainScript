@@ -212,7 +212,7 @@ namespace RainScript.VirtualMachine
             var parameterPoint = PushParameter(stream, type, returnPoint);
             foreach (var item in info.parameters) parameterPoint = PushParameter(stream, item, parameterPoint);
 
-            stream.WriteByte((byte)CommandMacro.FUNCTION_KernelCall);
+            stream.WriteByte((byte)CommandMacro.FUNCTION_KernelMemberCall);
             stream.Write(method);
             stream.Write(function);
 

@@ -154,6 +154,7 @@ namespace RainScript.VirtualMachine
             if (type == typeof(void)) return returns.Length == 0;
             if (returns.Length != 1) return false;
             if (type == typeof(bool)) return returns[0] == KERNEL_TYPE.BOOL;
+            else if (type == typeof(byte)) return returns[0] == KERNEL_TYPE.BYTE;
             else if (type == typeof(long)) return returns[0] == KERNEL_TYPE.INTEGER;
             else if (type == typeof(real)) return returns[0] == KERNEL_TYPE.REAL;
             else if (type == typeof(Real2)) return returns[0] == KERNEL_TYPE.REAL2;

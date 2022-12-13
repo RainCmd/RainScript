@@ -47,7 +47,7 @@
                 if (!parameter.variable.TryGetLocal(0, out var sourceLambdaTarget)) sourceLambdaTarget = parameter.variable.DecareLocal(0, new CompilingType(LIBRARY.SELF, Visibility.Public, TypeCode.Handle, source.definitionIndex, 0));
                 var variable = parameter.variable.DecareTemporary(parameter.pool, sourceTypes[index]);
                 if (sourceTypes[index].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_Handle);
-                else if (sourceTypes[index] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_1);
+                else if (sourceTypes[index] == RelyKernel.BOOL_TYPE || sourceTypes[index] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_1);
                 else if (sourceTypes[index] == RelyKernel.INTEGER_TYPE || sourceTypes[index] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_8);
                 else if (sourceTypes[index] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_16);
                 else if (sourceTypes[index] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Handle2Local_24);
@@ -77,7 +77,7 @@
                 var source = GetSourceVariable(parameter, index);
 
                 if (sourceTypes[index].IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_Handle);
-                else if (sourceTypes[index] == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_1);
+                else if (sourceTypes[index] == RelyKernel.BOOL_TYPE || sourceTypes[index] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_1);
                 else if (sourceTypes[index] == RelyKernel.INTEGER_TYPE || sourceTypes[index] == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_8);
                 else if (sourceTypes[index] == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_16);
                 else if (sourceTypes[index] == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Handle_24);

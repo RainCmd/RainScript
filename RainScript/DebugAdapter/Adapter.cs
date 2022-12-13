@@ -511,6 +511,7 @@ namespace RainScript.DebugAdapter
                 writer.Write(0);
                 writer.Write(GetDefinitionName(type.definition));
                 if (type == KERNEL_TYPE.BOOL) writer.Write(((bool*)address)->ToString());
+                else if (type == KERNEL_TYPE.BYTE) writer.Write(((byte*)address)->ToString());
                 else if (type == KERNEL_TYPE.INTEGER) writer.Write(((long*)address)->ToString());
                 else if (type == KERNEL_TYPE.REAL) writer.Write(((real*)address)->ToString());
                 else if (type == KERNEL_TYPE.REAL2) writer.Write(((Real2*)address)->ToString());

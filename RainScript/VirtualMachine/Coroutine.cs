@@ -787,6 +787,20 @@ namespace RainScript.VirtualMachine
                         }
                         point += 9;
                         break;
+                    case CommandMacro.FUNCTION_KernelMemberCall:
+                        try
+                        {
+                            var function = *(Function*)(library.code + point + 1);
+                            flag = (long)KernelMemberMethodInvoker.methods[function.method].invokers[function.index](kernel, stack, top);
+                            if (flag != 0) goto case CommandMacro.BASE_Exit;
+                        }
+                        catch (Exception)
+                        {
+                            flag = (long)ExitCode.Unknown;
+                            goto case CommandMacro.BASE_Exit;
+                        }
+                        point += 9;
+                        break;
                     #endregion Function
                     #region Assignment
                     #region C2L

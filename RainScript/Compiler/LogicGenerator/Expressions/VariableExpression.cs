@@ -42,7 +42,7 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             var variable = GetVariable(parameter);
             if (variable.type.IsHandle) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_Handle);
-            else if (variable.type == RelyKernel.BOOL_TYPE || returns[0] == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_1);
+            else if (variable.type == RelyKernel.BOOL_TYPE || variable.type == RelyKernel.BYTE_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_1);
             else if (variable.type == RelyKernel.INTEGER_TYPE || variable.type == RelyKernel.REAL_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_8);
             else if (variable.type == RelyKernel.REAL2_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
             else if (variable.type == RelyKernel.REAL3_TYPE) parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_24);
