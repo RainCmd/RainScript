@@ -116,6 +116,15 @@ namespace RainScript.Compiler
             if (index < 0) index += Count;
             list.RemoveAt(index);
         }
+        /// <summary>
+        /// 会改变元素顺序
+        /// </summary>
+        /// <param name="index"></param>
+        public void FastRemoveAt(int index)
+        {
+            this[index] = this[-1];
+            RemoveAt(-1);
+        }
         public int RemoveAll(Predicate<T> match)
         {
             return list.RemoveAll(match);

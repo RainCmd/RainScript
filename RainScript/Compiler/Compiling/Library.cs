@@ -110,10 +110,12 @@ namespace RainScript.Compiler.Compiling
         public CompilingType type;
         public readonly LogicExpression expression;
         public uint address;
+        public bool calculated;
         public Variable(Anchor name, Compiler.Declaration declaration, Space space, bool constant, LogicExpression expression) : base(name, declaration, space)
         {
             this.constant = constant;
             this.expression = expression;
+            calculated = false;
         }
     }
     internal class Delegate : Declaration, IFunction

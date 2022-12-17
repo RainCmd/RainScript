@@ -114,8 +114,12 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         {
             if (declaration.library == LIBRARY.SELF && Attribute.ContainAny(TokenAttribute.Constant))
             {
-                address = parameter.manager.library.variables[(int)declaration.index].address;
-                return true;
+                var variable = parameter.manager.library.variables[(int)declaration.index];
+                if (variable.calculated)
+                {
+                    address = variable.address;
+                    return true;
+                }
             }
             address = default;
             return false;
@@ -152,6 +156,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
         }
         public override bool TryEvaluation(out real value, EvaluationParameter parameter)
         {
+            if (declaration.library == LIBRARY.KERNEL)
+            {
+                value = KernelConstant.constants[declaration.index].value;
+                return true;
+            }
             if (TryGetAddress(out var address, parameter))
             {
                 value = parameter.generator.GetData<real>(address);

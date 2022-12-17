@@ -3,10 +3,8 @@ using System.IO;
 using RainScript.VirtualMachine;
 #if FIXED
 using real = RainScript.Real.Fixed;
-using Math = RainScript.Real.Math;
 #else
 using real = System.Double;
-using Math = System.Math;
 #endif
 
 namespace RainScript
@@ -47,7 +45,7 @@ namespace RainScript
                     stream.WriteByte(0);
             }
 #endif
-            var result = new VariableInfo((uint)stream.Position, KernelConstant.constants[0].type);
+            var result = new VariableInfo((uint)stream.Position, type);
             stream.Write(*(ulong*)&value);
             return result;
         }
@@ -86,15 +84,8 @@ namespace RainScript
                 CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 27, 1),//数组
              };
             var variables = new VariableInfo[KernelConstant.constants.Length];
-            variables[0] = CreateKernelVariablleInfo(data, KernelConstant.constants[0].type, Math.PI);
-            variables[1] = CreateKernelVariablleInfo(data, KernelConstant.constants[1].type, Math.E);
-#if FIXED
-            variables[2] = CreateKernelVariablleInfo(data, KernelConstant.constants[2].type, Math.Deg2Rad);
-            variables[3] = CreateKernelVariablleInfo(data, KernelConstant.constants[3].type, Math.Rad2Deg);
-#else
-            variables[2] = CreateKernelVariablleInfo(data, KernelConstant.constants[2].type, Math.PI / 180);
-            variables[3] = CreateKernelVariablleInfo(data, KernelConstant.constants[3].type, 180 / Math.PI);
-#endif
+            for (int i = 0; i < variables.Length; i++)
+                variables[i] = CreateKernelVariablleInfo(data, KernelConstant.constants[i].type, KernelConstant.constants[i].value);
 
             var methodInfos = new MethodInfo[KernelMethod.memberMethods.Length + KernelMethod.methods.Length];
             var methodIndex = 0;

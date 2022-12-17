@@ -10,6 +10,16 @@ namespace RainScript.Compiler.LogicGenerator
 {
     using Expressions;
 
+    internal readonly struct ConstentExpressionPair
+    {
+        public readonly Compiling.Variable variable;
+        public readonly Expression expression;
+        public ConstentExpressionPair(Compiling.Variable variable, Expression expression)
+        {
+            this.variable = variable;
+            this.expression = expression;
+        }
+    }
     internal class LambdaFunction : System.IDisposable
     {
         private readonly Definition definition;
@@ -94,75 +104,136 @@ namespace RainScript.Compiler.LogicGenerator
             parameters = returns = new CompilingType[0];
             parameterNames = new Anchor[0];
             statements = new BlockStatement(default, parameter.pool);
-            foreach (var variable in parameter.manager.library.variables)
-                if (variable.constant)//todo 检查常量的循环定义
-                    using (var lexicals = parameter.pool.GetList<Lexical>())
-                        if (Lexical.TryAnalysis(lexicals, variable.expression.exprssion.textInfo, variable.expression.exprssion.Segment, parameter.exceptions))
-                        {
-                            var context = new Context(variable.space, null, variable.expression.compilings, variable.expression.references);
-                            using (var localContext = new LocalContext(parameter.pool))
+            using (var pairs = parameter.pool.GetList<ConstentExpressionPair>())
+            {
+                foreach (var variable in parameter.manager.library.variables)
+                    if (variable.constant)
+                        using (var lexicals = parameter.pool.GetList<Lexical>())
+                            if (Lexical.TryAnalysis(lexicals, variable.expression.exprssion.textInfo, variable.expression.exprssion.Segment, parameter.exceptions))
                             {
-                                var parser = new ExpressionParser(parameter, context, localContext, false);
-                                if (parser.TryParseTuple(lexicals, out var expressions))
+                                var context = new Context(variable.space, null, variable.expression.compilings, variable.expression.references);
+                                using (var localContext = new LocalContext(parameter.pool))
                                 {
-                                    if (parser.TryAssignmentConvert(expressions, new CompilingType[] { variable.type }, out var result, out _))
-                                    {
-                                        if (variable.type == RelyKernel.BOOL_TYPE)
-                                        {
-                                            if (result.TryEvaluation(out bool value, new EvaluationParameter(parameter))) parameter.generator.WriteData(1, value, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type == RelyKernel.BYTE_TYPE)
-                                        {
-                                            if (result.TryEvaluation(out byte value, new EvaluationParameter(parameter))) parameter.generator.WriteData(1, value, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type == RelyKernel.INTEGER_TYPE)
-                                        {
-                                            if (result.TryEvaluation(out long value, new EvaluationParameter(parameter))) parameter.generator.WriteData(8, value, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type == RelyKernel.REAL_TYPE)
-                                        {
-                                            if (result.TryEvaluation(out real value, new EvaluationParameter(parameter))) parameter.generator.WriteData(8, value, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type == RelyKernel.REAL2_TYPE)
-                                        {
-                                            if (result.TryEvaluation(out Real2 value, new EvaluationParameter(parameter))) parameter.generator.WriteData(16, value, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type == RelyKernel.REAL3_TYPE)
-                                        {
-                                            if (result.TryEvaluation(out Real3 value, new EvaluationParameter(parameter))) parameter.generator.WriteData(24, value, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type == RelyKernel.REAL4_TYPE)
-                                        {
-                                            if (result.TryEvaluation(out Real4 value, new EvaluationParameter(parameter))) parameter.generator.WriteData(32, value, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type == RelyKernel.STRING_TYPE)
-                                        {
-                                            if (result.TryEvaluation(out string value, new EvaluationParameter(parameter))) parameter.generator.WriteData(value, variable.address, parameter.pool);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type.IsHandle)
-                                        {
-                                            if (result.TryEvaluationNull()) parameter.generator.WriteData(4, 0u, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else if (variable.type == RelyKernel.ENTITY_TYPE)
-                                        {
-                                            if (result.TryEvaluationNull()) parameter.generator.WriteData(8, Entity.NULL, variable.address);
-                                            else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
-                                        }
-                                        else parameter.exceptions.Add(variable.name, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
-                                    }
-                                    else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
+                                    var parser = new ExpressionParser(parameter, context, localContext, false);
+                                    if (parser.TryParseTuple(lexicals, out var expressions))
+                                        if (parser.TryAssignmentConvert(expressions, new CompilingType[] { variable.type }, out var result, out _))
+                                            pairs.Add(new ConstentExpressionPair(variable, result));
+                                        else parameter.exceptions.Add(variable.expression.exprssion, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
                                 }
                             }
+
+                while (pairs.Count > 0)
+                {
+                    var count = pairs.Count;
+                    for (int i = 0; i < pairs.Count; i++)
+                    {
+                        var variable = pairs[i].variable;
+                        var expression = pairs[i].expression;
+                        if (variable.type == RelyKernel.BOOL_TYPE)
+                        {
+                            if (expression.TryEvaluation(out bool value, new EvaluationParameter(parameter)))
+                            {
+                                parameter.generator.WriteData(1, value, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
                         }
+                        else if (variable.type == RelyKernel.BYTE_TYPE)
+                        {
+                            if (expression.TryEvaluation(out byte value, new EvaluationParameter(parameter)))
+                            {
+                                parameter.generator.WriteData(1, value, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else if (variable.type == RelyKernel.INTEGER_TYPE)
+                        {
+                            if (expression.TryEvaluation(out long value, new EvaluationParameter(parameter)))
+                            {
+                                parameter.generator.WriteData(8, value, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else if (variable.type == RelyKernel.REAL_TYPE)
+                        {
+                            if (expression.TryEvaluation(out real value, new EvaluationParameter(parameter)))
+                            {
+                                parameter.generator.WriteData(8, value, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else if (variable.type == RelyKernel.REAL2_TYPE)
+                        {
+                            if (expression.TryEvaluation(out Real2 value, new EvaluationParameter(parameter)))
+                            {
+                                parameter.generator.WriteData(16, value, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else if (variable.type == RelyKernel.REAL3_TYPE)
+                        {
+                            if (expression.TryEvaluation(out Real3 value, new EvaluationParameter(parameter)))
+                            {
+                                parameter.generator.WriteData(24, value, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else if (variable.type == RelyKernel.REAL4_TYPE)
+                        {
+                            if (expression.TryEvaluation(out Real4 value, new EvaluationParameter(parameter)))
+                            {
+                                parameter.generator.WriteData(32, value, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else if (variable.type == RelyKernel.STRING_TYPE)
+                        {
+                            if (expression.TryEvaluation(out string value, new EvaluationParameter(parameter)))
+                            {
+                                parameter.generator.WriteData(value, variable.address, parameter.pool);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else if (variable.type.IsHandle)
+                        {
+                            if (expression.TryEvaluationNull())
+                            {
+                                parameter.generator.WriteData(4, 0u, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else if (variable.type == RelyKernel.ENTITY_TYPE)
+                        {
+                            if (expression.TryEvaluationNull())
+                            {
+                                parameter.generator.WriteData(8, Entity.NULL, variable.address);
+                                variable.calculated = true;
+                                pairs.FastRemoveAt(i); i--;
+                            }
+                        }
+                        else
+                        {
+                            parameter.exceptions.Add(variable.name, CompilingExceptionCode.GENERATOR_INVALID_OPERATION);
+                            pairs.FastRemoveAt(i); i--;
+                        }
+                    }
+                    if (pairs.Count == count)
+                    {
+                        foreach (var pair in pairs)
+                            parameter.exceptions.Add(pair.variable.expression.exprssion, CompilingExceptionCode.GENERATOR_CONSTANT_EVALUATION_FAIL);
+                        break;
+                    }
+                }
+            }
+
             foreach (var variable in parameter.manager.library.variables)
                 if (!variable.constant && (bool)variable.expression.exprssion)
                     using (var lexicals = parameter.pool.GetList<Lexical>())
