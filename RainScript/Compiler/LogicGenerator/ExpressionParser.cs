@@ -1710,8 +1710,9 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.BYTE_TYPE)
                         {
-                            if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
+                            if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantIntegerExpression(right.anchor, value);
                             else right = new ByteToIntegerExpression(right.anchor, right);
+                            return true;
                         }
                         if (rightType == RelyKernel.REAL_TYPE || rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE)
                         {
@@ -1725,13 +1726,22 @@ namespace RainScript.Compiler.LogicGenerator
                     {
                         if (rightType == RelyKernel.BYTE_TYPE)
                         {
-                            if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
-                            else right = new ByteToIntegerExpression(right.anchor, right);
+                            if (right.TryEvaluation(out byte value, evaluationParameter))
+                            {
+                                right = new ConstantRealExpression(right.anchor, value);
+                                return true;
+                            }
+                            else
+                            {
+                                right = new ByteToIntegerExpression(right.anchor, right);
+                                rightType = RelyKernel.INTEGER_TYPE;
+                            }
                         }
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
                             if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
+                            return true;
                         }
                         if (rightType == RelyKernel.REAL2_TYPE || rightType == RelyKernel.REAL3_TYPE || rightType == RelyKernel.REAL4_TYPE || rightType == RelyKernel.STRING_TYPE) return true;
                     }
@@ -1741,11 +1751,13 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new ByteToIntegerExpression(right.anchor, right);
+                            rightType = right.returns[0];
                         }
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
                             if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
+                            return true;
                         }
                         if (rightType == RelyKernel.REAL_TYPE) return true;
                         else if (rightType == RelyKernel.REAL3_TYPE)
@@ -1765,11 +1777,13 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new ByteToIntegerExpression(right.anchor, right);
+                            rightType = right.returns[0];
                         }
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
                             if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
+                            return true;
                         }
                         if (rightType == RelyKernel.REAL_TYPE) return true;
                         else if (rightType == RelyKernel.REAL2_TYPE)
@@ -1789,11 +1803,13 @@ namespace RainScript.Compiler.LogicGenerator
                         {
                             if (right.TryEvaluation(out byte value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new ByteToIntegerExpression(right.anchor, right);
+                            rightType = right.returns[0];
                         }
                         if (rightType == RelyKernel.INTEGER_TYPE)
                         {
                             if (right.TryEvaluation(out long value, evaluationParameter)) right = new ConstantRealExpression(right.anchor, value);
                             else right = new IntegerToRealExpression(right.anchor, right);
+                            return true;
                         }
                         if (rightType == RelyKernel.REAL_TYPE) return true;
                         else if (rightType == RelyKernel.REAL2_TYPE)
