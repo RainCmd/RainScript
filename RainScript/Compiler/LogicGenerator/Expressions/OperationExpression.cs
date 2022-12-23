@@ -1,6 +1,6 @@
 ﻿
-#if FIXED
 using RainScript.Vector;
+#if FIXED
 using real = RainScript.Real.Fixed;
 #else
 using real = System.Double;

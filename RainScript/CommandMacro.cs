@@ -12,6 +12,7 @@
         BASE_WaitFrame,
         BASE_Stackzero,
         BASE_Jump,
+        BASE_JumpStackAddress,
         BASE_ConditionJump,
         BASE_NullJump,
 

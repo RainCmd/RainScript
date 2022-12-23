@@ -70,20 +70,6 @@
             this.loopBlock = loopBlock;
             this.elseBlock = elseBlock;
         }
-        protected void InitJumpTarget(BlockStatement block, Referencable<CodeAddress> breakPoint, Referencable<CodeAddress> loopPoint)
-        {
-            foreach (var statement in block.statements)
-            {
-                if (statement is BreakStatement breakStatement) breakStatement.SetTarget(breakPoint);
-                else if (statement is ContinueStatement continueStatement) continueStatement.SetTarget(loopPoint);
-                else if (statement is BranchStatement ifStatement)
-                {
-                    InitJumpTarget(ifStatement.trueBranch, breakPoint, loopPoint);
-                    InitJumpTarget(ifStatement.falseBranch, breakPoint, loopPoint);
-                }
-                else if (statement is LoopStatement loopStatement) InitJumpTarget(loopStatement.elseBlock, breakPoint, loopPoint);
-            }
-        }
         public override void Dispose()
         {
             loopBlock.Dispose();
@@ -211,11 +197,18 @@
         public readonly BlockStatement tryBlock;
         public Expression exitcode;
         public BlockStatement catchBlock, finallyBlock;
-        private readonly uint localIndex;
+        private readonly uint localExitCodeIndex, localFinallyTargetIndex;
+        private Referencable<CodeAddress> breakPoint, loopPoint;
         public TryStatement(Anchor anchor, BlockStatement tryBlock, LocalContext localContext) : base(anchor)
         {
             this.tryBlock = tryBlock;
-            localIndex = localContext.AddLocal("$exitcode", anchor, RelyKernel.INTEGER_TYPE).index;
+            localExitCodeIndex = localContext.AddLocal("$exitcode", anchor, RelyKernel.INTEGER_TYPE).index;
+            localFinallyTargetIndex = localContext.AddLocal("$finallytarget", anchor, RelyKernel.INTEGER_TYPE).index;
+        }
+        public void SetTarget(Referencable<CodeAddress> breakPoint, Referencable<CodeAddress> loopPoint)
+        {
+            this.breakPoint = breakPoint;
+            this.loopPoint = loopPoint;
         }
         private void ClearExitcode(Generator generator, Variable exitcodeVariable)
         {
@@ -223,19 +216,34 @@
             generator.WriteCode(exitcodeVariable);
             generator.WriteCode(0L);
         }
+        private void SetFinallyTarget(StatementGeneratorParameter parameter, Referencable<CodeAddress> address)
+        {
+            parameter.variable.TryGetLocal(localFinallyTargetIndex, out var variable);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Const2Local_4);
+            parameter.generator.WriteCode(variable);
+            parameter.generator.WriteCode(address);
+        }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
+            var breakPoint = new Referencable<CodeAddress>(parameter.pool);
+            var loopPoint = new Referencable<CodeAddress>(parameter.pool);
             var finallyPoint = new Referencable<CodeAddress>(parameter.pool);
-            var exitcodeVariable = parameter.variable.DecareLocal(localIndex, RelyKernel.INTEGER_TYPE);
+            var finallyEntryPoint = new Referencable<CodeAddress>(parameter.pool);
+            var finallyTargetPoint = new Referencable<CodeAddress>(parameter.pool);
+            var exitcodeVariable = parameter.variable.DecareLocal(localExitCodeIndex, RelyKernel.INTEGER_TYPE);
+            var finallyTargetVariable = parameter.variable.DecareLocal(localFinallyTargetIndex, RelyKernel.INTEGER_TYPE);
+            InitJumpTarget(tryBlock, breakPoint, loopPoint);
             tryBlock.Generator(parameter, finallyPoint);
+            SetFinallyTarget(parameter, finallyTargetPoint);
+            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+            parameter.generator.WriteCode(finallyEntryPoint);
             if (catchBlock != null)
             {
                 parameter.generator.SetCodeAddress(finallyPoint);
                 finallyPoint.Dispose();
-                finallyPoint = new Referencable<CodeAddress>(parameter.pool);
                 parameter.generator.WriteCode(CommandMacro.BASE_PushExitCode);
                 parameter.generator.WriteCode(exitcodeVariable);
-                using (new LogicBlockGenerator(parameter, finallyPoint))
+                using (new LogicBlockGenerator(parameter, finallyEntryPoint))
                 {
                     var conditionVariable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.BOOL_TYPE);
                     var zeroVariable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.INTEGER_TYPE);
@@ -250,11 +258,13 @@
                     parameter.generator.WriteCode(conditionVariable);
                 }
                 parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
-                parameter.generator.WriteCode(finallyPoint);
+                parameter.generator.WriteCode(finallyEntryPoint);
                 if (exitcode == null)
                 {
                     ClearExitcode(parameter.generator, exitcodeVariable);
-                    catchBlock.Generator(parameter, finallyPoint);
+                    catchBlock.Generator(parameter, finallyEntryPoint);
+                    parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+                    parameter.generator.WriteCode(finallyEntryPoint);
                 }
                 else if (exitcode.returns.Length == 1 && exitcode.returns[0] == RelyKernel.INTEGER_TYPE)
                 {
@@ -266,13 +276,15 @@
                             exitcodeParameter.results[0] = exitcodeVariable;
                             variableExpression.GeneratorAssignment(exitcodeParameter);
                             ClearExitcode(parameter.generator, exitcodeVariable);
-                            catchBlock.Generator(parameter, finallyPoint);
+                            catchBlock.Generator(parameter, finallyEntryPoint);
+                            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+                            parameter.generator.WriteCode(finallyEntryPoint);
                         }
                         else parameter.exceptions.Add(exitcode.anchor, CompilingExceptionCode.GENERATOR_UNKNONW);
                     }
                     else if (exitcode.Attribute.ContainAll(TokenAttribute.Value))
                     {
-                        using (new LogicBlockGenerator(parameter, finallyPoint))
+                        using (new LogicBlockGenerator(parameter, finallyEntryPoint))
                         {
                             var conditionVariable = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.BOOL_TYPE);
                             var exitcodeParameter = new Expressions.GeneratorParameter(parameter, 1);
@@ -288,7 +300,9 @@
                         parameter.generator.WriteCode(CommandMacro.BASE_ConditionJump);
                         parameter.generator.WriteCode(failPoint);
                         ClearExitcode(parameter.generator, exitcodeVariable);
-                        catchBlock.Generator(parameter, finallyPoint);
+                        catchBlock.Generator(parameter, finallyEntryPoint);
+                        parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+                        parameter.generator.WriteCode(finallyEntryPoint);
                         parameter.generator.SetCodeAddress(failPoint);
                         failPoint.Dispose();
                     }
@@ -300,6 +314,21 @@
             }
             parameter.generator.SetCodeAddress(finallyPoint);
             finallyPoint.Dispose();
+            SetFinallyTarget(parameter, exitPoint);
+            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+            parameter.generator.WriteCode(finallyEntryPoint);
+
+            parameter.generator.SetCodeAddress(breakPoint);
+            breakPoint.Dispose();
+            if (this.breakPoint != null) SetFinallyTarget(parameter, this.breakPoint);
+            parameter.generator.WriteCode(CommandMacro.BASE_Jump);
+            parameter.generator.WriteCode(finallyEntryPoint);
+
+            parameter.generator.SetCodeAddress(loopPoint);
+            loopPoint.Dispose();
+            if (this.loopPoint != null) SetFinallyTarget(parameter, this.loopPoint);
+            parameter.generator.SetCodeAddress(finallyEntryPoint);
+            finallyEntryPoint.Dispose();
             if (finallyBlock != null)
             {
                 parameter.generator.WriteCode(CommandMacro.BASE_PushExitCode);
@@ -308,7 +337,10 @@
                 parameter.generator.WriteCode(CommandMacro.BASE_PopExitCode);
                 parameter.generator.WriteCode(exitcodeVariable);
             }
-            parameter.generator.WriteCode(CommandMacro.BASE_ExitJump);
+            parameter.generator.WriteCode(CommandMacro.BASE_JumpStackAddress);
+            parameter.generator.WriteCode(finallyTargetVariable);
+            parameter.generator.SetCodeAddress(finallyTargetPoint);
+            finallyTargetPoint.Dispose();
         }
         public override void Dispose()
         {

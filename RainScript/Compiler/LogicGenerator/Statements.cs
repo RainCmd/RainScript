@@ -46,6 +46,21 @@
         }
         public abstract void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint);
         public virtual void Dispose() { }
+        protected void InitJumpTarget(BlockStatement block, Referencable<CodeAddress> breakPoint, Referencable<CodeAddress> loopPoint)
+        {
+            foreach (var statement in block.statements)
+            {
+                if (statement is BreakStatement breakStatement) breakStatement.SetTarget(breakPoint);
+                else if (statement is ContinueStatement continueStatement) continueStatement.SetTarget(loopPoint);
+                else if (statement is BranchStatement ifStatement)
+                {
+                    InitJumpTarget(ifStatement.trueBranch, breakPoint, loopPoint);
+                    InitJumpTarget(ifStatement.falseBranch, breakPoint, loopPoint);
+                }
+                else if (statement is LoopStatement loopStatement) InitJumpTarget(loopStatement.elseBlock, breakPoint, loopPoint);
+                else if (statement is TryStatement tryStatement) tryStatement.SetTarget(breakPoint, loopPoint);
+            }
+        }
     }
     internal class ExpressionStatement : Statement
     {

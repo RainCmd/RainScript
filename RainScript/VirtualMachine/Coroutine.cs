@@ -130,6 +130,9 @@ namespace RainScript.VirtualMachine
                     case CommandMacro.BASE_Jump:
                         point = *(uint*)(library.code + point + 1);
                         break;
+                    case CommandMacro.BASE_JumpStackAddress:
+                        point = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
+                        break;
                     case CommandMacro.BASE_ConditionJump:
                         if (flag == 0) point += 5;
                         else point = *(uint*)(library.code + point + 1);
