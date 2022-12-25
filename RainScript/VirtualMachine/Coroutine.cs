@@ -1208,9 +1208,9 @@ namespace RainScript.VirtualMachine
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             flag = (long)kernel.heapAgency.TryGetArrayPoint(handle, *(long*)(stack + bottom + *(uint*)(library.code + point + 5)), out var address);
                             if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            kernel.heapAgency.SoftReference(*(uint*)address);
-                            *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 9));
                             kernel.heapAgency.SoftRelease(*(uint*)address);
+                            *(uint*)address = *(uint*)(stack + bottom + *(uint*)(library.code + point + 9));
+                            kernel.heapAgency.SoftReference(*(uint*)address);
                         }
                         point += 13;
                         break;
