@@ -36,7 +36,7 @@ namespace RainScript.Compiler.File
                             exceptions.Add(lexicals[i].anchor, CompilingExceptionCode.COMPILING_DECLARATION_NOT_FOUND);
                             break;
                         }
-                    if (space != null) relyCompilings.Add(((Space)space).compiling);
+                    if (space != null) relyCompilings.Add((Compiling.Space)space);
                 }
                 else if (lexicals.Count == 1 && lexicals[0].anchor.Segment == KeyWorld.KERNEL) relyReferences.Add(RelyKernel.kernel);
                 else

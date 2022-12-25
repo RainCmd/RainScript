@@ -602,7 +602,7 @@ namespace RainScript.DebugAdapter
             foreach (var item in breakpoints)
             {
                 var point = la[item.Value.library].code + item.Value.point;
-                if (*point == (byte)CommandMacro.BREAKPOINT) *(CommandMacro*)point = CommandMacro.BREAKPOINT;
+                if (*point == (byte)CommandMacro.BREAK) *(CommandMacro*)point = CommandMacro.BREAKPOINT;
             }
             breakpoints.Clear();
         }
