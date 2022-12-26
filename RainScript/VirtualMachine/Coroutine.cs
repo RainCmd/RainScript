@@ -2527,8 +2527,9 @@ namespace RainScript.VirtualMachine
                             var result = (bool*)(stack + bottom + *(uint*)(library.code + point + 1));
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 5));
                             flag = (long)kernel.heapAgency.TryGetType(handle, out var handleType);
-                            if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            *result = kernel.libraryAgency.TryGetInheritDepth(library.LocalToGlobal(*(Type*)(library.code + point + 9)), handleType, out _);
+                            if (flag == (long)ExitCode.NullReference) *result = false;
+                            else if (flag != 0) goto case CommandMacro.BASE_Exit;
+                            else *result = kernel.libraryAgency.TryGetInheritDepth(library.LocalToGlobal(*(Type*)(library.code + point + 9)), handleType, out _);
                         }
                         point += 22;
                         break;
@@ -2537,14 +2538,22 @@ namespace RainScript.VirtualMachine
                             var result = (uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 5));
                             flag = (long)kernel.heapAgency.TryGetType(handle, out var handleType);
-                            if (flag != 0) goto case CommandMacro.BASE_Exit;
-                            kernel.heapAgency.Release(*result);
-                            if (kernel.libraryAgency.TryGetInheritDepth(library.LocalToGlobal(*(Type*)(library.code + point + 9)), handleType, out _))
+                            if(flag == (long)ExitCode.NullReference)
                             {
-                                kernel.heapAgency.Reference(handle);
-                                *result = handle;
+                                kernel.heapAgency.Release(*result);
+                                *result = 0;
                             }
-                            else *result = 0;
+                            else if (flag != 0) goto case CommandMacro.BASE_Exit;
+                            else
+                            {
+                                kernel.heapAgency.Release(*result);
+                                if (kernel.libraryAgency.TryGetInheritDepth(library.LocalToGlobal(*(Type*)(library.code + point + 9)), handleType, out _))
+                                {
+                                    kernel.heapAgency.Reference(handle);
+                                    *result = handle;
+                                }
+                                else *result = 0;
+                            }
                         }
                         point += 22;
                         break;
