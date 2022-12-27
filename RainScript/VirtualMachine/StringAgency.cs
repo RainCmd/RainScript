@@ -26,11 +26,11 @@ namespace RainScript.VirtualMachine
         private uint[] buckets;
         private uint slotTop, freeSlot;
         private Slot[] slots;
-        public StringAgency()
+        public StringAgency(uint capacity)
         {
             slotTop = 1;
             freeSlot = 0;
-            slots = new Slot[32];
+            slots = new Slot[capacity];
             TryResize();
         }
         private bool TryResize()

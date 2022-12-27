@@ -3,6 +3,60 @@
 namespace RainScript.VirtualMachine
 {
     /// <summary>
+    /// 虚拟机启动参数
+    /// </summary>
+    public readonly struct KernelParameter
+    {
+        /// <summary>
+        /// 程序集加载器
+        /// </summary>
+        public readonly Func<string, Library> libraryLoader;
+        /// <summary>
+        /// 程序集交互对象加载器
+        /// </summary>
+        public readonly Func<string, IPerformer> performerLoader;
+        /// <summary>
+        /// 托管堆初始大小
+        /// </summary>
+        public readonly uint heapCapacity;
+        /// <summary>
+        /// 快速GC最大代数
+        /// </summary>
+        public readonly uint generation;
+        /// <summary>
+        /// 字符串容器初始大小
+        /// </summary>
+        public readonly uint stringCapacity;
+        /// <summary>
+        /// 实体容器初始大小
+        /// </summary>
+        public readonly uint entityCapacity;
+        /// <summary>
+        /// 携程容器初始大小
+        /// </summary>
+        public readonly uint coroutineCapacity;
+        /// <summary>
+        /// 虚拟机启动参数
+        /// </summary>
+        /// <param name="libraryLoader">程序集加载器</param>
+        /// <param name="performerLoader">交互对象加载器</param>
+        /// <param name="heapCapacity">托管堆初始大小</param>
+        /// <param name="generation">快速GC最大代数</param>
+        /// <param name="stringCapacity">字符串初始容器大小</param>
+        /// <param name="entityCapacity">实体容器初始大小</param>
+        /// <param name="coroutineCapacity">携程容器初始大小</param>
+        public KernelParameter(Func<string, Library> libraryLoader = null, Func<string, IPerformer> performerLoader = null, uint heapCapacity = 0x10000, uint generation = 8, uint stringCapacity = 256, uint entityCapacity = 64, uint coroutineCapacity = 8)
+        {
+            this.libraryLoader = libraryLoader;
+            this.performerLoader = performerLoader;
+            this.heapCapacity = heapCapacity;
+            this.generation = generation;
+            this.stringCapacity = stringCapacity;
+            this.entityCapacity = entityCapacity;
+            this.coroutineCapacity = coroutineCapacity;
+        }
+    }
+    /// <summary>
     /// 虚拟机状态
     /// </summary>
     public readonly struct KernelState
@@ -71,19 +125,22 @@ namespace RainScript.VirtualMachine
         /// <summary>
         /// 核心
         /// </summary>
-        /// <param name="library">启动程序集</param>
-        /// <param name="libraryLoader">程序集加载器</param>
-        /// <param name="performerLoader">程序集交互对象加载器</param>
-        /// <param name="entityCapacity">实体容器初始大小</param>
-        public Kernel(Library library, Func<string, Library> libraryLoader, Func<string, IPerformer> performerLoader, int entityCapacity = 128)
+        /// <param name="libraries">启动程序集</param>
+        public Kernel(params Library[] libraries) : this(new KernelParameter(), libraries) { }
+        /// <summary>
+        /// 核心
+        /// </summary>
+        /// <param name="libraries">启动程序集</param>
+        /// <param name="parameter">启动参数</param>
+        public Kernel(KernelParameter parameter, params Library[] libraries)
         {
-            this.performerLoader = performerLoader;
-            manipulator = new EntityManipulator(entityCapacity);
-            stringAgency = new StringAgency();
-            heapAgency = new HeapAgency(this);
-            coroutineAgency = new CoroutineAgency(this);
-            libraryAgency = new LibraryAgency(this, libraryLoader);
-            libraryAgency.Init(library);
+            this.performerLoader = parameter.performerLoader;
+            manipulator = new EntityManipulator(parameter.entityCapacity);
+            stringAgency = new StringAgency(parameter.stringCapacity);
+            heapAgency = new HeapAgency(this, parameter);
+            coroutineAgency = new CoroutineAgency(this, parameter);
+            libraryAgency = new LibraryAgency(this, parameter);
+            libraryAgency.Init(libraries);
         }
         /// <summary>
         /// 获取函数句柄

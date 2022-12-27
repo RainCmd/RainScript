@@ -76,16 +76,16 @@ namespace RainScript.VirtualMachine
                 return libraries[(int)index];
             }
         }
-        internal LibraryAgency(Kernel kernel, Func<string, Library> libraryLoader)
+        internal LibraryAgency(Kernel kernel, KernelParameter parameter)
         {
             this.kernel = kernel;
             kernelLibrary = new RuntimeLibraryInfo(kernel, LIBRARY.KERNEL, Library.kernel);
-            this.libraryLoader = libraryLoader;
+            libraryLoader = parameter.libraryLoader;
         }
-        internal void Init(Library library)
+        internal void Init(Library[] libraries)
         {
             kernelLibrary.InitRuntimeData();
-            Load(library);
+            foreach (var library in libraries) Load(library);
         }
         internal RuntimeLibraryInfo Load(string name)
         {

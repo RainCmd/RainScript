@@ -2538,7 +2538,7 @@ namespace RainScript.VirtualMachine
                             var result = (uint*)(stack + bottom + *(uint*)(library.code + point + 1));
                             var handle = *(uint*)(stack + bottom + *(uint*)(library.code + point + 5));
                             flag = (long)kernel.heapAgency.TryGetType(handle, out var handleType);
-                            if(flag == (long)ExitCode.NullReference)
+                            if (flag == (long)ExitCode.NullReference)
                             {
                                 kernel.heapAgency.Release(*result);
                                 *result = 0;

@@ -59,6 +59,14 @@ namespace RainScriptRunner
             {
                 Console.WriteLine(value);
             }
+            public long ReadKey()
+            {
+                return Console.ReadKey().KeyChar;
+            }
+            public string ReadLine()
+            {
+                return Console.ReadLine();
+            }
         }
         static bool IsVaildName(string name)
         {
@@ -201,7 +209,7 @@ namespace RainScriptRunner
                         Console.WriteLine("错误码：\x1b[31m{0}\x1b[0m {1}", ((uint)item.code).ToString("X"), item.code);
                         if (!string.IsNullOrEmpty(item.message))
                             Console.WriteLine("额外信息：" + item.message);
-                        Console.WriteLine("位置：{0} \x1b[36m[{1},{2}]\x1b[0m", item.path, item.start, item.end);
+                        Console.WriteLine("位置：{0} \x1b[36mline:{1} [{2},{3}]\x1b[0m", item.path, item.line, item.start, item.end);
                         Console.WriteLine();
                     }
                 }
@@ -219,7 +227,7 @@ namespace RainScriptRunner
             }
             var invoker = kernel.Invoker(handle);
             invoker.Start(true, false);
-            while (invoker.State == InvokerState.Running)
+            while (kernel.GetState().coroutineCount > 0)
             {
                 kernel.Update();
                 Thread.Sleep(config.frame);
@@ -232,7 +240,7 @@ namespace RainScriptRunner
             if (!CheckConfig(config)) return;
             if (!TryBuild(config, out var builder)) return;
 
-            using (var kernel = new Kernel(builder.Library, name => name == config.name ? builder.Library : null, name => name == config.name ? new Performer() : null))
+            using (var kernel = new Kernel(new KernelParameter(name => name == config.name ? builder.Library : null, name => name == config.name ? new Performer() : null), builder.Library))
             {
                 if (builder.SymbolTable != null)
                 {
@@ -247,12 +255,10 @@ namespace RainScriptRunner
                     };
                 }
                 if (builder.DebugTable == null) Exe(kernel, config);
-                else using (var debugger = new Debugger(config.name, kernel, name => name == config.name ? builder.DebugTable : null, name => name == config.name ? builder.SymbolTable : null))
-                    {
-                        Exe(kernel, config);
-                    }
+                else using (var debugger = new Debugger(config.name, kernel, name => name == config.name ? builder.DebugTable : null, name => name == config.name ? builder.SymbolTable : null)) Exe(kernel, config);
             }
-            Console.WriteLine("携程 \x1b[33m{0}\x1b[0m 已退出。", config.entry);
+            Console.WriteLine("已无正在运行的携程。", config.entry);
+            Console.ReadKey();
         }
     }
 }

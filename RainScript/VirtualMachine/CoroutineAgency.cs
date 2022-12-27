@@ -17,9 +17,12 @@ namespace RainScript.VirtualMachine
         [NonSerialized]
         private readonly Stack<Invoker> invokerPool = new Stack<Invoker>();
         private readonly Dictionary<ulong, Invoker> invokerMap = new Dictionary<ulong, Invoker>();
-        public CoroutineAgency(Kernel kernel)
+        public CoroutineAgency(Kernel kernel, KernelParameter parameter)
         {
             this.kernel = kernel;
+            coroutines = new Coroutine[parameter.coroutineCapacity];
+            for (int i = 0; i < parameter.coroutineCapacity; i++)
+                free = new Coroutine(kernel) { next = free };
         }
         internal Invoker Invoker(FunctionHandle handle)
         {
@@ -58,14 +61,11 @@ namespace RainScript.VirtualMachine
         internal void Update()
         {
             var count = this.count;
-            if (coroutines == null || coroutines.Length < count)
+            if (coroutines.Length < count)
             {
-                count |= count >> 1;
-                count |= count >> 2;
-                count |= count >> 4;
-                count |= count >> 8;
-                count |= count >> 16;
-                coroutines = new Coroutine[(count << 1) - count + 1];
+                var length = coroutines.Length;
+                while (length < count) length <<= 1;
+                coroutines = new Coroutine[length];
             }
             count = 0;
             for (var index = head; index != null; index = index.next) coroutines[count++] = index;

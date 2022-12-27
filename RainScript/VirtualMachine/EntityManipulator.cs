@@ -32,7 +32,7 @@ namespace RainScript.VirtualMachine
         {
             return map.Count;
         }
-        public EntityManipulator(int capacity)
+        public EntityManipulator(uint capacity)
         {
             slots = new Slot[capacity];
         }

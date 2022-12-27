@@ -6,19 +6,22 @@ namespace RainScript.VirtualMachine
     {
         private struct Head
         {
-            public uint point, reference, softReference, size, next;
+            public uint point, reference, softReference, generation, size, next;
             public Type type;
             public bool flag;
         }
         private readonly Kernel kernel;
         private Head[] heads = new Head[16];
         private byte* heap;
-        private uint headTop = 1, free = 0, head = 0, tail = 0, soft = 0, heapTop = 0, heapSize = 512;
+        private uint headTop = 1, free = 0, head = 0, tail = 0, soft = 0, heapTop = 0, heapSize;
+        private readonly uint generation;
         private bool flag = false, gc = false;
-        public HeapAgency(Kernel kernel)
+        public HeapAgency(Kernel kernel, KernelParameter parameter)
         {
+            heapSize = parameter.heapCapacity;
             heap = Tools.MAlloc((int)heapSize);
             this.kernel = kernel;
+            generation = parameter.generation;
         }
         private void EnsureCapacity(uint size)
         {
@@ -86,6 +89,7 @@ namespace RainScript.VirtualMachine
             heads[handle].next = 0;
             heads[handle].reference = 0;
             heads[handle].softReference = 0;
+            heads[handle].generation = 0;
             var point = heapTop;
             heapTop += size;
             while (point < heapTop) heap[point++] = 0;
@@ -225,12 +229,12 @@ namespace RainScript.VirtualMachine
             }
         }
 
-        private bool IsRunningCoroutine(uint handle)
+        private bool IsUnrecoverableCoroutine(uint handle)
         {
             if (heads[handle].type.dimension == 0 && heads[handle].type.definition.code == TypeCode.Coroutine)
             {
                 var invoker = kernel.coroutineAgency.GetInternalInvoker(*(ulong*)(heap + heads[handle].point));
-                if (invoker.state == InvokerState.Running) return true;
+                return invoker.state != InvokerState.Unstarted && invoker.state != InvokerState.Completed;
             }
             return false;
         }
@@ -261,7 +265,7 @@ namespace RainScript.VirtualMachine
             var index = head;
             while (index > 0)
             {
-                if (heads[index].reference > 0 || IsRunningCoroutine(index)) Mark(index);
+                if (heads[index].reference > 0 || IsUnrecoverableCoroutine(index)) Mark(index);
                 index = heads[index].next;
             }
             index = head;
@@ -289,8 +293,9 @@ namespace RainScript.VirtualMachine
                 var index = heads[soft].next;
                 while (index > 0)
                 {
-                    if (heads[index].reference > 0 || heads[index].softReference > 0 || IsRunningCoroutine(index))
+                    if (heads[index].reference > 0 || heads[index].softReference > 0 || IsUnrecoverableCoroutine(index))
                     {
+                        if (heads[index].generation++ > generation) soft = tail;
                         tail = index;
                         MemoryMove(index);
                         index = heads[index].next;
