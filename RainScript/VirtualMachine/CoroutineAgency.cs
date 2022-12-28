@@ -27,7 +27,7 @@ namespace RainScript.VirtualMachine
         internal Invoker Invoker(FunctionHandle handle)
         {
             if (!handle || handle.library.kernel != kernel) throw ExceptionGeneratorVM.InvalidMethodHandle();
-            var invoker = invokerPool.Count > 0 ? invokerPool.Pop() : new Invoker(invokerCount++);
+            var invoker = invokerPool.Count > 0 ? invokerPool.Pop() : new Invoker(kernel, invokerCount++);
             if (invokerInstance == 0) invokerInstance++;
             invoker.instanceID |= ((ulong)invokerInstance++) << 32;
             invoker.Initialize(handle);
@@ -89,6 +89,7 @@ namespace RainScript.VirtualMachine
                     }
                     if (coroutine.exit != 0) coroutine.Abort();
                     Recycle(coroutine);
+                    if (!coroutine.invoker.hold) coroutine.invoker.Recycle();
                 }
                 coroutines[i] = null;
             }
@@ -109,6 +110,7 @@ namespace RainScript.VirtualMachine
         internal Invoker InternalInvoker(FunctionHandle handle)
         {
             var invoker = Invoker(handle);
+            invoker.hold = true;
             invokerMap.Add(invoker.instanceID, invoker);
             return invoker;
         }
@@ -145,8 +147,13 @@ namespace RainScript.VirtualMachine
         {
             while (invokerPool.Count > 0) invokerPool.Pop().Dispose();
             Dispose(head);
+            while (head != null)
+            {
+                head.invoker.Dispose();
+                head = head.next;
+            }
             Dispose(free);
-            head = free = null;
+            free = null;
             invokerCount = 1;
         }
     }

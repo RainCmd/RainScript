@@ -132,7 +132,7 @@ namespace RainScript.VirtualMachine
         /// <summary>
         /// 是个有效句柄
         /// </summary>
-        public bool Valid { get { return invoker != null && invoker.instanceID == instanceID; } }
+        public bool Valid { get { return invoker != null && invoker.hold && invoker.instanceID == instanceID; } }
         /// <summary>
         /// 退出代码
         /// </summary>
@@ -160,6 +160,7 @@ namespace RainScript.VirtualMachine
         {
             instanceID = invoker.instanceID;
             this.invoker = invoker;
+            invoker.hold = true;
         }
         /// <summary>
         /// 获取调用帧数据
@@ -190,11 +191,15 @@ namespace RainScript.VirtualMachine
             invoker.Abort(code);
         }
         /// <summary>
-        /// 释放调用句柄
+        /// 释放调用的持有，调用执行完成后会自动回收
         /// </summary>
         public void Dispose()
         {
-            if (Valid) invoker.Recycle();
+            if (Valid)
+            {
+                invoker.hold = false;
+                invoker.Recycle();
+            }
         }
         /// <summary>
         /// 获取布尔返回值
@@ -383,10 +388,12 @@ namespace RainScript.VirtualMachine
     }
     internal unsafe class Invoker : IDisposable
     {
+        private readonly Kernel kernel;
         public ulong instanceID;
         public InvokerState state;
         public FunctionHandle handle;
         public long exit;
+        public bool hold;
         private uint size;
         private byte* data = null;
         private readonly List<StackFrame> frames = new List<StackFrame>();
@@ -404,8 +411,9 @@ namespace RainScript.VirtualMachine
                 coroutine.pause = value;
             }
         }
-        public Invoker(ulong instanceIndex)
+        public Invoker(Kernel kernel, ulong instanceIndex)
         {
+            this.kernel = kernel;
             instanceID = instanceIndex;
         }
         ~Invoker()
@@ -450,7 +458,7 @@ namespace RainScript.VirtualMachine
         public string GetStringReturnValue(int index)
         {
             ReturnTypeAssert(index, TypeCode.String);
-            return handle.library.kernel.stringAgency.Get(*(uint*)(data + handle.returnPoints[index]));
+            return kernel.stringAgency.Get(*(uint*)(data + handle.returnPoints[index]));
         }
         public uint GetStringHandleReturnValue(int index)
         {
@@ -469,7 +477,7 @@ namespace RainScript.VirtualMachine
         }
         public IEntity GetEntityObjectReturnValue(int index)
         {
-            return handle.library.kernel.manipulator.Get(GetEntityReturnValue(index));
+            return kernel.manipulator.Get(GetEntityReturnValue(index));
         }
 
         public void SetParameter(int index, bool value)
@@ -511,7 +519,7 @@ namespace RainScript.VirtualMachine
         {
             ParameterTypeAssert(index, TypeCode.String);
             var point = (uint*)(data + handle.parameterPoints[index]);
-            var agency = handle.library.kernel.stringAgency;
+            var agency = kernel.stringAgency;
             var result = agency.Add(value);
             agency.Reference(result);
             agency.Release(*point);
@@ -530,7 +538,7 @@ namespace RainScript.VirtualMachine
         {
             ParameterTypeAssert(index, TypeCode.Handle);
             var point = (uint*)(data + handle.parameterPoints[index]);
-            var agency = handle.library.kernel.heapAgency;
+            var agency = kernel.heapAgency;
             agency.Reference(value);
             agency.Release(*point);
             *point = value;
@@ -539,21 +547,21 @@ namespace RainScript.VirtualMachine
         {
             ParameterTypeAssert(index, TypeCode.Entity);
             var point = (Entity*)(data + handle.parameterPoints[index]);
-            var manipulator = handle.library.kernel.manipulator;
+            var manipulator = kernel.manipulator;
             manipulator.Reference(value);
             manipulator.Release(*point);
             *point = value;
         }
         public void SetParameter(int index, IEntity value)
         {
-            SetParameter(index, handle.library.kernel.manipulator.Add(value));
+            SetParameter(index, kernel.manipulator.Add(value));
         }
 
         public void Start(bool immediately, bool ignoreWait)
         {
             StateAssert(InvokerState.Unstarted);
             state = InvokerState.Running;
-            handle.library.kernel.coroutineAgency.Start(this, immediately, ignoreWait);
+            kernel.coroutineAgency.Start(this, immediately, ignoreWait);
         }
         public void Abort(long code)
         {
@@ -584,12 +592,13 @@ namespace RainScript.VirtualMachine
         }
         public void PushStack(uint library, uint point)
         {
-            frames.Add(new StackFrame(handle.library.kernel.libraryAgency[library].name, point));
+            frames.Add(new StackFrame(kernel.libraryAgency[library].name, point));
         }
         public void Initialize(FunctionHandle handle)
         {
             this.handle = handle;
             state = InvokerState.Unstarted;
+            hold = false;
             Reset(handle.parameterSize);
             for (int i = 0; i < size; i++) data[i] = 0;
         }
@@ -609,7 +618,6 @@ namespace RainScript.VirtualMachine
         }
         internal void ClearParameters()
         {
-            var kernel = handle.library.kernel;
             var parameters = handle.function.parameters;
             for (int i = 0; i < parameters.Length; i++)
             {
@@ -635,7 +643,6 @@ namespace RainScript.VirtualMachine
         }
         internal void ClearReturns()
         {
-            var kernel = handle.library.kernel;
             var returns = handle.function.returns;
             for (int i = 0; i < returns.Length; i++)
             {
@@ -661,26 +668,26 @@ namespace RainScript.VirtualMachine
         }
         public void Recycle()
         {
-            switch (state)
+            if (kernel)
             {
-                case InvokerState.Unstarted:
-                    {
+                switch (state)
+                {
+                    case InvokerState.Unstarted:
                         ClearParameters();
-                        handle.library.kernel.coroutineAgency.Recycle(this);
-                    }
-                    break;
-                case InvokerState.Running: break;
-                case InvokerState.Completed:
-                    {
+                        break;
+                    case InvokerState.Running: return;
+                    case InvokerState.Completed:
                         ClearReturns();
-                        handle.library.kernel.coroutineAgency.Recycle(this);
-                    }
-                    break;
-                case InvokerState.Aborted:
-                case InvokerState.Invalid: break;
+                        break;
+                    case InvokerState.Aborted:
+                    case InvokerState.Invalid:
+                    default:
+                        return;
+                }
+                kernel.coroutineAgency.Recycle(this);
+                frames.Clear();
             }
-            state = InvokerState.Invalid;
-            frames.Clear();
+            else Dispose();
         }
         private void ParameterTypeAssert(int index, TypeCode code)
         {

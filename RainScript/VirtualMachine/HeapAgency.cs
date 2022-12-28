@@ -105,7 +105,7 @@ namespace RainScript.VirtualMachine
                 var invoker = kernel.coroutineAgency.Invoker(definition.destructor);
                 invoker.SetHeapHandleParameter(0, handle);
                 kernel.coroutineAgency.Start(invoker, true, true);
-                kernel.coroutineAgency.Recycle(invoker);
+                invoker.Recycle();
             }
             if (definition.parent != TypeDefinition.INVALID)
                 Free(handle, kernel.libraryAgency[definition.parent.library].definitions[definition.parent.index], point);
