@@ -49,17 +49,13 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
     {
         public readonly Generator generator;
         public readonly DeclarationManager manager;
-
-        public EvaluationParameter(LogicGenerator.GeneratorParameter parameter)
-        {
-            generator = parameter.generator;
-            manager = parameter.manager;
-        }
-
-        public EvaluationParameter(Generator generator, DeclarationManager manager)
+        public readonly ExceptionCollector exceptions;
+        public EvaluationParameter(LogicGenerator.GeneratorParameter parameter) : this(parameter.generator, parameter.manager, parameter.exceptions) { }
+        public EvaluationParameter(Generator generator, DeclarationManager manager, ExceptionCollector exceptions)
         {
             this.generator = generator;
             this.manager = manager;
+            this.exceptions = exceptions;
         }
     }
     internal abstract class Expression

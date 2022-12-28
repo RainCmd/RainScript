@@ -490,6 +490,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out long leftResult, parameter) && right.TryEvaluation(out long rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -499,6 +504,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out long leftResult, parameter) && right.TryEvaluation(out long rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -580,6 +590,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out real leftResult, parameter) && right.TryEvaluation(out real rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -589,6 +604,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out real leftResult, parameter) && right.TryEvaluation(out real rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -651,6 +671,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out real leftResult, parameter) && right.TryEvaluation(out Real2 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -660,6 +685,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real2 leftResult, parameter) && right.TryEvaluation(out real rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -669,6 +699,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real2 leftResult, parameter) && right.TryEvaluation(out Real2 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -678,6 +713,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out real leftResult, parameter) && right.TryEvaluation(out Real2 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -687,6 +727,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real2 leftResult, parameter) && right.TryEvaluation(out real rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -696,6 +741,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real2 leftResult, parameter) && right.TryEvaluation(out Real2 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -758,6 +808,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out real leftResult, parameter) && right.TryEvaluation(out Real3 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0 || rightResult.z == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -767,6 +822,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real3 leftResult, parameter) && right.TryEvaluation(out real rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -776,6 +836,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real3 leftResult, parameter) && right.TryEvaluation(out Real3 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0 || rightResult.z == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -785,6 +850,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out real leftResult, parameter) && right.TryEvaluation(out Real3 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0 || rightResult.z == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -794,6 +864,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real3 leftResult, parameter) && right.TryEvaluation(out real rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -803,6 +878,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real3 leftResult, parameter) && right.TryEvaluation(out Real3 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0 || rightResult.z == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -865,6 +945,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out real leftResult, parameter) && right.TryEvaluation(out Real4 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0 || rightResult.z == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -874,6 +959,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real4 leftResult, parameter) && right.TryEvaluation(out real rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -883,6 +973,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real4 leftResult, parameter) && right.TryEvaluation(out Real4 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0 || rightResult.z == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult / rightResult;
                             return true;
                         }
@@ -892,6 +987,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out real leftResult, parameter) && right.TryEvaluation(out Real4 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0 || rightResult.z == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -901,6 +1001,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real4 leftResult, parameter) && right.TryEvaluation(out real rightResult, parameter))
                         {
+                            if (rightResult == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }
@@ -910,6 +1015,11 @@ namespace RainScript.Compiler.LogicGenerator.Expressions
                     {
                         if (left.TryEvaluation(out Real4 leftResult, parameter) && right.TryEvaluation(out Real4 rightResult, parameter))
                         {
+                            if (rightResult.x == 0 || rightResult.y == 0 || rightResult.z == 0)
+                            {
+                                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_DIVIDE_BY_ZERO);
+                                break;
+                            }
                             value = leftResult % rightResult;
                             return true;
                         }

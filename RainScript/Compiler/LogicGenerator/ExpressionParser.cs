@@ -21,7 +21,7 @@ namespace RainScript.Compiler.LogicGenerator
         public ExpressionParser(GeneratorParameter parameter, Context context, LocalContext localContext, bool destructor) : this(parameter.generator, parameter.manager, context, localContext, null, destructor, parameter.pool, parameter.exceptions) { }
         public ExpressionParser(Generator generator, DeclarationManager manager, Context context, LocalContext localContext, LambdaClosure closure, bool destructor, CollectionPool pool, ExceptionCollector exceptions)
         {
-            evaluationParameter = new EvaluationParameter(generator, manager);
+            evaluationParameter = new EvaluationParameter(generator, manager, exceptions);
             this.manager = manager;
             this.context = context;
             this.localContext = localContext;
