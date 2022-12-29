@@ -64,9 +64,10 @@ namespace RainScript.Vector
         {
             get
             {
-                if (sqrMagnitude > 0)
+                var sm = sqrMagnitude;
+                if (sm > 0)
                 {
-                    real l = magnitude;
+                    real l = Math.Sqrt(sm);
                     return new Real2(x / l, y / l);
                 }
                 return zero;
@@ -93,9 +94,10 @@ namespace RainScript.Vector
             }
             set
             {
-                if (sqrMagnitude > 0)
+                var sm = sqrMagnitude;
+                if (sm > 0)
                 {
-                    real s = value / magnitude;
+                    real s = value / Math.Sqrt(sm);
                     x *= s;
                     y *= s;
                 }

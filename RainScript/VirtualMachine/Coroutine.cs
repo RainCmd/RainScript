@@ -1912,7 +1912,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(real*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real2*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y == 0)
+                            if (rv.x == 0 || rv.y == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -1938,7 +1938,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(Real2*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real2*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y == 0)
+                            if (rv.x == 0 || rv.y == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -1951,7 +1951,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(real*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real2*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y == 0)
+                            if (rv.x == 0 || rv.y == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -1977,7 +1977,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(Real2*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real2*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y == 0)
+                            if (rv.x == 0 || rv.y == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -2052,7 +2052,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(real*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real3*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y * rv.z == 0)
+                            if (rv.x == 0 || rv.y == 0 || rv.z == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -2078,7 +2078,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(Real3*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real3*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y * rv.z == 0)
+                            if (rv.x == 0 || rv.y == 0 || rv.z == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -2091,7 +2091,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(real*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real3*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y * rv.z == 0)
+                            if (rv.x == 0 || rv.y == 0 || rv.z == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -2117,7 +2117,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(Real3*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real3*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y * rv.z == 0)
+                            if (rv.x == 0 || rv.y == 0 || rv.z == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -2192,7 +2192,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(real*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real4*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y * rv.z * rv.w == 0)
+                            if (rv.x == 0 || rv.y == 0 || rv.z == 0 || rv.w == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -2218,7 +2218,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(Real4*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real4*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y * rv.z * rv.w == 0)
+                            if (rv.x == 0 || rv.y == 0 || rv.z == 0 || rv.w == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -2231,7 +2231,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(real*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real4*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y * rv.z * rv.w == 0)
+                            if (rv.x == 0 || rv.y == 0 || rv.z == 0 || rv.w == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
@@ -2257,7 +2257,7 @@ namespace RainScript.VirtualMachine
                         {
                             var lv = *(Real4*)(stack + bottom + *(uint*)(library.code + point + 5));
                             var rv = *(Real4*)(stack + bottom + *(uint*)(library.code + point + 9));
-                            if (rv.x * rv.y * rv.z * rv.w == 0)
+                            if (rv.x == 0 || rv.y == 0 || rv.z == 0 || rv.w == 0)
                             {
                                 flag = (long)ExitCode.DivideByZero;
                                 goto case CommandMacro.BASE_Exit;
