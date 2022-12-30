@@ -1,42 +1,32 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace RainScript.VirtualMachine
 {
-    /// <summary>
-    /// 实体对象接口
-    /// </summary>
-    public interface IEntity
-    {
-        /// <summary>
-        /// 当实体对象被添加到虚拟机时调用
-        /// </summary>
-        void OnReference();
-        /// <summary>
-        /// 当实体对象在虚拟机中引用数量归零时调用
-        /// </summary>
-        void OnRelease();
-    }
     internal class EntityManipulator
     {
         private struct Slot
         {
-            public IEntity value;
+            public object value;
             public uint reference;
             public uint next;
         }
         private Slot[] slots;
         private uint top = 1;
         private uint free = 0;
-        private readonly Dictionary<IEntity, ulong> map = new Dictionary<IEntity, ulong>();
+        private readonly Action<object> reference, release;
+        private readonly Dictionary<object, ulong> map = new Dictionary<object, ulong>();
         public int GetEntityCount()
         {
             return map.Count;
         }
-        public EntityManipulator(uint capacity)
+        public EntityManipulator(KernelParameter parameter)
         {
-            slots = new Slot[capacity];
+            slots = new Slot[parameter.entityCapacity];
+            reference = parameter.entityReference;
+            release = parameter.entityRelease;
         }
-        public Entity Add(IEntity value)
+        public Entity Add(object value)
         {
             if (value == null) return Entity.NULL;
             if (!map.TryGetValue(value, out var entity))
@@ -51,7 +41,7 @@ namespace RainScript.VirtualMachine
                     if (top == slots.Length)
                     {
                         var temp = new Slot[top << 1];
-                        System.Array.Copy(slots, temp, slots.Length);
+                        Array.Copy(slots, temp, slots.Length);
                         slots = temp;
                     }
                     entity = top++;
@@ -59,23 +49,24 @@ namespace RainScript.VirtualMachine
                 slots[entity].next = 0;
                 slots[entity].value = value;
                 slots[entity].reference = 0;
-                value.OnReference();
                 map.Add(value, entity);
+                reference?.Invoke(value);
             }
-            return (Entity)entity;
+            return new Entity(entity);
         }
-        public IEntity Get(Entity entity)
+        public object Get(Entity entity)
         {
             if (Valid(entity)) return slots[entity.entity].value;
             else return null;
         }
         private void Remove(Entity entity)
         {
-            map.Remove(slots[entity.entity].value);
-            slots[entity.entity].value.OnRelease();
+            var value = slots[entity.entity].value;
+            map.Remove(value);
             slots[entity.entity].value = null;
             slots[entity.entity].next = free;
             free = (uint)entity.entity;
+            release?.Invoke(value);
         }
         public void Reference(Entity entity)
         {

@@ -11,7 +11,7 @@ namespace RainScript.VirtualMachine
             public bool flag;
         }
         private readonly Kernel kernel;
-        private Head[] heads = new Head[16];
+        private Head[] heads;
         private byte* heap;
         private uint headTop = 1, free = 0, head = 0, tail = 0, soft = 0, heapTop = 0, heapSize;
         private readonly uint generation;
@@ -19,9 +19,10 @@ namespace RainScript.VirtualMachine
         public HeapAgency(Kernel kernel, KernelParameter parameter)
         {
             heapSize = parameter.heapCapacity;
+            heads = new Head[parameter.handleHeadCapacity];
+            generation = parameter.generation;
             heap = Tools.MAlloc((int)heapSize);
             this.kernel = kernel;
-            generation = parameter.generation;
         }
         private void EnsureCapacity(uint size)
         {

@@ -77,7 +77,7 @@ namespace RainScript.VirtualMachine
                         *address = 0;
                         point += TypeCode.String.FieldSize();
                     }
-                    else if (parameterTypes[i] == typeof(IEntity))
+                    else if (parameterTypes[i] == typeof(object))
                     {
                         var address = (Entity*)point;
                         parameters[i] = kernel.manipulator.Get(*address);
@@ -104,9 +104,9 @@ namespace RainScript.VirtualMachine
                         *(uint*)address = str;
                         kernel.stringAgency.Reference(*(uint*)address);
                     }
-                    else if (returnType == typeof(IEntity))
+                    else if (returnType == typeof(object))
                     {
-                        var entity = kernel.manipulator.Add(result as IEntity);
+                        var entity = kernel.manipulator.Add(result);
                         kernel.manipulator.Release(*(Entity*)address);
                         *(Entity*)address = entity;
                         kernel.manipulator.Reference(*(Entity*)address);
@@ -161,7 +161,7 @@ namespace RainScript.VirtualMachine
             else if (type == typeof(Real3)) return returns[0] == KERNEL_TYPE.REAL3;
             else if (type == typeof(Real4)) return returns[0] == KERNEL_TYPE.REAL4;
             else if (type == typeof(string)) return returns[0] == KERNEL_TYPE.STRING;
-            else if (type == typeof(IEntity)) return returns[0] == KERNEL_TYPE.ENTITY;
+            else if (type == typeof(object)) return returns[0] == KERNEL_TYPE.ENTITY;
             return false;
         }
         private static bool TryGetType(Type type, out System.Type result)
@@ -202,7 +202,7 @@ namespace RainScript.VirtualMachine
                     case TypeCode.Coroutine:
                         break;
                     case TypeCode.Entity:
-                        result = typeof(IEntity);
+                        result = typeof(object);
                         return true;
                     default:
                         break;
@@ -248,7 +248,7 @@ namespace RainScript.VirtualMachine
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_Kernel_stringAgency);
                 }
-                else if (retType == typeof(IEntity))
+                else if (retType == typeof(object))
                 {
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_kernel_manipulator);
@@ -347,7 +347,7 @@ namespace RainScript.VirtualMachine
                     generator.Emit(Callvirt, method_StringAgency_Release);
                     pidx += TypeCode.String.FieldSize();
                 }
-                else if (type == typeof(IEntity))
+                else if (type == typeof(object))
                 {
                     generator.Emit(Ldarg_0);
                     generator.Emit(Ldfld, field_kernel_manipulator);
@@ -389,7 +389,7 @@ namespace RainScript.VirtualMachine
                 generator.Emit(Ldind_U4);
                 generator.Emit(Callvirt, method_StringAgency_Reference);
             }
-            else if (retType == typeof(IEntity))
+            else if (retType == typeof(object))
             {
                 generator.Emit(Callvirt, method_EntityManipulator_Add);
                 generator.Emit(Stobj, typeof(Entity));

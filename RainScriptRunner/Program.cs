@@ -225,13 +225,17 @@ namespace RainScriptRunner
                 Console.WriteLine("入口函数 \x1b[33m{0}\x1b[0m 未找到", config.entry);
                 return;
             }
-            var invoker = kernel.Invoker(handle);
-            invoker.Start(true, false);
+            var sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            using (var invoker = kernel.Invoker(handle))
+                invoker.Start(true, false);
             while (kernel.GetState().coroutineCount > 0)
             {
                 kernel.Update();
                 Thread.Sleep(config.frame);
             }
+            sw.Stop();
+            Console.WriteLine("总执行 时间:" + sw.ElapsedMilliseconds + "ms");
         }
         static void Main(string[] args)
         {

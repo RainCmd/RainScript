@@ -276,7 +276,7 @@ namespace RainScript.VirtualMachine
         /// </summary>
         /// <param name="index">返回值索引</param>
         /// <returns></returns>
-        public IEntity GetEntityReturnValue(int index)
+        public object GetEntityReturnValue(int index)
         {
             DisposedAssert();
             return invoker.GetEntityObjectReturnValue(index);
@@ -367,7 +367,7 @@ namespace RainScript.VirtualMachine
         /// </summary>
         /// <param name="index">参数索引</param>
         /// <param name="value">参数值</param>
-        public void SetParameter(int index, IEntity value)
+        public void SetParameter(int index, object value)
         {
             DisposedAssert();
             invoker.SetParameter(index, value);
@@ -475,7 +475,7 @@ namespace RainScript.VirtualMachine
             ReturnTypeAssert(index, TypeCode.Entity);
             return *(Entity*)(data + handle.returnPoints[index]);
         }
-        public IEntity GetEntityObjectReturnValue(int index)
+        public object GetEntityObjectReturnValue(int index)
         {
             return kernel.manipulator.Get(GetEntityReturnValue(index));
         }
@@ -552,7 +552,7 @@ namespace RainScript.VirtualMachine
             manipulator.Release(*point);
             *point = value;
         }
-        public void SetParameter(int index, IEntity value)
+        public void SetParameter(int index, object value)
         {
             SetParameter(index, kernel.manipulator.Add(value));
         }
