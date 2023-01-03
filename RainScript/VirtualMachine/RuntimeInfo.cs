@@ -4,17 +4,6 @@ using System.Runtime.InteropServices;
 
 namespace RainScript.VirtualMachine
 {
-    internal class RuntimeRelocationInfo
-    {
-        public readonly uint characteristics;
-        public readonly DefinitionFunction function;
-
-        public RuntimeRelocationInfo(uint characteristics, DefinitionFunction function)
-        {
-            this.characteristics = characteristics;
-            this.function = function;
-        }
-    }
     internal class RuntimeDefinitionInfo
     {
         public readonly struct Variable
@@ -195,7 +184,6 @@ namespace RainScript.VirtualMachine
         public readonly TypeDefinition definition;
         public readonly TypeDefinition[] inherits;
         public readonly Method[] methods;
-        public readonly RuntimeRelocationInfo[] relocations;
         public RuntimeInterfaceInfo(RuntimeLibraryInfo library, TypeDefinition definition, InterfaceInfo info)
         {
             this.definition = definition;
@@ -203,17 +191,15 @@ namespace RainScript.VirtualMachine
             for (int i = 0; i < inherits.Length; i++) inherits[i] = library.LocalToGlobal(info.inherits[i]);
             methods = new Method[info.methods.Length];
             for (uint i = 0; i < methods.Length; i++) methods[i] = new Method(library, info.methods[i].functions);
-            relocations = new RuntimeRelocationInfo[info.relocations.Length];
         }
         public void RelocationMethods(RuntimeLibraryInfo library, InterfaceInfo info)
         {
             var agency = library.kernel.libraryAgency;
-            for (int i = 0; i < relocations.Length; i++)
+            for (int i = 0; i < info.relocations.Length; i++)
             {
                 var relocation = info.relocations[i];
                 var characteristic = agency.GetFunctionCharacteristic(library.LocalToGlobal(relocation.overrideFunction));
                 var realizeFunction = library.LocalToGlobal(relocation.realizeFunction);
-                relocations[i] = new RuntimeRelocationInfo(characteristic, realizeFunction);
                 if (realizeFunction.definition == definition) methods[realizeFunction.funtion.method].characteristics[realizeFunction.funtion.index] = characteristic;
             }
             foreach (var method in methods)
@@ -740,19 +726,6 @@ namespace RainScript.VirtualMachine
         {
             Tools.Free(code);
             Tools.Free(data);
-        }
-        private static bool ContainsDefinition(List<RuntimeDefinitionInfo> list, uint index)
-        {
-            var min = 0; var max = list.Count;
-            while (min < max)
-            {
-                var middle = (min + max) >> 1;
-                var definition = list[middle];
-                if (definition.definition.index > index) max = middle;
-                else if (definition.definition.index < index) min = middle;
-                else return true;
-            }
-            return false;
         }
         private static bool BinarySearch(List<uint> list, uint value)
         {

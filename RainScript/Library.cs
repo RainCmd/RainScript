@@ -167,7 +167,6 @@ namespace RainScript
     [System.Serializable]
     internal readonly struct MemberVariable
     {
-
         [FieldOffset(0)]
         public readonly uint definition;
         [FieldOffset(4)]
@@ -177,46 +176,6 @@ namespace RainScript
         {
             this.definition = type;
             this.index = index;
-        }
-    }
-    [StructLayout(LayoutKind.Explicit)]
-    [System.Serializable]
-    internal readonly struct MemberFunction
-    {
-        [FieldOffset(0)]
-        public readonly uint definition;
-        [FieldOffset(4)]
-        public readonly uint method;
-        [FieldOffset(8)]
-        public readonly uint index;
-        public MemberFunction(uint definition, uint method, uint index)
-        {
-            this.definition = definition;
-            this.method = method;
-            this.index = index;
-        }
-        public static bool operator ==(MemberFunction a, MemberFunction b)
-        {
-            return a.definition == b.definition && a.method == b.method && a.index == b.index;
-        }
-        public static bool operator !=(MemberFunction a, MemberFunction b)
-        {
-            return !(a == b);
-        }
-        public override bool Equals(object obj)
-        {
-            return obj is MemberFunction function &&
-                   definition == function.definition &&
-                   method == function.method &&
-                   index == function.index;
-        }
-        public override int GetHashCode()
-        {
-            int hashCode = -1253953445;
-            hashCode = hashCode * -1521134295 + definition.GetHashCode();
-            hashCode = hashCode * -1521134295 + method.GetHashCode();
-            hashCode = hashCode * -1521134295 + index.GetHashCode();
-            return hashCode;
         }
     }
     [StructLayout(LayoutKind.Explicit)]
@@ -255,10 +214,10 @@ namespace RainScript
         }
     }
     [System.Serializable]
-    internal struct Relocation
+    internal readonly struct Relocation
     {
-        public DefinitionFunction overrideFunction;
-        public DefinitionFunction realizeFunction;
+        public readonly DefinitionFunction overrideFunction;
+        public readonly DefinitionFunction realizeFunction;
         public Relocation(DefinitionFunction overrideFunction, DefinitionFunction realizeFunction)
         {
             this.overrideFunction = overrideFunction;
