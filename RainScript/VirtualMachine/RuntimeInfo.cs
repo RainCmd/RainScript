@@ -74,7 +74,7 @@ namespace RainScript.VirtualMachine
             {
                 var characteristic = agency.GetFunctionCharacteristic(library.LocalToGlobal(relocation.overrideFunction));
                 var realizeFunction = library.LocalToGlobal(relocation.realizeFunction);
-                relocations.Add(characteristic, realizeFunction);
+                relocations[characteristic] = realizeFunction;
                 if (realizeFunction.definition == this.definition) methods[realizeFunction.funtion.method].characteristic[realizeFunction.funtion.index] = characteristic;
             }
             foreach (var method in methods)

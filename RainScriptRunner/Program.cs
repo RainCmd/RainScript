@@ -67,6 +67,14 @@ namespace RainScriptRunner
             {
                 return Console.ReadLine();
             }
+            public object GetEntity()
+            {
+                return (Action)(() => Console.WriteLine("GE"));
+            }
+            public void SetEntity(object e)
+            {
+                if (e is Action a) a();
+            }
         }
         static bool IsVaildName(string name)
         {
@@ -235,7 +243,7 @@ namespace RainScriptRunner
                 Thread.Sleep(config.frame);
             }
             sw.Stop();
-            Console.WriteLine("总执行 时间:" + sw.ElapsedMilliseconds + "ms");
+            Console.WriteLine("总执行时间:" + sw.ElapsedMilliseconds + "ms");
         }
         static void Main(string[] args)
         {
@@ -250,7 +258,7 @@ namespace RainScriptRunner
                 {
                     kernel.OnExit += (frames, code) =>
                     {
-                        Console.WriteLine("携程异常退出，退出代码:\x1b[31m0x{0}\x1b[0m", code.ToString("X"));
+                        Console.WriteLine("携程异常退出，退出代码:\x1b[31m0x{0}\x1b[0m\t{1}", code.ToString("X"), (ExitCode)code);
                         foreach (var frame in frames)
                         {
                             builder.SymbolTable.GetInfo(frame, out var fileName, out var functionName, out var lineNumber);
