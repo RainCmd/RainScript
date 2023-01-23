@@ -417,7 +417,7 @@ namespace RainScript.VirtualMachine
             else if (library == LIBRARY.SELF) return index;
             else return GetImportLibrary(library).library.index;
         }
-        public void LocalToGlobal(uint library, Function function, out uint globalLibrary, out Function globalFunction)
+        public void LocalToGlobal(uint library, Function function, bool isNative, out uint globalLibrary, out Function globalFunction)
         {
             if (library == LIBRARY.KERNEL)
             {
@@ -433,7 +433,7 @@ namespace RainScript.VirtualMachine
             {
                 var import = GetImportLibrary(library);
                 globalLibrary = import.library.index;
-                var method = import.methods[function.method];
+                var method = isNative ? import.methods[function.method] : import.methods[function.method];
                 globalFunction = new Function(method.method, method.functions[function.index]);
             }
         }
