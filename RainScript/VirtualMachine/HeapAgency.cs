@@ -353,10 +353,8 @@ namespace RainScript.VirtualMachine
         {
             return heap + heads[handle].point;
         }
-        int i = 0;
         public ExitCode TryGetPoint(uint handle, out byte* point)
         {
-            i++;
             if (IsVaild(handle))
             {
                 point = heap + heads[handle].point;
