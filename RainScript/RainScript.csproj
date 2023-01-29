@@ -169,6 +169,6 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"D:\Soft\Unity2018.3.5f1\Unity\Editor\Data\MonoBleedingEdge\bin\mono.exe" "D:\Soft\Unity2018.3.5f1\Unity\Editor\Data\MonoBleedingEdge\lib\mono\4.5\pdb2mdb.exe" $(TargetPath)</PostBuildEvent>
+    <PostBuildEvent>"F:\Unity\Editor\Data\MonoBleedingEdge\bin\mono.exe" "F:\Unity\Editor\Data\MonoBleedingEdge\lib\mono\4.5\pdb2mdb.exe" $(TargetPath)</PostBuildEvent>
   </PropertyGroup>
 </Project>

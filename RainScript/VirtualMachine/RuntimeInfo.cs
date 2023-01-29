@@ -293,9 +293,6 @@ namespace RainScript.VirtualMachine
         public readonly RuntimeMethodInfo[] methods;
         public readonly RuntimeInterfaceInfo[] interfaces;
         private readonly RuntimeNativeInfo[] natives;
-
-
-        private readonly IDictionary<Function, FunctionHandle> methodHandles = new Dictionary<Function, FunctionHandle>();
         [NonSerialized]
         private IPerformer performer;
         public RuntimeLibraryInfo(Kernel kernel, uint index, Library library)
