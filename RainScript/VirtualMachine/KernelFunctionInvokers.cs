@@ -613,6 +613,7 @@ namespace RainScript.VirtualMachine
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
             var handle = *(uint*)(stack + top + Frame.SIZE + 4);
             var result = kernel.heapAgency.TryGetArrayLength(handle, out var length);
+            kernel.heapAgency.Release(handle);
             if (result != ExitCode.None) return result;
             var value = kernel.stringAgency.Add(System.Text.Encoding.UTF8.GetString(Tools.P2A(kernel.heapAgency.GetArrayPoint(handle, 0), length)));
             var address = (uint*)(stack + returnPoint);
@@ -624,7 +625,8 @@ namespace RainScript.VirtualMachine
         private static ExitCode bytes_StringConvert(Kernel kernel, byte* stack, uint top)
         {
             var returnPoint = *(uint*)(stack + top + Frame.SIZE);
-            var bytes = System.Text.Encoding.UTF8.GetBytes(kernel.stringAgency.Get(*(uint*)(stack + top + Frame.SIZE + 4)));
+            var id = *(uint*)(stack + top + Frame.SIZE + 4);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(kernel.stringAgency.Get(id));
             var handle = kernel.heapAgency.AllocArray(KERNEL_TYPE.BYTE, (uint)bytes.Length);
             var point = kernel.heapAgency.GetArrayPoint(handle, 0);
             for (int i = 0; i < bytes.Length; i++) point[i] = bytes[i];
@@ -632,6 +634,7 @@ namespace RainScript.VirtualMachine
             kernel.heapAgency.Reference(handle);
             kernel.heapAgency.Release(*address);
             *address = handle;
+            kernel.stringAgency.Release(id);
             return ExitCode.None;
         }
         private static ExitCode integer_Abs(Kernel kernel, byte* stack, uint top)
