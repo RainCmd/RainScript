@@ -389,7 +389,7 @@ namespace RainScript.Compiler.Compiling
             using (var checkedDefinitions = pool.GetSet<Definition>())
                 foreach (var item in definitions)
                 {
-                    if (KeyWorld.IsKeyWorld(item.name.Segment)) exceptions.Add(item.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
+                    if (KeyWord.IsKeyWord(item.name.Segment)) exceptions.Add(item.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                     using (var set = pool.GetSet<Definition>())
                     {
                         var index = item;
@@ -402,21 +402,21 @@ namespace RainScript.Compiler.Compiling
                         pass:;
                     }
                     foreach (var variable in item.variables)
-                        if (KeyWorld.IsKeyWorld(variable.name.Segment))
+                        if (KeyWord.IsKeyWord(variable.name.Segment))
                             exceptions.Add(variable.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                 }
             foreach (var item in variables)
-                if (KeyWorld.IsKeyWorld(item.name.Segment))
+                if (KeyWord.IsKeyWord(item.name.Segment))
                     exceptions.Add(item.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
             foreach (var item in delegates)
-                if (KeyWorld.IsKeyWorld(item.name.Segment))
+                if (KeyWord.IsKeyWord(item.name.Segment))
                     exceptions.Add(item.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
             foreach (var item in coroutines)
-                if (KeyWorld.IsKeyWorld(item.name.Segment))
+                if (KeyWord.IsKeyWord(item.name.Segment))
                     exceptions.Add(item.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
             foreach (var item in methods)
             {
-                if (KeyWorld.IsKeyWorld(item.name))
+                if (KeyWord.IsKeyWord(item.name))
                     foreach (var function in item)
                         exceptions.Add(function.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                 for (int x = 0; x < item.Count - 1; x++)
@@ -430,12 +430,12 @@ namespace RainScript.Compiler.Compiling
             using (var checkedInterfaces = pool.GetSet<Interface>())
                 foreach (var item in interfaces)
                 {
-                    if (KeyWorld.IsKeyWorld(item.name.Segment)) exceptions.Add(item.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
+                    if (KeyWord.IsKeyWord(item.name.Segment)) exceptions.Add(item.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                     using (var set = pool.GetSet<Interface>())
                         CheckCircularInherit(checkedInterfaces, set, item, exceptions);
                     foreach (var method in item.methods)
                     {
-                        if (KeyWorld.IsKeyWorld(method.name))
+                        if (KeyWord.IsKeyWord(method.name))
                             foreach (var function in method.functions)
                                 exceptions.Add(function.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                         for (int x = 0; x < method.functions.Length - 1; x++)
@@ -449,7 +449,7 @@ namespace RainScript.Compiler.Compiling
                 }
             foreach (var item in natives)
             {
-                if (KeyWorld.IsKeyWorld(item.name))
+                if (KeyWord.IsKeyWord(item.name))
                     foreach (var function in item)
                         exceptions.Add(function.name, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                 for (int x = 0; x < item.Count - 1; x++)

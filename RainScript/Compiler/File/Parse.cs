@@ -278,8 +278,8 @@ namespace RainScript.Compiler.File
                             if (parent == null || line.indent < parentIndent) exceptions.Add(new Anchor(text, line.segment), CompilingExceptionCode.SYNTAX_INDENT);
                             return;
                         }
-                        if (lexical.anchor == KeyWorld.IMPORT) ParseImport(text, index, pool, exceptions);
-                        else if (lexical.anchor == KeyWorld.NAMESPACE) index = ParseChild(text, index, pool, exceptions);
+                        if (lexical.anchor == KeyWord.IMPORT) ParseImport(text, index, pool, exceptions);
+                        else if (lexical.anchor == KeyWord.NAMESPACE) index = ParseChild(text, index, pool, exceptions);
                         else index = ParseDeclaration(text, index, pool, exceptions);
                     }
                     else if (lexical.type != LexicalType.Annotation) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
@@ -323,27 +323,27 @@ namespace RainScript.Compiler.File
             for (index = 0; index < lexicals.Count; index++)
             {
                 var lexical = lexicals[index];
-                if (lexical.anchor == KeyWorld.PUBLIC)
+                if (lexical.anchor == KeyWord.PUBLIC)
                 {
                     if (visibility.Clash(Visibility.Public)) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_INVALID_VISIBILITY);
                     visibility |= Visibility.Public;
                 }
-                else if (lexical.anchor == KeyWorld.INTERNAL)
+                else if (lexical.anchor == KeyWord.INTERNAL)
                 {
                     if (visibility.Clash(Visibility.Internal)) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_INVALID_VISIBILITY);
                     visibility |= Visibility.Internal;
                 }
-                else if (lexical.anchor == KeyWorld.SPACE)
+                else if (lexical.anchor == KeyWord.SPACE)
                 {
                     if (visibility.Clash(Visibility.Space)) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_INVALID_VISIBILITY);
                     visibility |= Visibility.Space;
                 }
-                else if (lexical.anchor == KeyWorld.PROTECTED)
+                else if (lexical.anchor == KeyWord.PROTECTED)
                 {
                     if (visibility.Clash(Visibility.Protected)) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_INVALID_VISIBILITY);
                     visibility |= Visibility.Protected;
                 }
-                else if (lexical.anchor == KeyWorld.PRIVATE)
+                else if (lexical.anchor == KeyWord.PRIVATE)
                 {
                     if (visibility.Clash(Visibility.Private)) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_INVALID_VISIBILITY);
                     visibility |= Visibility.Private;
@@ -360,7 +360,7 @@ namespace RainScript.Compiler.File
                 {
                     if (visibility == Visibility.None) visibility = Visibility.Space;
                     var lexical = lexicals[index];
-                    if (lexical.anchor == KeyWorld.CONST)
+                    if (lexical.anchor == KeyWord.CONST)
                     {
                         if (TryParseVariable(lexicals, index + 1, out var name, out var type, out var expression, pool))
                         {
@@ -369,15 +369,15 @@ namespace RainScript.Compiler.File
                         }
                         else exceptions.Add(text, line, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                     }
-                    else if (lexical.anchor == KeyWorld.CLASS)
+                    else if (lexical.anchor == KeyWord.CLASS)
                     {
                         if (TryParseDefinition(text, ref line, lexicals, index + 1, visibility, out var definition, pool, exceptions)) definitions.Add(definition);
                     }
-                    else if (lexical.anchor == KeyWorld.INTERFACE)
+                    else if (lexical.anchor == KeyWord.INTERFACE)
                     {
                         if (TryParseInterface(text, ref line, lexicals, index + 1, visibility, out var definition, pool, exceptions)) interfaces.Add(definition);
                     }
-                    else if (lexical.anchor == KeyWorld.NATIVE)
+                    else if (lexical.anchor == KeyWord.NATIVE)
                     {
                         if (TryParseFunction(lexicals, index + 1, out var end, out var name, out var parameters, out var returns, pool))
                         {
@@ -386,7 +386,7 @@ namespace RainScript.Compiler.File
                         }
                         else exceptions.Add(text, line, CompilingExceptionCode.SYNTAX_UNKNOW);
                     }
-                    else if (lexical.anchor == KeyWorld.FUNCTION)
+                    else if (lexical.anchor == KeyWord.FUNCTION)
                     {
                         if (TryParseFunction(lexicals, index + 1, out var end, out var name, out var parameters, out var returns, pool))
                         {
@@ -395,7 +395,7 @@ namespace RainScript.Compiler.File
                         }
                         else exceptions.Add(text, line, CompilingExceptionCode.SYNTAX_UNKNOW);
                     }
-                    else if (lexical.anchor == KeyWorld.COROUTINE)
+                    else if (lexical.anchor == KeyWord.COROUTINE)
                     {
                         if (TryParseCoroutine(lexicals, index + 1, visibility, out var coroutine, pool, exceptions)) coroutines.Add(coroutine);
                     }

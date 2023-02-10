@@ -534,19 +534,19 @@ namespace RainScript.DebugAdapter
             {
                 switch (definition.code)
                 {
-                    case TypeCode.Bool: return KeyWorld.BOOL;
-                    case TypeCode.Byte: return KeyWorld.BYTE;
-                    case TypeCode.Integer: return KeyWorld.INTEGER;
-                    case TypeCode.Real: return KeyWorld.REAL;
-                    case TypeCode.Real2: return KeyWorld.REAL2;
-                    case TypeCode.Real3: return KeyWorld.REAL3;
-                    case TypeCode.Real4: return KeyWorld.REAL4;
-                    case TypeCode.String: return KeyWorld.STRING;
-                    case TypeCode.Handle: return KeyWorld.HANDLE;
-                    case TypeCode.Interface: return KeyWorld.INTERFACE;
-                    case TypeCode.Function: return KeyWorld.FUNCTION;
-                    case TypeCode.Coroutine: return KeyWorld.COROUTINE;
-                    case TypeCode.Entity: return KeyWorld.ENTITY;
+                    case TypeCode.Bool: return KeyWord.BOOL;
+                    case TypeCode.Byte: return KeyWord.BYTE;
+                    case TypeCode.Integer: return KeyWord.INTEGER;
+                    case TypeCode.Real: return KeyWord.REAL;
+                    case TypeCode.Real2: return KeyWord.REAL2;
+                    case TypeCode.Real3: return KeyWord.REAL3;
+                    case TypeCode.Real4: return KeyWord.REAL4;
+                    case TypeCode.String: return KeyWord.STRING;
+                    case TypeCode.Handle: return KeyWord.HANDLE;
+                    case TypeCode.Interface: return KeyWord.INTERFACE;
+                    case TypeCode.Function: return KeyWord.FUNCTION;
+                    case TypeCode.Coroutine: return KeyWord.COROUTINE;
+                    case TypeCode.Entity: return KeyWord.ENTITY;
                 }
             }
             else if (definition.library == library.index)

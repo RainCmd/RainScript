@@ -65,7 +65,7 @@ namespace RainScript.Compiler
         internal void AddThisVariable(Anchor anchor, uint point, uint address, Type type)
         {
             if (TryGetFunction(anchor, point, out var function))
-                function.variables.Add(address, new DebugTable.Variable(KeyWorld.THIS, type));
+                function.variables.Add(address, new DebugTable.Variable(KeyWord.THIS, type));
         }
         internal void AddLocalVariable(Anchor anchor, uint point, uint address, Type type)
         {

@@ -42,7 +42,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public bool TryGetThisValueDeclaration(out Declaration declaration)
         {
-            if (localContext.TryGetLocal(KeyWorld.THIS, out var local))
+            if (localContext.TryGetLocal(KeyWord.THIS, out var local))
             {
                 declaration = local.Declaration;
                 return true;
@@ -770,7 +770,7 @@ namespace RainScript.Compiler.LogicGenerator
                         var lexical = lexicals[index];
                         if (lexical.type == LexicalType.Word)
                         {
-                            if (KeyWorld.IsKeyWorld(lexical.anchor.Segment)) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
+                            if (KeyWord.IsKeyWord(lexical.anchor.Segment)) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                             parameters.Add(lexical.anchor);
                         }
                         index++;
@@ -3355,19 +3355,19 @@ namespace RainScript.Compiler.LogicGenerator
                 var lexical = lexicals[index];
                 if (lexical.type == LexicalType.Word)
                 {
-                    if (lexical.anchor.Segment == KeyWorld.GLOBAL)
+                    if (lexical.anchor.Segment == KeyWord.GLOBAL)
                     {
                         if (CheckNext(lexicals, ref index, LexicalType.Dot) && CheckNext(lexicals, ref index, LexicalType.Word))
                         {
                             lexical = lexicals[index];
-                            if (lexical.anchor.Segment == KeyWorld.KERNEL) return TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out declaration);
+                            if (lexical.anchor.Segment == KeyWord.KERNEL) return TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out declaration);
                             else if (lexical.anchor.Segment == manager.library.name) return TryFindDeclaration(lexicals, ref index, manager.library, out declaration);
                             else foreach (var item in manager.relies)
                                     if (lexical.anchor.Segment == item.name)
                                         return TryFindDeclaration(lexicals, ref index, item, out declaration);
                         }
                     }
-                    else if (lexical.anchor.Segment == KeyWorld.KERNEL) return TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out declaration);
+                    else if (lexical.anchor.Segment == KeyWord.KERNEL) return TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out declaration);
                     else if (TryFindDeclaration(lexical.anchor, out declaration)) return true;
                     else if (context.TryFindSpace(manager, lexical.anchor, out var space, pool, exceptions)) return TryFindDeclaration(lexicals, ref index, space, out declaration);
                 }
@@ -4424,17 +4424,17 @@ namespace RainScript.Compiler.LogicGenerator
                         #endregion Constants
                         case LexicalType.Word:
                             {
-                                if (lexical.anchor.Segment == KeyWorld.KERNEL)
+                                if (lexical.anchor.Segment == KeyWord.KERNEL)
                                 {
                                     if (!TryFindDeclaration(lexicals, ref index, RelyKernel.kernel, out var declaration) || !TryPushDeclarationExpression(lexicals, ref index, expressionStack, tokenStack, lexicals[index], declaration, ref attribute))
                                         goto parse_fail;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.GLOBAL)
+                                else if (lexical.anchor.Segment == KeyWord.GLOBAL)
                                 {
                                     if (TryFindDeclaration(lexicals, ref index, out var declaration) && TryPushDeclarationExpression(lexicals, ref index, expressionStack, tokenStack, lexicals[index], declaration, ref attribute)) break;
                                     goto parse_fail;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.BASE)
+                                else if (lexical.anchor.Segment == KeyWord.BASE)
                                 {
                                     if (TryGetThisValueExpression(out var thisValueExpression))
                                     {
@@ -4489,7 +4489,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         goto parse_fail;
                                     }
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.THIS)
+                                else if (lexical.anchor.Segment == KeyWord.THIS)
                                 {
                                     if (TryGetThisValueExpression(out var thisValueExpression))
                                     {
@@ -4547,7 +4547,7 @@ namespace RainScript.Compiler.LogicGenerator
                                         goto parse_fail;
                                     }
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.TRUE)
+                                else if (lexical.anchor.Segment == KeyWord.TRUE)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4558,7 +4558,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.FALSE)
+                                else if (lexical.anchor.Segment == KeyWord.FALSE)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4569,7 +4569,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.NULL)
+                                else if (lexical.anchor.Segment == KeyWord.NULL)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4580,14 +4580,14 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.VAR)
+                                else if (lexical.anchor.Segment == KeyWord.VAR)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None))
                                     {
                                         if (CheckNext(lexicals, ref index, LexicalType.Word))
                                         {
                                             lexical = lexicals[index];
-                                            if (KeyWorld.IsKeyWorld(lexical.anchor.Segment))
+                                            if (KeyWord.IsKeyWord(lexical.anchor.Segment))
                                             {
                                                 exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                                                 goto parse_fail;
@@ -4603,7 +4603,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.BOOL)
+                                else if (lexical.anchor.Segment == KeyWord.BOOL)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4614,7 +4614,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.BYTE)
+                                else if (lexical.anchor.Segment == KeyWord.BYTE)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4625,7 +4625,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.INTEGER)
+                                else if (lexical.anchor.Segment == KeyWord.INTEGER)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4636,7 +4636,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.REAL)
+                                else if (lexical.anchor.Segment == KeyWord.REAL)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4647,7 +4647,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.REAL2)
+                                else if (lexical.anchor.Segment == KeyWord.REAL2)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4658,7 +4658,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.REAL3)
+                                else if (lexical.anchor.Segment == KeyWord.REAL3)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4669,7 +4669,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.REAL4)
+                                else if (lexical.anchor.Segment == KeyWord.REAL4)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4680,7 +4680,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.STRING)
+                                else if (lexical.anchor.Segment == KeyWord.STRING)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4691,7 +4691,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.HANDLE)
+                                else if (lexical.anchor.Segment == KeyWord.HANDLE)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4702,7 +4702,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.ENTITY)
+                                else if (lexical.anchor.Segment == KeyWord.ENTITY)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4713,7 +4713,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.ARRAY)
+                                else if (lexical.anchor.Segment == KeyWord.ARRAY)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4724,7 +4724,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.INTERFACE)
+                                else if (lexical.anchor.Segment == KeyWord.INTERFACE)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4735,7 +4735,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     else goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.IS)
+                                else if (lexical.anchor.Segment == KeyWord.IS)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.Value))
                                     {
@@ -4754,7 +4754,7 @@ namespace RainScript.Compiler.LogicGenerator
                                                     {
                                                         startIndex++;
                                                         var local = localContext.AddLocal(lexicals[startIndex].anchor, type);
-                                                        if (KeyWorld.IsKeyWorld(local.anchor.Segment)) exceptions.Add(local.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
+                                                        if (KeyWord.IsKeyWord(local.anchor.Segment)) exceptions.Add(local.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                                                         localExpression = new VariableLocalExpression(local.anchor, local.Declaration, TokenAttribute.Assignable, type);
                                                     }
                                                     expression = new IsExpression(lexical.anchor, expression, type, localExpression);
@@ -4781,7 +4781,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.AS)
+                                else if (lexical.anchor.Segment == KeyWord.AS)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.Value))
                                     {
@@ -4814,7 +4814,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     goto default;
                                 }
-                                else if (lexical.anchor.Segment == KeyWorld.START)
+                                else if (lexical.anchor.Segment == KeyWord.START)
                                 {
                                     if (attribute.ContainAny(TokenAttribute.None | TokenAttribute.Operator))
                                     {
@@ -4847,7 +4847,7 @@ namespace RainScript.Compiler.LogicGenerator
                                     }
                                     goto default;
                                 }
-                                else if (KeyWorld.IsKeyWorld(lexical.anchor.Segment)) goto default;
+                                else if (KeyWord.IsKeyWord(lexical.anchor.Segment)) goto default;
                                 else if (TryAddLocal(expressionStack, lexical, ref attribute)) break;
                                 else if (TryFindDeclaration(lexical.anchor, out var declaration))
                                 {

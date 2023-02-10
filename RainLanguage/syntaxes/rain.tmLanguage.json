@@ -92,7 +92,7 @@
         "name" : "storage.type"
       },
       "modifier" : {
-        "match" : "\\b(namespace|import|native|public|internal|space|protected|private|struct|class|interface|new|const)\\b",
+        "match" : "\\b(namespace|import|native|public|internal|space|protected|private|enum|struct|class|interface|const)\\b",
         "name" : "storage.modifier"
       },
       "operator" : {
