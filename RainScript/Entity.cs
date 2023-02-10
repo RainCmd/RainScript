@@ -1,6 +1,6 @@
 ﻿namespace RainScript
 {
-    internal struct Entity
+    internal readonly struct Entity
     {
         public readonly ulong entity;
         public Entity(ulong entity)

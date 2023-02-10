@@ -189,9 +189,15 @@ namespace RainScript.VirtualMachine
                             switch (functionType)
                             {
                                 case FunctionType.Global:
+                                    {
+                                        library.LocalToGlobal(libraryIndex, *(Function*)(library.code + point + 19), false, out var globalLibrary, out var globalFunction);
+                                        *delegateInfo = new RuntimeDelegateInfo(globalLibrary, globalFunction, 0, functionType);
+                                        point += 27;
+                                    }
+                                    break;
                                 case FunctionType.Native:
                                     {
-                                        library.LocalToGlobal(libraryIndex, *(Function*)(library.code + point + 19), out var globalLibrary, out var globalFunction);
+                                        library.LocalToGlobal(libraryIndex, *(Function*)(library.code + point + 19), true, out var globalLibrary, out var globalFunction);
                                         *delegateInfo = new RuntimeDelegateInfo(globalLibrary, globalFunction, 0, functionType);
                                         point += 27;
                                     }
@@ -277,7 +283,7 @@ namespace RainScript.VirtualMachine
                             {
                                 case FunctionType.Global:
                                     {
-                                        library.LocalToGlobal(libraryIndex, *(Function*)(library.code + point + 19), out var globalLibrary, out var globalFunction);
+                                        library.LocalToGlobal(libraryIndex, *(Function*)(library.code + point + 19), false, out var globalLibrary, out var globalFunction);
                                         *coroutine = kernel.coroutineAgency.InternalInvoker(kernel.libraryAgency[globalLibrary].GetFunctionHandle(globalFunction)).instanceID;
                                         flag = 0;
                                         point += 27;
@@ -522,6 +528,7 @@ namespace RainScript.VirtualMachine
                                 }
                             }
                             break;
+
                         }
                     case CommandMacro.BASE_CoroutineStart:
                         {
@@ -692,7 +699,7 @@ namespace RainScript.VirtualMachine
                     case CommandMacro.FUNCTION_Call://[1,4]library [5,12]Function
                         {
                             bottom = top;
-                            library.LocalToGlobal(*(uint*)(library.code + point + 1), *(Function*)(library.code + point + 5), out var globalLibrary, out var globalFunction);
+                            library.LocalToGlobal(*(uint*)(library.code + point + 1), *(Function*)(library.code + point + 5), false, out var globalLibrary, out var globalFunction);
                             library = kernel.libraryAgency[globalLibrary];
                             point = library.GetFunctionEntry(globalFunction);
                         }
@@ -749,7 +756,15 @@ namespace RainScript.VirtualMachine
                                     point = library.GetFunctionEntry(delegateInfo->function);
                                     break;
                                 case FunctionType.Native:
-                                    kernel.libraryAgency[delegateInfo->library].NativeInvoker(delegateInfo->function, stack, top);
+                                    try
+                                    {
+                                        kernel.libraryAgency[delegateInfo->library].NativeInvoker(delegateInfo->function, stack, top);
+                                    }
+                                    catch (Exception)
+                                    {
+                                        flag = (long)ExitCode.NativeException;
+                                        goto error;
+                                    }
                                     point += 5;
                                     break;
                                 case FunctionType.Member:
@@ -762,12 +777,15 @@ namespace RainScript.VirtualMachine
                                 case FunctionType.Interface:
                                 default: throw ExceptionGeneratorVM.InvalidFunctionType(delegateInfo->type);
                             }
+                            break;
+                            error:
+                            goto case CommandMacro.BASE_Exit;
                         }
-                        break;
                     case CommandMacro.FUNCTION_NativeCall://[1,4]引用程序集编号 [5,12]Function
                         try
                         {
-                            kernel.libraryAgency[library.LocalToGlobal(*(uint*)(library.code + point + 1))].NativeInvoker(*(Function*)(library.code + point + 5), stack, top);
+                            library.LocalToGlobal(*(uint*)(library.code + point + 1), *(Function*)(library.code + point + 5), true, out var globalLibrary, out var globalFunction);
+                            kernel.libraryAgency[globalLibrary].NativeInvoker(globalFunction, stack, top);
                         }
                         catch (Exception)
                         {
