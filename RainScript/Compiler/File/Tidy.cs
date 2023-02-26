@@ -38,7 +38,7 @@ namespace RainScript.Compiler.File
                         }
                     if (space != null) relyCompilings.Add((Compiling.Space)space);
                 }
-                else if (lexicals.Count == 1 && lexicals[0].anchor.Segment == KeyWorld.KERNEL) relyReferences.Add(RelyKernel.kernel);
+                else if (lexicals.Count == 1 && lexicals[0].anchor.Segment == KeyWord.KERNEL) relyReferences.Add(RelyKernel.kernel);
                 else
                 {
                     var name = lexicals[0].anchor.Segment;

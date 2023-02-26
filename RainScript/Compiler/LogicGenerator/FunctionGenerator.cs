@@ -266,14 +266,14 @@ namespace RainScript.Compiler.LogicGenerator
             if (function.declaration.code == DeclarationCode.MemberFunction)
             {
                 definition = parameter.manager.library.definitions[(int)function.declaration.definitionIndex];
-                localContext.AddLocal(KeyWorld.THIS, definition.name, new CompilingType(new CompilingDefinition(definition.declaration), 0));
+                localContext.AddLocal(KeyWord.THIS, definition.name, new CompilingType(new CompilingDefinition(definition.declaration), 0));
                 for (int i = 0; i < parameters.Length; i++) localContext.AddLocal(function.parameterNames[i], parameters[i]);
             }
             else if (function.declaration.code == DeclarationCode.ConstructorFunction)
             {
                 definition = parameter.manager.library.definitions[(int)function.declaration.definitionIndex];
                 var type = new CompilingType(new CompilingDefinition(definition.declaration), 0);
-                var thisValue = localContext.AddLocal(KeyWorld.THIS, definition.name, type);
+                var thisValue = localContext.AddLocal(KeyWord.THIS, definition.name, type);
                 var thisExpression = new VariableLocalExpression(definition.name, thisValue.Declaration, TokenAttribute.Value, type);
                 for (int i = 0; i < parameters.Length; i++) localContext.AddLocal(function.parameterNames[i], parameters[i]);
                 var logic = definition.constructorInvaokerExpressions[function.declaration.overloadIndex];
@@ -283,8 +283,8 @@ namespace RainScript.Compiler.LogicGenerator
                         if (Lexical.TryAnalysis(lexicals, logic.exprssion.textInfo, logic.exprssion.Segment, parameter.exceptions) && lexicals.Count > 0)
                         {
                             var lexical = lexicals[0];
-                            if (lexical.anchor.Segment == KeyWorld.THIS) ParseCtorInvoker(parameter, function, lexical.anchor, lexicals, localContext, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Constructor, definition.constructors, 0, definition.declaration.index), thisExpression);
-                            else if (lexical.anchor.Segment == KeyWorld.BASE)
+                            if (lexical.anchor.Segment == KeyWord.THIS) ParseCtorInvoker(parameter, function, lexical.anchor, lexicals, localContext, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Constructor, definition.constructors, 0, definition.declaration.index), thisExpression);
+                            else if (lexical.anchor.Segment == KeyWord.BASE)
                             {
                                 if (parameter.manager.TryGetDefinition(definition.parent, out var result))
                                 {
@@ -328,7 +328,7 @@ namespace RainScript.Compiler.LogicGenerator
             statements = new BlockStatement(default, parameter.pool);
             var localContext = new LocalContext(parameter.pool);
             localContext.PushBlock(parameter.pool);
-            localContext.AddLocal(KeyWorld.THIS, definition.name, new CompilingType(new CompilingDefinition(definition.declaration), 0));
+            localContext.AddLocal(KeyWord.THIS, definition.name, new CompilingType(new CompilingDefinition(definition.declaration), 0));
             this.definition = definition;
             parameters = returns = new CompilingType[0];
             parameterNames = new Anchor[0];
@@ -445,7 +445,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 parameter.exceptions.Add(new Anchor(logicBody.body.text, line.segment), CompilingExceptionCode.SYNTAX_INDENT);
                                 break;
                             }
-                            else if (Lexical.TryAnalysisFirst(logicBody.body.text, line.segment, 0, out var lexical, parameter.exceptions) && lexical.anchor.Segment != KeyWorld.ELIF && lexical.anchor.Segment != KeyWorld.ELSE)
+                            else if (Lexical.TryAnalysisFirst(logicBody.body.text, line.segment, 0, out var lexical, parameter.exceptions) && lexical.anchor.Segment != KeyWord.ELIF && lexical.anchor.Segment != KeyWord.ELSE)
                             {
                                 statement = statementStack.Pop();
                                 while (statementStack.Count > 0 && statementStack.Peek().indent == line.indent)
@@ -462,8 +462,8 @@ namespace RainScript.Compiler.LogicGenerator
                         if (Lexical.TryAnalysis(lexicals, logicBody.body.text, line.segment, parameter.exceptions) && lexicals.Count > 0)
                         {
                             var anchor = lexicals[0].anchor;
-                            if (anchor.Segment == KeyWorld.IF) ParseBranchStatement(parameter, statementStack.Peek().statements, lexicals, anchor, context, localContext, destructor);
-                            else if (anchor.Segment == KeyWorld.ELIF)
+                            if (anchor.Segment == KeyWord.IF) ParseBranchStatement(parameter, statementStack.Peek().statements, lexicals, anchor, context, localContext, destructor);
+                            else if (anchor.Segment == KeyWord.ELIF)
                             {
                                 var statements = statementStack.Peek().statements;
                                 if (statements.Count > 0)
@@ -486,7 +486,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             }
-                            else if (anchor.Segment == KeyWorld.ELSE)
+                            else if (anchor.Segment == KeyWord.ELSE)
                             {
                                 if (lexicals.Count > 1) parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                                 var statements = statementStack.Peek().statements;
@@ -506,7 +506,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             }
-                            else if (anchor.Segment == KeyWorld.WHILE)
+                            else if (anchor.Segment == KeyWord.WHILE)
                             {
                                 if (lexicals.Count > 1)
                                 {
@@ -520,7 +520,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else statementStack.Peek().statements.Add(new WhileStatement(anchor, null, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
                             }
-                            else if (anchor.Segment == KeyWorld.FOR)
+                            else if (anchor.Segment == KeyWord.FOR)
                             {
                                 if (lexicals.Count > 1)
                                 {
@@ -534,7 +534,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
                             }
-                            else if (anchor.Segment == KeyWorld.BREAK)
+                            else if (anchor.Segment == KeyWord.BREAK)
                             {
                                 if (lexicals.Count > 1)
                                 {
@@ -548,7 +548,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else statementStack.Peek().statements.Add(new BreakStatement(anchor, null));
                             }
-                            else if (anchor.Segment == KeyWorld.CONTINUE)
+                            else if (anchor.Segment == KeyWord.CONTINUE)
                             {
                                 if (lexicals.Count > 1)
                                 {
@@ -562,7 +562,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else statementStack.Peek().statements.Add(new ContinueStatement(anchor, null));
                             }
-                            else if (anchor.Segment == KeyWorld.RETURN)
+                            else if (anchor.Segment == KeyWord.RETURN)
                             {
                                 if (lexicals.Count > 1)
                                 {
@@ -576,7 +576,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else statementStack.Peek().statements.Add(new ReturnStatement(anchor, null));
                             }
-                            else if (anchor.Segment == KeyWorld.WAIT)
+                            else if (anchor.Segment == KeyWord.WAIT)
                             {
                                 if (lexicals.Count > 1)
                                 {
@@ -595,7 +595,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else statementStack.Peek().statements.Add(new WaitStatement(anchor, null));
                             }
-                            else if (anchor.Segment == KeyWorld.EXIT)
+                            else if (anchor.Segment == KeyWord.EXIT)
                             {
                                 if (lexicals.Count > 1)
                                 {
@@ -609,13 +609,13 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
                             }
-                            else if (anchor.Segment == KeyWorld.TRY)
+                            else if (anchor.Segment == KeyWord.TRY)
                             {
                                 if (lexicals.Count > 1) parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                                 else if (parameter.command.ignoreExit) parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_IGNORE_EXIT_NONSUPPORT_TRY);
                                 else statementStack.Peek().statements.Add(new TryStatement(anchor, new BlockStatement(anchor, parameter.pool), localContext));
                             }
-                            else if (anchor.Segment == KeyWorld.CATCH)
+                            else if (anchor.Segment == KeyWord.CATCH)
                             {
                                 var statements = statementStack.Peek().statements;
                                 if (statements.Count > 0 && statements[-1] is TryStatement tryStatement && tryStatement.catchBlock == null && tryStatement.finallyBlock == null)
@@ -634,7 +634,7 @@ namespace RainScript.Compiler.LogicGenerator
                                 }
                                 else parameter.exceptions.Add(anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             }
-                            else if (anchor.Segment == KeyWorld.FINALLY)
+                            else if (anchor.Segment == KeyWord.FINALLY)
                             {
                                 var statements = statementStack.Peek().statements;
                                 if (statements.Count > 0 && statements[-1] is TryStatement tryStatement && tryStatement.finallyBlock == null) tryStatement.finallyBlock = new BlockStatement(anchor, parameter.pool);

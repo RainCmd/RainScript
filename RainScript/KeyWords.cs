@@ -101,7 +101,7 @@
             return string.IsNullOrEmpty(segment.value);
         }
     }
-    internal static class KeyWorld
+    internal static class KeyWord
     {
         public const string NAMESPACE = "namespace";
         public const string IMPORT = "import";//导入库
@@ -156,7 +156,7 @@
         public const string CATCH = "catch";
         public const string FINALLY = "finally";
 
-        public static bool IsKeyWorld(StringSegment segment)
+        public static bool IsKeyWord(StringSegment segment)
         {
             if (segment == NAMESPACE) return true;
             if (segment == IMPORT) return true;

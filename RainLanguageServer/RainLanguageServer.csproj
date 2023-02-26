@@ -109,7 +109,7 @@
   <ItemGroup>
     <Compile Include="Anchor.cs" />
     <Compile Include="Document.cs" />
-    <Compile Include="KeyWorlds.cs" />
+    <Compile Include="KeyWords.cs" />
     <Compile Include="Library.cs" />
     <Compile Include="LogMessageParams.cs" />
     <Compile Include="Position.cs" />

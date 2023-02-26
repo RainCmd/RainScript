@@ -73,7 +73,7 @@ namespace RainScript
         public static readonly Type ENTITY = new Type(LIBRARY.KERNEL, TypeCode.Entity, 13, 0);
         public static readonly Type ARRAY = new Type(LIBRARY.KERNEL, TypeCode.Handle, 14, 0);
         private static readonly Type[] types = { INVALID, BOOL, BYTE, INTEGER, REAL, REAL2, REAL3, REAL4, STRING, HANDLE, INTERFACE, FUNCTION, COROUTINE, ENTITY, ARRAY };
-        private static readonly string[] names = { "invalid", KeyWorld.BOOL, KeyWorld.BYTE, KeyWorld.INTEGER, KeyWorld.REAL, KeyWorld.REAL2, KeyWorld.REAL3, KeyWorld.REAL4, KeyWorld.STRING, KeyWorld.HANDLE, KeyWorld.INTERFACE, KeyWorld.FUNCTION, KeyWorld.COROUTINE, KeyWorld.ENTITY, KeyWorld.ARRAY };
+        private static readonly string[] names = { "invalid", KeyWord.BOOL, KeyWord.BYTE, KeyWord.INTEGER, KeyWord.REAL, KeyWord.REAL2, KeyWord.REAL3, KeyWord.REAL4, KeyWord.STRING, KeyWord.HANDLE, KeyWord.INTERFACE, KeyWord.FUNCTION, KeyWord.COROUTINE, KeyWord.ENTITY, KeyWord.ARRAY };
         public static Type GetType(int index) { return types[index]; }
         public static string GetName(int index) { return names[index]; }
     }

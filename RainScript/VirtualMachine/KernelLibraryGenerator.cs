@@ -11,7 +11,7 @@ namespace RainScript
 {
     public partial class Library
     {
-        private Library(byte[] code, byte[] data, DefinitionInfo[] definitions, VariableInfo[] variables, MethodInfo[] methodInfos, ExportDefinition[] exportDefinitions, ExportIndex[] exportVariables, ExportMethod[] exportMethods) : base(KeyWorld.KERNEL, new Space[0], exportDefinitions, exportVariables, new ExportIndex[0], new ExportIndex[0], exportMethods, new ExportInterface[0], new ExportMethod[0])
+        private Library(byte[] code, byte[] data, DefinitionInfo[] definitions, VariableInfo[] variables, MethodInfo[] methodInfos, ExportDefinition[] exportDefinitions, ExportIndex[] exportVariables, ExportMethod[] exportMethods) : base(KeyWord.KERNEL, new Space[0], exportDefinitions, exportVariables, new ExportIndex[0], new ExportIndex[0], exportMethods, new ExportInterface[0], new ExportMethod[0])
         {
             this.code = code;
             constantData = data;
