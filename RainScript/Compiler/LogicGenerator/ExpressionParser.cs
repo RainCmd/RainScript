@@ -3549,7 +3549,6 @@ namespace RainScript.Compiler.LogicGenerator
             using (var expressionStack = pool.GetStack<Expression>())
             using (var tokenStack = pool.GetStack<Token>())
             {
-                var exceptionCount = exceptions.Count;
                 var attribute = TokenAttribute.None;
                 for (int index = 0; index < lexicals.Count; index++)
                 {

@@ -69,6 +69,7 @@ namespace RainScript.VirtualMachine
         }
         private void Run()
         {
+            if (library == null) return;
             kernel.coroutineAgency.invoking = this;
             while (library != null)
             {
@@ -686,7 +687,11 @@ namespace RainScript.VirtualMachine
                     case CommandMacro.FUNCTION_Return:
                         {
                             var frame = (Frame*)(stack + bottom);
-                            if (frame->libraryIndex == LIBRARY.INVALID) library = null;
+                            if (frame->libraryIndex == LIBRARY.INVALID)
+                            {
+                                library = null;
+                                return;
+                            }
                             else
                             {
                                 top = bottom;

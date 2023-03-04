@@ -72,7 +72,7 @@
             var sourceParameter = new GeneratorParameter(parameter, 1);
             expression.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL3_TYPE);
-            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(sourceParameter.results[0]);
         }
@@ -85,7 +85,7 @@
             var sourceParameter = new GeneratorParameter(parameter, 1);
             expression.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL4_TYPE);
-            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(sourceParameter.results[0]);
         }
@@ -98,7 +98,7 @@
             var sourceParameter = new GeneratorParameter(parameter, 1);
             expression.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL2_TYPE);
-            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(sourceParameter.results[0]);
         }
@@ -111,7 +111,7 @@
             var sourceParameter = new GeneratorParameter(parameter, 1);
             expression.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL4_TYPE);
-            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_24);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_24);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(sourceParameter.results[0]);
         }
@@ -124,7 +124,7 @@
             var sourceParameter = new GeneratorParameter(parameter, 1);
             expression.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL2_TYPE);
-            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_16);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_16);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(sourceParameter.results[0]);
         }
@@ -137,7 +137,7 @@
             var sourceParameter = new GeneratorParameter(parameter, 1);
             expression.Generator(sourceParameter);
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, RelyKernel.REAL3_TYPE);
-            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Array2Local_24);
+            parameter.generator.WriteCode(CommandMacro.ASSIGNMENT_Local2Local_24);
             parameter.generator.WriteCode(parameter.results[0]);
             parameter.generator.WriteCode(sourceParameter.results[0]);
         }
