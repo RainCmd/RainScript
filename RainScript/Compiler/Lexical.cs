@@ -63,7 +63,7 @@
         Word,                   // 单词
         Backslash,              // 反斜杠\
     }
-    internal struct Lexical
+    internal readonly struct Lexical
     {
         public readonly LexicalType type;
         public readonly Anchor anchor;
@@ -179,12 +179,7 @@
                         return true;
                     case '/':
                         if (segment.Equals('=', index + 1)) lexical = new Lexical(LexicalType.DivAssignment, text, segment[index, index + 1]);
-                        else if (segment.Equals('/', index + 1))
-                        {
-                            var i = index + 2;
-                            while (i < segment.Length && segment[i] != '\n') i++;
-                            lexical = new Lexical(LexicalType.Annotation, text, segment[index, index - 1]);
-                        }
+                        else if (segment.Equals('/', index + 1)) lexical = new Lexical(LexicalType.Annotation, text, segment[index, index - 1]);
                         else lexical = new Lexical(LexicalType.Div, text, segment[index, index]);
                         return true;
                     case '%':

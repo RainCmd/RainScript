@@ -602,56 +602,40 @@ namespace RainScript.Compiler.LogicGenerator
                         case LexicalType.BracketRight0:
                             if (stack.Count > 0)
                             {
-                                var breacket = stack.Pop();
-                                if (breacket.type == LexicalType.BracketLeft0 || breacket.type == LexicalType.QuestionInvoke)
+                                var bracket = stack.Pop();
+                                if (bracket.type == LexicalType.BracketLeft0 || bracket.type == LexicalType.QuestionInvoke)
                                 {
                                     if (flag.ContainAny(SplitFlag.Bracket0) && stack.Count == 0) return true;
                                     break;
                                 }
-                                else
-                                {
-                                    exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
-                                    exceptions.Add(breacket.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
-                                    return false;
-                                }
+                                exceptions.Add(bracket.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             }
                             exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             return false;
                         case LexicalType.BracketRight1:
                             if (stack.Count > 0)
                             {
-                                var breacket = stack.Pop();
-                                if (breacket.type == LexicalType.BracketLeft1 || breacket.type == LexicalType.QuestionIndex)
+                                var bracket = stack.Pop();
+                                if (bracket.type == LexicalType.BracketLeft1 || bracket.type == LexicalType.QuestionIndex)
                                 {
                                     if (flag.ContainAny(SplitFlag.Bracket1) && stack.Count == 0) return true;
                                     break;
                                 }
-                                else
-                                {
-                                    exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
-                                    exceptions.Add(breacket.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
-                                    return false;
-                                }
+                                exceptions.Add(bracket.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             }
                             exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             return false;
                         case LexicalType.BracketRight2:
                             if (stack.Count > 0)
                             {
-                                var breacket = stack.Pop();
-                                if (breacket.type == LexicalType.BracketLeft2)
+                                var bracket = stack.Pop();
+                                if (bracket.type == LexicalType.BracketLeft2)
                                 {
                                     if (flag.ContainAny(SplitFlag.Bracket2) && stack.Count == 0) return true;
                                     break;
                                 }
-                                else
-                                {
-                                    exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
-                                    exceptions.Add(breacket.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
-                                    return false;
-                                }
+                                exceptions.Add(bracket.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             }
-                            else if (flag.ContainAny(SplitFlag.Bracket2)) return true;
                             exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_MISSING_PAIRED_SYMBOL);
                             return false;
                         case LexicalType.Comma:
