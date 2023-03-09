@@ -123,7 +123,7 @@ namespace RainScript.Compiler.LogicGenerator
         }
         private bool CanConvert(CompilingType source, CompilingType type, out bool convert, out uint measure)
         {
-            if (source == RelyKernel.BLURRY_TYPE || source == RelyKernel.NULL_TYPE)
+            if (source == RelyKernel.BLURRY_TYPE || type == RelyKernel.NULL_TYPE)
             {
                 convert = default;
                 measure = default;
@@ -133,7 +133,13 @@ namespace RainScript.Compiler.LogicGenerator
             {
                 convert = false;
                 measure = 0;
-                return source != RelyKernel.BLURRY_TYPE && source != RelyKernel.NULL_TYPE;
+                return source != RelyKernel.NULL_TYPE;
+            }
+            else if (source == RelyKernel.NULL_TYPE)
+            {
+                convert = false;
+                measure = 0;
+                return type == RelyKernel.ENTITY_TYPE || type.IsHandle;
             }
             else if (type == source)
             {
@@ -141,7 +147,7 @@ namespace RainScript.Compiler.LogicGenerator
                 measure = 0;
                 return true;
             }
-            else if (type == RelyKernel.REAL_TYPE)
+            else if (type == RelyKernel.INTEGER_TYPE)
             {
                 if (source == RelyKernel.BYTE_TYPE)
                 {
