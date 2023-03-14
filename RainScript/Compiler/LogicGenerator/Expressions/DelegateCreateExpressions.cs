@@ -23,14 +23,12 @@
     }
     internal class DelegateCreateLambdaClosureFunctionExpression : Expression
     {
-        public readonly Declaration lambda;
         private readonly Declaration definition;
         private readonly Declaration[] sourceVariables;
         private readonly CompilingType[] sourceTypes;
         public override TokenAttribute Attribute => TokenAttribute.Callable | TokenAttribute.Value;
-        public DelegateCreateLambdaClosureFunctionExpression(Anchor anchor, Declaration lambda, Declaration definition, Declaration[] sourceVariables, CompilingType[] sourceTypes, CompilingType type) : base(anchor, type)
+        public DelegateCreateLambdaClosureFunctionExpression(Anchor anchor, Declaration definition, Declaration[] sourceVariables, CompilingType[] sourceTypes, CompilingType type) : base(anchor, type)
         {
-            this.lambda = lambda;
             this.definition = definition;
             this.sourceVariables = sourceVariables;
             this.sourceTypes = sourceTypes;
@@ -92,7 +90,6 @@
             }
 
             parameter.results[0] = parameter.variable.DecareTemporary(parameter.pool, returns[0]);
-            var lambda = parameter.relied.Convert(this.lambda);
             var definition = parameter.relied.Convert(returns[0].definition).RuntimeDefinition;
             parameter.generator.WriteCode(CommandMacro.BASE_CreateDelegate);
             parameter.generator.WriteCode(parameter.results[0]);

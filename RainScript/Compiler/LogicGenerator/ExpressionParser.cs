@@ -112,7 +112,7 @@ namespace RainScript.Compiler.LogicGenerator
             var method = new Compiling.Method((uint)manager.library.methods.Count, DeclarationCode.Lambda, "", context.space);
             method.AddFunction(function);
             manager.library.methods.Add(method);
-            if (closure.TryGetClosureVariables(declaration.index, out var definition, out var sourceVariables, out var sourceTypes)) expression = new DelegateCreateLambdaClosureFunctionExpression(anchor, declaration, definition, sourceVariables, sourceTypes, functionType);
+            if (closure.TryGetClosureVariables(declaration.index, out var definition, out var sourceVariables, out var sourceTypes)) expression = new DelegateCreateLambdaClosureFunctionExpression(anchor, definition, sourceVariables, sourceTypes, functionType);
             else expression = new DelegateCreateLambdaFunctionExpression(default, declaration, functionType);
         }
         private bool IsDecidedTypes(CompilingType[] types)
