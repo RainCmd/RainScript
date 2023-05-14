@@ -286,13 +286,9 @@ namespace RainScript.Compiler.LogicGenerator
                             if (lexical.anchor.Segment == KeyWord.THIS) ParseCtorInvoker(parameter, function, lexical.anchor, lexicals, localContext, new Declaration(LIBRARY.SELF, Visibility.Public, DeclarationCode.Constructor, definition.constructors, 0, definition.declaration.index), thisExpression);
                             else if (lexical.anchor.Segment == KeyWord.BASE)
                             {
-                                if (parameter.manager.TryGetDefinition(definition.parent, out var result))
-                                {
-                                    if (result.Constructor == LIBRARY.METHOD_INVALID) parameter.exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
-                                    else ParseCtorInvoker(parameter, function, lexical.anchor, lexicals, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
-                                    InitMemberVariable(parameter, thisExpression);
-                                }
-                                else throw ExceptionGeneratorCompiler.Unknown();
+                                if (!parameter.manager.TryGetDefinition(definition.parent, out var result)) throw ExceptionGeneratorCompiler.Unknown();
+                                if (result.Constructor == LIBRARY.METHOD_INVALID) parameter.exceptions.Add(lexical.anchor, CompilingExceptionCode.GENERATOR_FUNCTION_NOT_FOUND);
+                                else ParseCtorInvoker(parameter, function, lexical.anchor, lexicals, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
                             }
                             else
                             {
@@ -300,19 +296,12 @@ namespace RainScript.Compiler.LogicGenerator
                                 return;
                             }
                         }
-                        else
-                        {
-                            if (parameter.manager.TryGetDefinition(definition.parent, out var result) && result.Declaration.library != LIBRARY.KERNEL)
-                                ParseCtorInvoker(parameter, function, logic.exprssion, null, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
-                            InitMemberVariable(parameter, thisExpression);
-                        }
+                        else if (parameter.manager.TryGetDefinition(definition.parent, out var result) && result.Declaration.library != LIBRARY.KERNEL)
+                            ParseCtorInvoker(parameter, function, logic.exprssion, null, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
                 }
-                else
-                {
-                    if (parameter.manager.TryGetDefinition(definition.parent, out var result) && result.Declaration.library != LIBRARY.KERNEL)
-                        ParseCtorInvoker(parameter, function, function.name, null, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
-                    InitMemberVariable(parameter, thisExpression);
-                }
+                else if (parameter.manager.TryGetDefinition(definition.parent, out var result) && result.Declaration.library != LIBRARY.KERNEL)
+                    ParseCtorInvoker(parameter, function, function.name, null, localContext, new Declaration(result.Declaration.library, Visibility.Public, DeclarationCode.Constructor, result.Constructor, 0, result.Declaration.index), thisExpression);
+                InitMemberVariable(parameter, thisExpression);
             }
             else for (int i = 0; i < parameters.Length; i++) localContext.AddLocal(function.parameterNames[i], parameters[i]);
             if ((bool)function.body.body) Parse(parameter, function.space, function.body, localContext, false);

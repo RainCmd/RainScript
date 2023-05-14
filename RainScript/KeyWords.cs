@@ -150,6 +150,7 @@
         public const string IS = "is";
         public const string AS = "as";
         public const string START = "start";//开启新的协程
+        public const string NEW = "new";//创建新的协程
         public const string WAIT = "wait";
         public const string EXIT = "exit";
         public const string TRY = "try";
@@ -205,6 +206,7 @@
             if (segment == IS) return true;
             if (segment == AS) return true;
             if (segment == START) return true;
+            if (segment == NEW) return true;
             if (segment == WAIT) return true;
             if (segment == EXIT) return true;
             if (segment == TRY) return true;

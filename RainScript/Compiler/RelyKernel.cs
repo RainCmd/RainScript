@@ -74,9 +74,9 @@
                 CreateDefinition(KeyWord.HANDLE, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Handle, 18, 2),
                 CreateDefinition(KeyWord.INTERFACE, handleDefinition, DeclarationCode.Definition, TypeCode.Interface, 20, 0),
                 CreateDefinition(KeyWord.FUNCTION, handleDefinition, DeclarationCode.Definition, TypeCode.Function, 20, 0),
-                CreateDefinition(KeyWord.COROUTINE, handleDefinition, DeclarationCode.Definition, TypeCode.Coroutine, 20, 6),
-                CreateDefinition(KeyWord.ENTITY, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Entity, 26, 1),
-                CreateDefinition(KeyWord.ARRAY, handleDefinition, DeclarationCode.Definition, (TypeCode)14, 27, 1),
+                CreateDefinition(KeyWord.COROUTINE, handleDefinition, DeclarationCode.Definition, TypeCode.Coroutine, 20, 7),
+                CreateDefinition(KeyWord.ENTITY, CompilingDefinition.INVALID, DeclarationCode.Definition, TypeCode.Entity, 27, 1),
+                CreateDefinition(KeyWord.ARRAY, handleDefinition, DeclarationCode.Definition, (TypeCode)14, 28, 1),
             };
             foreach (var item in definitions) kernel.declarations.Add(item.name, item.declaration);
 

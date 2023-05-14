@@ -79,9 +79,9 @@ namespace RainScript
                 CreateKernelDefinitionInfo(TypeDefinition.INVALID, 18, 2),//TypeCode.Handle,
                 CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 20, 0),//TypeCode.Interface,
                 CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 20, 0),//TypeCode.Function,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 20, 6),//TypeCode.Coroutine,
-                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 26, 1),//TypeCode.Entity,
-                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 27, 1),//数组
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 20, 7),//TypeCode.Coroutine,
+                CreateKernelDefinitionInfo(TypeDefinition.INVALID, 27, 1),//TypeCode.Entity,
+                CreateKernelDefinitionInfo(KERNEL_TYPE.HANDLE.definition, 28, 1),//数组
              };
             var variables = new VariableInfo[KernelConstant.constants.Length];
             for (int i = 0; i < variables.Length; i++)

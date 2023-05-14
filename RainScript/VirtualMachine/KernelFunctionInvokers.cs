@@ -259,6 +259,7 @@ namespace RainScript.VirtualMachine
                 new KernelMemberMethodInvoker(handle_GetHandleID),
                 new KernelMemberMethodInvoker(handle_ToString),
 
+                new KernelMemberMethodInvoker(coroutine_Start),
                 new KernelMemberMethodInvoker(coroutine_Abort),
                 new KernelMemberMethodInvoker(coroutine_GetState),
                 new KernelMemberMethodInvoker(coroutine_GetExitCode),
@@ -425,6 +426,18 @@ namespace RainScript.VirtualMachine
             kernel.stringAgency.Reference(value);
             kernel.stringAgency.Release(*result);
             *result = value;
+            return ExitCode.None;
+        }
+        private static ExitCode coroutine_Start(Kernel kernel, byte* stack, uint top)
+        {
+            var handle = *(uint*)(stack + top + Frame.SIZE);
+            var code = kernel.heapAgency.TryGetPoint(handle, out var point);
+            var instance = *(ulong*)point;
+            kernel.heapAgency.Release(handle);
+            if (code != ExitCode.None) return code;
+            var immediately = *(bool*)(stack + top + Frame.SIZE + TypeCode.Handle.FieldSize());
+            var ignoreWait = *(bool*)(stack + top + Frame.SIZE + TypeCode.Handle.FieldSize() + TypeCode.Bool.FieldSize());
+            kernel.coroutineAgency.GetInternalInvoker(instance).Start(immediately, ignoreWait);
             return ExitCode.None;
         }
         private static ExitCode coroutine_Abort(Kernel kernel, byte* stack, uint top)

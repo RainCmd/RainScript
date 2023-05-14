@@ -85,10 +85,12 @@
     internal class BlurryCoroutineExpression : Expression
     {
         public readonly Expression invoker;
+        public readonly bool start;
         public override TokenAttribute Attribute => TokenAttribute.Value;
-        public BlurryCoroutineExpression(Anchor anchor, Expression invoker) : base(anchor, RelyKernel.BLURRY_TYPE)
+        public BlurryCoroutineExpression(Anchor anchor, Expression invoker, bool start) : base(anchor, RelyKernel.BLURRY_TYPE)
         {
             this.invoker = invoker;
+            this.start = start;
         }
         public override void Generator(GeneratorParameter parameter)
         {
@@ -199,8 +201,11 @@
                 parameter.generator.SetCodeAddress(address);
             }
             else parameter.exceptions.Add(anchor, CompilingExceptionCode.COMPILING_INVALID_DEFINITION);
-            parameter.generator.WriteCode(CommandMacro.BASE_CoroutineStart);
-            parameter.generator.WriteCode(parameter.results[0]);
+            if (start)
+            {
+                parameter.generator.WriteCode(CommandMacro.BASE_CoroutineStart);
+                parameter.generator.WriteCode(parameter.results[0]);
+            }
         }
         private void Generator(Variable coroutine, GeneratorParameter parameter)
         {

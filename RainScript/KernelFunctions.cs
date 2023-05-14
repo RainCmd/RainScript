@@ -92,6 +92,7 @@
                 new KernelMethod("GetHandleID", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("ToString", new Function(new Type[0], KERNEL_TYPE.STRING)),
                 //coroutine
+                new KernelMethod("Start", new Function(new Type[]{ KERNEL_TYPE.BOOL, KERNEL_TYPE.BOOL })),
                 new KernelMethod("Abort", new Function(new Type[]{ KERNEL_TYPE.INTEGER })),
                 new KernelMethod("GetState", new Function(new Type[0], KERNEL_TYPE.INTEGER)),
                 new KernelMethod("GetExitCode", new Function(new Type[0], KERNEL_TYPE.INTEGER)),

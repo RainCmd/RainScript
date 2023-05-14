@@ -86,7 +86,7 @@ namespace RainScriptRunner
         }
         static bool TryLoadCfg(out Config config)
         {
-            var path = Environment.CurrentDirectory + "\\generator.cfg";
+            var path = Environment.CurrentDirectory + "\\generator.config";
             if (!File.Exists(path))
             {
                 Console.WriteLine("配置文件未找到：" + path);

@@ -40,9 +40,10 @@
 | for | 循环 | break | 跳出循环 |
 | continue | 跳过循环中后续语句 | return | 函数返回 |
 | is | 尝试类型转换，如果转换成功则返回true，否则返回false | as | 尝试类型转换，如果转换成功则返回对象，否则返回null |
-| start | 开启新的协程 | wait | 等待 |
-| exit | 终止协程，终止码必须非0 | try | try语句 |
-| catch | catch语句 | finally | finally语句 |
+| start | 开启新的协程 | new | 创建新的携程，不执行 |
+| wait | 等待 | exit | 终止协程，终止码必须非0 |
+| try | try语句 | catch | catch语句 |
+| finally | finally语句 |
 
 # 数据类型
 
@@ -538,7 +539,8 @@ class handle
     string ToString()
     
 class corouine
-    Abort(int)
+    Start(bool immediately, bool ignoreWait)    //immediately:立即执行一次 ignoreWait:忽略执行时遇到的wait关键字
+    Abort(int exitCode)
     int GetState()          //协程状态码 0:未开始执行；1:执行中; 2:执行完成; 3:被主动取消; 4:已失效
     int GetExitCode()       //当携程执行出现异常时可以通过该函数获取异常代码
     bool IsPause()
