@@ -116,11 +116,11 @@
     internal class ForStatement : LoopStatement
     {
         private readonly Expression front;
-        private readonly Expression[] backs;
-        public ForStatement(Anchor anchor, Expression front, Expression condition, Expression[] backs, BlockStatement loopBlock, BlockStatement elseBlock) : base(anchor, condition, loopBlock, elseBlock)
+        private readonly Expression back;
+        public ForStatement(Anchor anchor, Expression front, Expression condition, Expression back, BlockStatement loopBlock, BlockStatement elseBlock) : base(anchor, condition, loopBlock, elseBlock)
         {
             this.front = front;
-            this.backs = backs;
+            this.back = back;
         }
         public override void Generator(StatementGeneratorParameter parameter, Referencable<CodeAddress> exitPoint)
         {
@@ -134,18 +134,17 @@
                 var frontParameter = new Expressions.GeneratorParameter(parameter, front.returns.Length);
                 front.Generator(frontParameter);
             }
-            if (backs.Length == 0) parameter.generator.SetCodeAddress(loopPoint);
+            if (back == null) parameter.generator.SetCodeAddress(loopPoint);
             else using (var conditionPoint = new Referencable<CodeAddress>(parameter.pool))
                 {
                     parameter.generator.WriteCode(CommandMacro.BASE_Jump);
                     parameter.generator.WriteCode(conditionPoint);
                     parameter.generator.SetCodeAddress(loopPoint);
-                    foreach (var back in backs)
-                        using (new LogicBlockGenerator(parameter, exitPoint))
-                        {
-                            var backParameter = new Expressions.GeneratorParameter(parameter, back.returns.Length);
-                            back.Generator(backParameter);
-                        }
+                    using (new LogicBlockGenerator(parameter, exitPoint))
+                    {
+                        var backParameter = new Expressions.GeneratorParameter(parameter, back.returns.Length);
+                        back.Generator(backParameter);
+                    }
                     parameter.generator.SetCodeAddress(conditionPoint);
                 }
             parameter.AddBreakpoint(anchor);

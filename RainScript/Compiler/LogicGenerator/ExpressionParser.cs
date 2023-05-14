@@ -590,7 +590,7 @@ namespace RainScript.Compiler.LogicGenerator
             mismatchExpression = default;
             return true;
         }
-        private bool TrySub(ListSegment<Lexical> lexicals, SplitFlag flag, out int index)
+        public bool TrySub(ListSegment<Lexical> lexicals, SplitFlag flag, out int index)
         {
             using (var stack = pool.GetStack<Lexical>())
             {
@@ -646,6 +646,9 @@ namespace RainScript.Compiler.LogicGenerator
                             return false;
                         case LexicalType.Comma:
                             if (stack.Count == 0 && flag.ContainAny(SplitFlag.Comma)) return true;
+                            break;
+                        case LexicalType.Semicolon:
+                            if (stack.Count == 0 && flag.ContainAny(SplitFlag.Semicolon)) return true;
                             break;
                         case LexicalType.Assignment:
                             if (stack.Count == 0 && flag.ContainAny(SplitFlag.Assignment)) return true;
@@ -747,6 +750,27 @@ namespace RainScript.Compiler.LogicGenerator
                 return false;
             }
         }
+        private ListSegment<Lexical> RemoveBracket(ListSegment<Lexical> lexicals)
+        {
+            if (lexicals[0].type == LexicalType.BracketLeft0)
+            {
+                var deep = 1;
+                for (var i = 1; i < lexicals.Count; i++)
+                {
+                    if (lexicals[i].type == LexicalType.BracketLeft0) deep++;
+                    else if (lexicals[i].type == LexicalType.BracketRight0)
+                    {
+                        deep--;
+                        if (deep == 0)
+                        {
+                            if (i == lexicals.Count - 1) return RemoveBracket(lexicals[1, -2]);
+                            else break;
+                        }
+                    }
+                }
+            }
+            return lexicals;
+        }
         private bool TryParseLambda(ListSegment<Lexical> lexicals, int lambdaIndex, out Expression result)
         {
             if (lambdaIndex < lexicals.Count)
@@ -754,24 +778,24 @@ namespace RainScript.Compiler.LogicGenerator
                 if (destructor) exceptions.Add(lexicals, CompilingExceptionCode.SYNTAX_DESTRUCTOR_ALLOC);
                 using (var parameters = pool.GetList<Anchor>())
                 {
-                    var index = 0;
-                    while (index < lambdaIndex)
+                    var parameterLexicals = RemoveBracket(lexicals[0, lambdaIndex - 1]);
+                    for (var index = 0; index < parameterLexicals.Count; index++)
                     {
-                        var lexical = lexicals[index];
-                        if (lexical.type == LexicalType.Word)
+                        var lexical = parameterLexicals[index];
+                        if ((index & 1) > 0)
+                        {
+                            if (lexical.type != LexicalType.Comma && lexical.type != LexicalType.Semicolon)
+                            {
+                                exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
+                                result = default;
+                                return false;
+                            }
+                        }
+                        else if (lexical.type == LexicalType.Word)
                         {
                             if (KeyWord.IsKeyWord(lexical.anchor.Segment)) exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_NAME_IS_KEY_WORLD);
                             parameters.Add(lexical.anchor);
                         }
-                        index++;
-                        if (index >= lambdaIndex) break;
-                        else if (lexical.type != LexicalType.Comma)
-                        {
-                            exceptions.Add(lexical.anchor, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
-                            result = default;
-                            return false;
-                        }
-                        index++;
                     }
                     if (lambdaIndex + 1 >= lexicals.Count) exceptions.Add(lexicals, CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
                     result = new BlurryLambdaExpression(GetAnchor(lexicals), parameters.ToArray(), lexicals[lambdaIndex + 1, -1]);
@@ -3528,6 +3552,8 @@ namespace RainScript.Compiler.LogicGenerator
         }
         public bool TryParse(ListSegment<Lexical> lexicals, out Expression result)
         {
+            lexicals = RemoveBracket(lexicals);
+            if (TrySub(lexicals, SplitFlag.Semicolon, out var semicolonIndex)) return TryParseComma(lexicals, semicolonIndex, out result);
             if (TrySub(lexicals, SplitFlag.Lambda | SplitFlag.Assignment | SplitFlag.Question, out var splitIndex))
             {
                 if (lexicals[splitIndex].type == LexicalType.Lambda) return TryParseLambda(lexicals, splitIndex, out result);
@@ -3860,6 +3886,7 @@ namespace RainScript.Compiler.LogicGenerator
                         case LexicalType.BracketRight1:
                         case LexicalType.BracketRight2:
                         case LexicalType.Comma:
+                        case LexicalType.Semicolon:
                         case LexicalType.Assignment: goto default;
                         #region operator
                         case LexicalType.Equals:
@@ -5020,7 +5047,7 @@ namespace RainScript.Compiler.LogicGenerator
             {
                 using (var expressions = pool.GetList<Expression>())
                 {
-                    while (TrySub(lexicals, SplitFlag.Comma, out var split))
+                    while (TrySub(lexicals, SplitFlag.Semicolon, out var split))
                     {
                         if (split > 0)
                         {

@@ -99,6 +99,19 @@ class TestClass                     //声明一个类 TestClass
 function Func()                     //声明一个函数指针（委托）类型 Func
 coroutine Coro                      //声明一个协程 Coro
 ```
+## 分号和逗号
+分号(';')与逗号(',')作用都是表达式中元组类型的分隔符，他们的区别是分号的分隔优先级比lambda表达式符号('=>')、问好运算符('?:')，赋值('=')
+以及赋值并计算的运算符优先级高，而逗号相反，另外分号分隔的元组有一定的类型推导能力，而逗号分隔的类型必须是确定的类型
+``` rs
+function int, int Delegate(int, int)
+Func(int, Delegate, int)
+Entry()
+    //以下两种写法作用是等价的
+    Func(123; (a; b) => (a + b; a - b); 321)
+    Func(123; a, b => a + b, a - b; 321)
+    //中间的lambda表达式需要根据函数参数类型推导，所以用逗号会报错
+    Func(123, (a, b => a + b, a - b), 321)
+```
 
 ## 循环
 - while省略条件表达式则默认一直循环
@@ -114,11 +127,11 @@ while
     //等价于:
     //if i++ > 10
     //   break
-for var i = 0, i < 10, i++
+for var i = 0; i < 10; i++
     //循环操作
 else
     //i>=10后会执行这里
-for (var x = 0, var y = 0), x < 10 && y < 10, x++, y += x
+for (var x = 0; var y = 0); x < 10 && y < 10; x++; y += x
     //循环操作
 ```
 

@@ -458,7 +458,7 @@ namespace RainScript.Compiler.File
                                                 break;
                                             }
                                         }
-                                        else if (lexicals[index].type != LexicalType.Comma)
+                                        else if (lexicals[index].type != LexicalType.Comma || lexicals[index].type != LexicalType.Semicolon)
                                         {
                                             exceptions.Add(lexicals, CompilingExceptionCode.SYNTAX_UNEXPECTED_LEXCAL);
                                             break;
@@ -679,7 +679,7 @@ namespace RainScript.Compiler.File
                         returns.Add(new Type(nameList, Lexical.ExtractDimension(lexicals, ref index)));
                         while (++index < lexicals.Count)
                         {
-                            if (lexicals[index].type == LexicalType.Comma)
+                            if (lexicals[index].type == LexicalType.Comma || lexicals[index].type == LexicalType.Semicolon)
                             {
                                 start = index + 1;
                                 if (Lexical.TryExtractName(lexicals, start, out index, out nameList, pool))
@@ -738,11 +738,11 @@ namespace RainScript.Compiler.File
                                 {
                                     lexical = lexicals[index];
                                     if (lexical.type == LexicalType.BracketRight0) return true;
-                                    else if (lexical.type != LexicalType.Comma) break;
+                                    else if (lexical.type != LexicalType.Comma && lexical.type != LexicalType.Semicolon) break;
                                 }
                                 else break;
                             }
-                            else if (lexical.type == LexicalType.Comma) parameters.Add(new Parameter(default, type));
+                            else if (lexical.type == LexicalType.Comma || lexical.type != LexicalType.Semicolon) parameters.Add(new Parameter(default, type));
                             else
                             {
                                 type.Dispose();

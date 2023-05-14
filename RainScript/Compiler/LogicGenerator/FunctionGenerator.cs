@@ -514,12 +514,30 @@ namespace RainScript.Compiler.LogicGenerator
                                 if (lexicals.Count > 1)
                                 {
                                     var parser = new ExpressionParser(parameter, context, localContext, destructor);
-                                    if (parser.TryParseTuple(lexicals[1, -1], out var expressions) && CheckForExpressions(parameter, anchor, expressions))
+                                    var forExpressionLexicals = lexicals[1, -1];
+                                    if (parser.TrySub(forExpressionLexicals, SplitFlag.Semicolon, out var forDefineIndex))
                                     {
-                                        var backs = new Expression[expressions.Length - 2];
-                                        System.Array.Copy(expressions, 2, backs, 0, backs.Length);
-                                        statementStack.Peek().statements.Add(new ForStatement(anchor, expressions[0], expressions[1], backs, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                                        if (parser.TryParse(forExpressionLexicals[0, forDefineIndex - 1], out var forDefineExpression))
+                                        {
+                                            forExpressionLexicals = forExpressionLexicals[forDefineIndex + 1, -1];
+                                            if (parser.TrySub(forExpressionLexicals, SplitFlag.Semicolon, out var forConditionIndex))
+                                            {
+                                                if (parser.TryParse(forExpressionLexicals[0, forConditionIndex - 1], out var forConditionExpression) && parser.TryParse(forExpressionLexicals[forConditionIndex + 1, -1], out var forExecuteExpression))
+                                                {
+                                                    if (forConditionExpression.returns.Length == 1 && forConditionExpression.returns[0] == RelyKernel.BOOL_TYPE)
+                                                        statementStack.Peek().statements.Add(new ForStatement(anchor, forDefineExpression, forConditionExpression, forExecuteExpression, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                                                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                                }
+                                            }
+                                            else if (parser.TryParse(forExpressionLexicals, out var forConditionExpression))
+                                            {
+                                                if (forConditionExpression.returns.Length == 1 && forConditionExpression.returns[0] != RelyKernel.BOOL_TYPE)
+                                                    statementStack.Peek().statements.Add(new ForStatement(anchor, forDefineExpression, forConditionExpression, null, new BlockStatement(anchor, parameter.pool), new BlockStatement(anchor, parameter.pool)));
+                                                else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
+                                            }
+                                        }
                                     }
+                                    else parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
                                 }
                                 else parameter.exceptions.Add(lexicals[1, -1], CompilingExceptionCode.GENERATOR_MISSING_EXPRESSION);
                             }
@@ -638,20 +656,6 @@ namespace RainScript.Compiler.LogicGenerator
                         }
                 }
             }
-        }
-        private bool CheckForExpressions(GeneratorParameter parameter, Anchor anchor, Expression[] expressions)
-        {
-            if (expressions.Length < 2)
-            {
-                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                return false;
-            }
-            if (expressions[1].returns.Length != 1 || expressions[1].returns[0] != RelyKernel.BOOL_TYPE)
-            {
-                parameter.exceptions.Add(anchor, CompilingExceptionCode.GENERATOR_TYPE_MISMATCH);
-                return false;
-            }
-            return true;
         }
         private bool CheckReturn(Statement statement)
         {

@@ -11,6 +11,7 @@
         BracketRight1,          // ]
         BracketRight2,          // }
         Comma,                  // ,
+        Semicolon,              // ;
         Assignment,             // =
         Equals,                 // ==
         Lambda,                 // =>
@@ -124,6 +125,9 @@
                         return true;
                     case ',':
                         lexical = new Lexical(LexicalType.Comma, text, segment[index, index]);
+                        return true;
+                    case ';':
+                        lexical = new Lexical(LexicalType.Semicolon, text, segment[index, index]);
                         return true;
                     case '=':
                         if (segment.Equals('=', index + 1)) lexical = new Lexical(LexicalType.Equals, text, segment[index, index + 1]);

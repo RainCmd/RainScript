@@ -12,6 +12,7 @@
         Colon = 0x40,
         Lambda = 0x80,
         QuestionNull = 0x100,
+        Semicolon = 0x200
     }
     internal static class SplitFlagExtension
     {
